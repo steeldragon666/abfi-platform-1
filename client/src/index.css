@@ -43,15 +43,19 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
+  /* ABFI Custom Colors */
+  --color-primary-custom: #1B4332; /* Deep Green */
+  --color-secondary-custom: #D4A853; /* Gold */
+  
+  --primary: oklch(0.28 0.08 160); /* Deep Green #1B4332 in OKLCH */
+  --primary-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.35 0.08 160);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --chart-1: oklch(0.65 0.08 42); /* Gold tones */
+  --chart-2: oklch(0.55 0.08 42);
+  --chart-3: oklch(0.45 0.08 160); /* Green tones */
+  --chart-4: oklch(0.35 0.08 160);
+  --chart-5: oklch(0.25 0.08 160);
   --radius: 0.65rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.235 0.015 65);
@@ -79,10 +83,10 @@
 }
 
 .dark {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-blue-50);
+  --primary: oklch(0.35 0.08 160); /* Lighter green for dark mode */
+  --primary-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.40 0.08 160);
+  --sidebar-primary-foreground: oklch(1 0 0);
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.85 0.005 65);
   --card: oklch(0.21 0.006 285.885);
