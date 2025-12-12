@@ -1,0 +1,1 @@
+ALTER TABLE `feedstocks` MODIFY COLUMN `category` enum('oilseed','UCO','tallow','lignocellulosic','waste','algae','bamboo','other') NOT NULL;

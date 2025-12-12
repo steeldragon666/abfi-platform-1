@@ -113,7 +113,7 @@ export const feedstocks = mysqlTable("feedstocks", {
   supplierId: int("supplierId").notNull().references(() => suppliers.id),
   
   // Classification
-  category: mysqlEnum("category", ["oilseed", "UCO", "tallow", "lignocellulosic", "waste", "algae", "other"]).notNull(),
+  category: mysqlEnum("category", ["oilseed", "UCO", "tallow", "lignocellulosic", "waste", "algae", "bamboo", "other"]).notNull(),
   type: varchar("type", { length: 100 }).notNull(), // e.g., "canola", "used_cooking_oil", "beef_tallow"
   
   // Location

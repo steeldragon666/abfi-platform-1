@@ -146,6 +146,7 @@ export default function Home() {
               { name: "Used Cooking Oil", desc: "Post-consumer UCO" },
               { name: "Tallow & Fats", desc: "Animal fats and tallow" },
               { name: "Lignocellulosic", desc: "Agricultural residues, forestry" },
+              { name: "Bamboo", desc: "P-Grade biomass, sustainable" },
               { name: "Waste Streams", desc: "Organic waste, municipal" },
               { name: "Algae", desc: "Microalgae and macroalgae" },
             ].map((cat) => (

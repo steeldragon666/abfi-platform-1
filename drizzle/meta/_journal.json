@@ -15,6 +15,13 @@
       "when": 1765556082825,
       "tag": "0001_dapper_lethal_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1765557884853,
+      "tag": "0002_faithful_puma",
+      "breakpoints": true
     }
   ]
 }

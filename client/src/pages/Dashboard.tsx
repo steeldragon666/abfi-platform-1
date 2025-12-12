@@ -94,9 +94,11 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-600">
                       Review supplier and feedstock submissions
                     </p>
-                    <Button className="mt-4 w-full" size="sm">
-                      View Queue
-                    </Button>
+                    <Link href="/admin">
+                      <Button className="mt-4 w-full" size="sm">
+                        View Queue
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
 
@@ -158,9 +160,11 @@ export default function Dashboard() {
                     Receive buyer inquiries
                   </li>
                 </ul>
-                <Button className="w-full">
-                  Create Supplier Profile
-                </Button>
+                <Link href="/supplier/register">
+                  <Button className="w-full">
+                    Create Supplier Profile
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
@@ -187,9 +191,11 @@ export default function Dashboard() {
                     Send RFQs to suppliers
                   </li>
                 </ul>
-                <Button className="w-full">
-                  Create Buyer Profile
-                </Button>
+                <Link href="/buyer/register">
+                  <Button className="w-full">
+                    Create Buyer Profile
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>

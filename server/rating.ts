@@ -224,6 +224,8 @@ export function calculateQualityScore(
       return calculateTallowQualityScore(latestTest.parameters);
     case 'lignocellulosic':
       return calculateLignocellulosicQualityScore(latestTest.parameters);
+    case 'bamboo':
+      return calculateBambooQualityScore(latestTest.parameters);
     case 'waste':
       return calculateWasteQualityScore(latestTest.parameters);
     default:
@@ -369,6 +371,43 @@ function calculateLignocellulosicQualityScore(parameters: any): number {
   if (contaminants === 'within_spec') score += 15;
   else if (contaminants === 'marginal') score += 10;
   else score += 5;
+  
+  return Math.min(100, score);
+}
+
+function calculateBambooQualityScore(parameters: any): number {
+  let score = 0;
+  
+  // Moisture content (0-25 points) - critical for storage and processing
+  const moisture = parameters.moisture?.value;
+  if (moisture < 12) score += 25;
+  else if (moisture < 18) score += 20;
+  else score += 10;
+  
+  // Calorific value (0-30 points) - P-Grade bamboo targets 4000-4500 kcal/kg
+  const calorific = parameters.calorificValue?.value;
+  if (calorific >= 4000) score += 30; // Premium P-Grade
+  else if (calorific >= 3500) score += 25;
+  else if (calorific >= 3000) score += 20; // Minimum P-Grade threshold
+  else score += 10;
+  
+  // Ash content (0-20 points) - lower is better for combustion
+  const ash = parameters.ashContent?.value || parameters.ash?.value;
+  if (ash < 3) score += 20;
+  else if (ash < 5) score += 15;
+  else score += 8;
+  
+  // Cellulose content (0-15 points) - higher is better for conversion
+  const cellulose = parameters.celluloseContent?.value;
+  if (cellulose > 45) score += 15;
+  else if (cellulose > 40) score += 12;
+  else score += 6;
+  
+  // Density (0-10 points) - affects transport and energy density
+  const density = parameters.density?.value;
+  if (density > 600) score += 10; // kg/m³
+  else if (density > 500) score += 7;
+  else score += 4;
   
   return Math.min(100, score);
 }

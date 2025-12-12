@@ -36,6 +36,7 @@ export const FEEDSTOCK_CATEGORIES = [
   { value: "lignocellulosic", label: "Lignocellulosic Biomass" },
   { value: "waste", label: "Waste Streams" },
   { value: "algae", label: "Algae" },
+  { value: "bamboo", label: "Bamboo" },
   { value: "other", label: "Other" },
 ] as const;
 
