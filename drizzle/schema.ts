@@ -1537,3 +1537,112 @@ export const contractEnforceabilityScores = mysqlTable("contractEnforceabilitySc
 
 export type ContractEnforceabilityScore = typeof contractEnforceabilityScores.$inferSelect;
 export type InsertContractEnforceabilityScore = typeof contractEnforceabilityScores.$inferInsert;
+
+// ============================================================================
+// COVENANT BREACH EVENTS (Phase 7)
+// ============================================================================
+
+export const covenantBreachEvents = mysqlTable("covenantBreachEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  projectId: int("projectId").notNull().references(() => projects.id),
+  covenantType: varchar("covenantType", { length: 100 }).notNull(), // e.g., "min_tier1_coverage"
+  
+  // Breach details
+  breachDate: timestamp("breachDate").notNull(),
+  detectedDate: timestamp("detectedDate").notNull(),
+  severity: mysqlEnum("severity", ["info", "warning", "breach", "critical"]).notNull(),
+  
+  // Values
+  actualValue: int("actualValue").notNull(),
+  thresholdValue: int("thresholdValue").notNull(),
+  variancePercent: int("variancePercent").notNull(), // How far from threshold
+  
+  // Narrative
+  narrativeExplanation: text("narrativeExplanation"),
+  impactAssessment: text("impactAssessment"),
+  
+  // Resolution
+  resolved: boolean("resolved").default(false).notNull(),
+  resolvedDate: timestamp("resolvedDate"),
+  resolutionNotes: text("resolutionNotes"),
+  resolvedBy: int("resolvedBy").references(() => users.id),
+  
+  // Notifications
+  lenderNotified: boolean("lenderNotified").default(false),
+  notifiedDate: timestamp("notifiedDate"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  projectIdIdx: index("covenantBreachEvents_projectId_idx").on(table.projectId),
+  breachDateIdx: index("covenantBreachEvents_breachDate_idx").on(table.breachDate),
+  severityIdx: index("covenantBreachEvents_severity_idx").on(table.severity),
+  resolvedIdx: index("covenantBreachEvents_resolved_idx").on(table.resolved),
+}));
+
+export type CovenantBreachEvent = typeof covenantBreachEvents.$inferSelect;
+export type InsertCovenantBreachEvent = typeof covenantBreachEvents.$inferInsert;
+
+// ============================================================================
+// LENDER REPORTS (Phase 7)
+// ============================================================================
+
+export const lenderReports = mysqlTable("lenderReports", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  projectId: int("projectId").notNull().references(() => projects.id),
+  
+  // Report period
+  reportMonth: varchar("reportMonth", { length: 7 }).notNull(), // YYYY-MM format
+  reportYear: int("reportYear").notNull(),
+  reportQuarter: int("reportQuarter"), // 1-4
+  
+  // Generation metadata
+  generatedDate: timestamp("generatedDate").notNull(),
+  generatedBy: int("generatedBy").references(() => users.id),
+  
+  // Report artifacts
+  reportPdfUrl: varchar("reportPdfUrl", { length: 500 }),
+  evidencePackUrl: varchar("evidencePackUrl", { length: 500 }),
+  manifestUrl: varchar("manifestUrl", { length: 500 }),
+  
+  // Content summaries
+  executiveSummary: text("executiveSummary"),
+  scoreChangesNarrative: text("scoreChangesNarrative"),
+  covenantComplianceStatus: json("covenantComplianceStatus").$type<{
+    compliant: boolean;
+    breaches: number;
+    warnings: number;
+  }>(),
+  supplyPositionSummary: json("supplyPositionSummary").$type<{
+    tier1Coverage: number;
+    tier2Coverage: number;
+    totalSuppliers: number;
+    hhi: number;
+  }>(),
+  
+  // Evidence summary
+  evidenceCount: int("evidenceCount").default(0),
+  evidenceTypes: json("evidenceTypes").$type<string[]>(),
+  
+  // Status
+  status: mysqlEnum("status", ["draft", "finalized", "sent", "acknowledged"]).notNull().default("draft"),
+  finalizedDate: timestamp("finalizedDate"),
+  sentDate: timestamp("sentDate"),
+  acknowledgedDate: timestamp("acknowledgedDate"),
+  acknowledgedBy: int("acknowledgedBy").references(() => users.id),
+  
+  // Distribution
+  recipientEmails: json("recipientEmails").$type<string[]>(),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  projectIdIdx: index("lenderReports_projectId_idx").on(table.projectId),
+  reportMonthIdx: index("lenderReports_reportMonth_idx").on(table.reportMonth),
+  statusIdx: index("lenderReports_status_idx").on(table.status),
+}));
+
+export type LenderReport = typeof lenderReports.$inferSelect;
+export type InsertLenderReport = typeof lenderReports.$inferInsert;

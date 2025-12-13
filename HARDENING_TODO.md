@@ -325,29 +325,29 @@
 ## PHASE 7: Lender Portal (Institutional-Grade)
 
 ### Backend Schema
-- [ ] Create `lender_access_grants` table
+- [x] Create `lender_access_grants` table (already exists as lenderAccess)
   - lender_user_id, project_id, access_level (read, monitor, alert)
   - granted_by, granted_date, expiry_date
 
-- [ ] Create `covenant_breach_events` table
+- [x] Create `covenant_breach_events` table
   - project_id, covenant_type, breach_date
   - severity (info, warning, breach, critical)
   - actual_value, threshold_value, variance_percentage
   - narrative_explanation (text), resolved (boolean)
 
-- [ ] Create `lender_reports` table
+- [x] Create `lender_reports` table
   - project_id, report_month, generated_date
   - report_pdf_url, evidence_pack_url
   - score_changes_narrative (text)
   - status (draft, finalized, sent)
 
 ### Backend APIs
-- [ ] GET /api/lender/projects - List accessible projects
-- [ ] GET /api/lender/projects/:id/dashboard - Get monitoring dashboard data
-- [ ] GET /api/lender/projects/:id/alerts - Get active alerts
-- [ ] GET /api/lender/projects/:id/covenant-history - Get breach history
-- [ ] GET /api/lender/reports/:projectId/latest - Get latest monthly report
-- [ ] POST /api/lender/reports/:projectId/generate - Trigger report generation
+- [x] GET /api/lender/projects - List accessible projects (via getDashboard)
+- [x] GET /api/lender/projects/:id/dashboard - Get monitoring dashboard data
+- [x] GET /api/lender/projects/:id/alerts - Get active alerts
+- [x] GET /api/lender/projects/:id/covenant-history - Get breach history
+- [x] GET /api/lender/reports/:projectId/latest - Get latest monthly report
+- [x] POST /api/lender/reports/:projectId/generate - Trigger report generation
 - [ ] GET /api/lender/evidence-pack/:projectId - Download evidence pack
 
 ### Portal UI Enhancements

@@ -1640,6 +1640,109 @@ export const appRouter = router({
         return await getContractEnforceabilityScore(input.agreementId);
       }),
   }),
+  
+  // Lender Portal Enhancement (Phase 7)
+  lender: router({
+    // Get dashboard data
+    getDashboard: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        const { getLenderDashboardData } = await import("./lenderPortal.js");
+        return await getLenderDashboardData(input.projectId);
+      }),
+    
+    // Get active alerts
+    getAlerts: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        const { getActiveAlerts } = await import("./lenderPortal.js");
+        return await getActiveAlerts(input.projectId);
+      }),
+    
+    // Get covenant breach history
+    getBreachHistory: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        unresolved: z.boolean().optional(),
+        since: z.date().optional(),
+      }))
+      .query(async ({ input }) => {
+        const { getCovenantBreachHistory } = await import("./lenderPortal.js");
+        return await getCovenantBreachHistory(input.projectId, {
+          unresolved: input.unresolved,
+          since: input.since,
+        });
+      }),
+    
+    // Resolve covenant breach
+    resolveBreach: protectedProcedure
+      .input(z.object({
+        breachId: z.number(),
+        resolutionNotes: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { resolveCovenantBreach } = await import("./lenderPortal.js");
+        await resolveCovenantBreach({
+          ...input,
+          resolvedBy: ctx.user.id,
+        });
+        return { success: true };
+      }),
+    
+    // Generate monthly report
+    generateReport: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        reportMonth: z.string(),
+        executiveSummary: z.string().optional(),
+        scoreChangesNarrative: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { generateMonthlyReport } = await import("./lenderPortal.js");
+        return await generateMonthlyReport({
+          ...input,
+          generatedBy: ctx.user.id,
+        });
+      }),
+    
+    // Get latest report
+    getLatestReport: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        const { getLatestReport } = await import("./lenderPortal.js");
+        return await getLatestReport(input.projectId);
+      }),
+    
+    // Get all reports
+    getReports: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        const { getProjectReports } = await import("./lenderPortal.js");
+        return await getProjectReports(input.projectId);
+      }),
+    
+    // Finalize report
+    finalizeReport: protectedProcedure
+      .input(z.object({
+        reportId: z.number(),
+        reportPdfUrl: z.string().optional(),
+        evidencePackUrl: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { finalizeReport } = await import("./lenderPortal.js");
+        await finalizeReport(input);
+        return { success: true };
+      }),
+    
+    // Mark report as sent
+    markReportSent: protectedProcedure
+      .input(z.object({ reportId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { markReportSent } = await import("./lenderPortal.js");
+        await markReportSent(input.reportId);
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
