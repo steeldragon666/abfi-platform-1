@@ -70,11 +70,16 @@ export default function Home() {
             <p className="text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
               Evidence-Backed Feedstock Infrastructure for Australia's Bioenergy Transition
             </p>
-            <div className="flex gap-4 mb-12">
-              <Link href="/browse">
+            <div className="flex flex-wrap gap-4 mb-12">
+              <Link href="/producer-registration">
                 <Button size="lg" className="text-lg px-8 py-6 bg-[#F4C430] hover:bg-[#F4C430]/90 text-[#0F3A5C] font-semibold shadow-lg">
-                  Browse Feedstocks
+                  List Your Feedstock
                   <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/browse">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2 border-[#F4C430] text-white hover:bg-[#F4C430]/10">
+                  Browse Feedstocks
                 </Button>
               </Link>
               <Link href="/feedstock-map">

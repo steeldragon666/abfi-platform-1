@@ -2422,6 +2422,159 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // ============================================================================
+  // PRODUCER REGISTRATION
+  // ============================================================================
+
+  producer: router({    
+    // Submit complete producer registration
+    register: protectedProcedure
+      .input(z.object({
+        // Account info
+        abn: z.string(),
+        companyName: z.string(),
+        contactName: z.string(),
+        email: z.string().email(),
+        phone: z.string(),
+        
+        // Property info
+        propertyName: z.string(),
+        address: z.string(),
+        state: z.string(),
+        postcode: z.string(),
+        latitude: z.number(),
+        longitude: z.number(),
+        landArea: z.number(),
+        waterAccess: z.string(),
+        boundaries: z.string().optional(),
+        
+        // Production profile
+        feedstockType: z.string(),
+        currentSeasonYield: z.number(),
+        historicalYields: z.array(z.object({
+          seasonYear: z.number(),
+          cropType: z.string().optional(),
+          totalHarvest: z.number(),
+          plantedArea: z.number().optional(),
+          notes: z.string().optional(),
+        })),
+        
+        // Carbon practices
+        tillagePractice: z.enum(['no_till', 'minimum_till', 'conventional', 'multiple_passes']),
+        fertilizerType: z.enum(['synthetic', 'organic', 'mixed', 'none']),
+        fertilizerRate: z.number(),
+        machineryType: z.enum(['diesel', 'biodiesel', 'electric', 'hybrid']),
+        energySource: z.enum(['grid', 'solar', 'wind', 'biomass', 'mixed']),
+        landUseChange: z.enum(['none', 'cleared_forest', 'cleared_grassland', 'restored_land']),
+        carbonScore: z.number(),
+        
+        // Existing contracts
+        existingContracts: z.array(z.object({
+          buyerName: z.string(),
+          contractedVolumeTonnes: z.number(),
+          contractEndDate: z.string(),
+          isConfidential: z.boolean().optional(),
+        })),
+        
+        // Marketplace listing
+        availableVolume: z.number(),
+        priceMin: z.number(),
+        priceMax: z.number(),
+        deliveryTerms: z.string(),
+        qualitySpecs: z.string(),
+        visibility: z.enum(['public', 'verified_only', 'private']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Create or get supplier profile
+        let supplier = await db.getSupplierByUserId(ctx.user.id);
+        if (!supplier) {
+          await db.createSupplier({
+            userId: ctx.user.id,
+            companyName: input.companyName,
+            abn: input.abn,
+            contactName: input.contactName,
+            email: input.email,
+            phone: input.phone,
+            verificationStatus: 'pending',
+          });
+          supplier = await db.getSupplierByUserId(ctx.user.id);
+        }
+        
+        if (!supplier) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to create supplier profile',
+          });
+        }
+        
+        // Insert property
+        const propertyId = await db.createProperty({
+          supplierId: supplier.id,
+          name: input.propertyName,
+          address: input.address,
+          state: input.state,
+          postcode: input.postcode,
+          latitude: input.latitude,
+          longitude: input.longitude,
+          landArea: input.landArea,
+          waterAccess: input.waterAccess,
+          boundaries: input.boundaries,
+        });
+        
+        // Insert production history
+        for (const record of input.historicalYields) {
+          await db.createProductionHistory({
+            propertyId,
+            seasonYear: record.seasonYear,
+            cropType: record.cropType,
+            totalHarvest: record.totalHarvest,
+            plantedArea: record.plantedArea,
+            notes: record.notes,
+          });
+        }
+        
+        // Insert carbon practices
+        await db.createCarbonPractice({
+          propertyId,
+          tillagePractice: input.tillagePractice,
+          fertilizerType: input.fertilizerType,
+          fertilizerRate: input.fertilizerRate,
+          machineryType: input.machineryType,
+          energySource: input.energySource,
+          landUseChange: input.landUseChange,
+          carbonScore: input.carbonScore,
+        });
+        
+        // Insert existing contracts
+        for (const contract of input.existingContracts) {
+          await db.createExistingContract({
+            supplierId: supplier.id,
+            buyerName: contract.buyerName,
+            contractedVolumeTonnes: contract.contractedVolumeTonnes,
+            contractEndDate: contract.contractEndDate,
+            isConfidential: contract.isConfidential,
+          });
+        }
+        
+        // Insert marketplace listing
+        await db.createMarketplaceListing({
+          supplierId: supplier.id,
+          availableVolumeTonnes: input.availableVolume,
+          pricePerTonneMin: input.priceMin,
+          pricePerTonneMax: input.priceMax,
+          deliveryTerms: input.deliveryTerms,
+          qualitySpecifications: input.qualitySpecs,
+          visibility: input.visibility,
+        });
+        
+        return {
+          success: true,
+          supplierId: supplier.id,
+          propertyId,
+        };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -1144,3 +1144,69 @@ export async function getLatestYieldEstimate(feedstockId: number) {
   
   return results[0] || null;
 }
+
+
+// ============================================================================
+// PRODUCER REGISTRATION
+// ============================================================================
+
+export async function createProperty(property: Omit<InsertProperty, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  
+  const result = await db.insert(properties).values(property);
+  return result[0].insertId;
+}
+
+export async function createProductionHistory(history: Omit<InsertProductionHistory, 'id' | 'createdAt'>): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  
+  const result = await db.insert(productionHistory).values(history);
+  return result[0].insertId;
+}
+
+export async function createCarbonPractice(practice: Omit<InsertCarbonPractice, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  
+  const result = await db.insert(carbonPractices).values(practice);
+  return result[0].insertId;
+}
+
+export async function createExistingContract(contract: Omit<InsertExistingContract, 'id' | 'createdAt'>): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  
+  const result = await db.insert(existingContracts).values(contract);
+  return result[0].insertId;
+}
+
+export async function createMarketplaceListing(listing: Omit<InsertMarketplaceListing, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  
+  const result = await db.insert(marketplaceListings).values(listing);
+  return result[0].insertId;
+}
+
+export async function getPropertiesBySupplier(supplierId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db
+    .select()
+    .from(properties)
+    .where(eq(properties.supplierId, supplierId));
+}
+
+export async function getProductionHistoryByProperty(propertyId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db
+    .select()
+    .from(productionHistory)
+    .where(eq(productionHistory.propertyId, propertyId))
+    .orderBy(desc(productionHistory.year));
+}

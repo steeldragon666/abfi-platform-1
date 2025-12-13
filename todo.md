@@ -367,3 +367,14 @@ Note: Seed script encounters schema mismatches. Recommend using UI workflows to 
 - [x] Database schema complete with 5 new tables
 - [ ] tRPC API endpoints (ready for implementation)
 - [ ] Integration testing
+
+## Producer Registration API Integration (Session 11)
+- [x] Create tRPC producer.register mutation endpoint
+- [x] Implement database insertion for properties table
+- [x] Implement database insertion for production_history table
+- [x] Implement database insertion for carbon_practices table
+- [x] Implement database insertion for existing_contracts table
+- [x] Implement database insertion for marketplace_listings table
+- [x] Add producer CTA button to homepage hero section
+- [ ] Test complete registration flow end-to-end
+- [ ] Verify data persistence in database
