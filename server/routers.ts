@@ -2046,6 +2046,130 @@ export const appRouter = router({
         return await getDisputeMetrics(period);
       }),
   }),
+
+  // ============================================================================
+  // SAVED ANALYSES (Feedstock Map)
+  // ============================================================================
+
+  savedAnalyses: router({
+    // Save a new radius analysis
+    save: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        description: z.string().optional(),
+        radiusKm: z.number().int().min(10).max(200),
+        centerLat: z.string(),
+        centerLng: z.string(),
+        results: z.object({
+          feasibilityScore: z.number(),
+          facilities: z.object({
+            sugarMills: z.number(),
+            biogasFacilities: z.number(),
+            biofuelPlants: z.number(),
+            ports: z.number(),
+            grainHubs: z.number(),
+          }),
+          feedstockTonnes: z.object({
+            bagasse: z.number(),
+            grainStubble: z.number(),
+            forestryResidue: z.number(),
+            biogas: z.number(),
+            total: z.number(),
+          }),
+          infrastructure: z.object({
+            ports: z.array(z.string()),
+            railLines: z.array(z.string()),
+          }),
+          recommendations: z.array(z.string()),
+        }),
+        filterState: z.object({
+          selectedStates: z.array(z.string()),
+          visibleLayers: z.array(z.string()),
+          capacityRanges: z.record(z.string(), z.object({
+            min: z.number(),
+            max: z.number(),
+          })),
+        }).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const analysisId = await db.createSavedAnalysis({
+          userId: ctx.user.id,
+          ...input,
+        });
+        
+        return { id: analysisId, success: true };
+      }),
+
+    // List all saved analyses for current user
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        return await db.getSavedAnalysesByUserId(ctx.user.id);
+      }),
+
+    // Get a specific saved analysis by ID
+    get: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const analysis = await db.getSavedAnalysisById(input.id);
+        
+        if (!analysis) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Analysis not found',
+          });
+        }
+        
+        // Verify ownership
+        if (analysis.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have access to this analysis',
+          });
+        }
+        
+        return analysis;
+      }),
+
+    // Update a saved analysis
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).max(255).optional(),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...updates } = input;
+        
+        // Verify ownership
+        const analysis = await db.getSavedAnalysisById(id);
+        if (!analysis || analysis.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have access to this analysis',
+          });
+        }
+        
+        await db.updateSavedAnalysis(id, updates);
+        return { success: true };
+      }),
+
+    // Delete a saved analysis
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        // Verify ownership
+        const analysis = await db.getSavedAnalysisById(input.id);
+        if (!analysis || analysis.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have access to this analysis',
+          });
+        }
+        
+        await db.deleteSavedAnalysis(input.id);
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

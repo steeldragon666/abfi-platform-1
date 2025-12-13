@@ -11,6 +11,7 @@ import {
   transactions, InsertTransaction,
   notifications, InsertNotification,
   savedSearches, InsertSavedSearch,
+  savedAnalyses, InsertSavedAnalysis,
   auditLogs, InsertAuditLog,
   evidence, InsertEvidence,
   evidenceLinkages, InsertEvidenceLinkage,
@@ -474,6 +475,48 @@ export async function deleteSavedSearch(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(savedSearches).where(eq(savedSearches.id, id));
+}
+
+// ============================================================================
+// SAVED ANALYSES (Feedstock Map)
+// ============================================================================
+
+export async function createSavedAnalysis(analysis: InsertSavedAnalysis) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(savedAnalyses).values(analysis);
+  return Number((result as any).insertId);
+}
+
+export async function getSavedAnalysesByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(savedAnalyses)
+    .where(eq(savedAnalyses.userId, userId))
+    .orderBy(desc(savedAnalyses.createdAt));
+}
+
+export async function getSavedAnalysisById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const results = await db.select().from(savedAnalyses)
+    .where(eq(savedAnalyses.id, id))
+    .limit(1);
+  return results[0] || null;
+}
+
+export async function updateSavedAnalysis(id: number, updates: Partial<InsertSavedAnalysis>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(savedAnalyses)
+    .set(updates)
+    .where(eq(savedAnalyses.id, id));
+}
+
+export async function deleteSavedAnalysis(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(savedAnalyses).where(eq(savedAnalyses.id, id));
 }
 
 // ============================================================================

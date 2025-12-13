@@ -3,6 +3,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -14,6 +15,8 @@ import { buildLayerFilter } from "@/lib/mapFilters";
 import { analyzeRadius, type AnalysisResults } from "@/lib/radiusAnalysis";
 import { exportAsGeoJSON, exportAsCSV } from "@/lib/mapExport";
 import { exportAnalysisAsPDF, captureMapScreenshot } from "@/lib/pdfExport";
+import { trpc } from "@/lib/trpc";
+import { Textarea } from "@/components/ui/textarea";
 
 // Mapbox access token (using Manus proxy)
 mapboxgl.accessToken = "pk.eyJ1Ijoic3RlZWxkcmFnb242NjYiLCJhIjoiY21keGFwNmxjMmM1MjJscTM0NHMwMWo5aSJ9.3mvzNah-7rzwxCZ2L81-YA";
@@ -38,6 +41,9 @@ export default function FeedstockMap() {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResults | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [savedAnalysisName, setSavedAnalysisName] = useState("");
+  const [savedAnalysisDescription, setSavedAnalysisDescription] = useState("");
   
   const [layers, setLayers] = useState<LayerConfig[]>([
     { id: "sugar-mills", name: "Sugar Mills", type: "circle", source: "/geojson/sugar_mills.json", color: "#8B4513", visible: true },
@@ -454,6 +460,51 @@ export default function FeedstockMap() {
     }
   };
 
+  // Save analysis mutation
+  const saveAnalysisMutation = trpc.savedAnalyses.save.useMutation({
+    onSuccess: () => {
+      alert("Analysis saved successfully!");
+      setShowSaveDialog(false);
+      setSavedAnalysisName("");
+      setSavedAnalysisDescription("");
+    },
+    onError: (error) => {
+      alert(`Failed to save analysis: ${error.message}`);
+    },
+  });
+
+  // Handle save analysis
+  const handleSaveAnalysis = async () => {
+    if (!analysisResults || !radiusCenter) {
+      alert("Please run a radius analysis first.");
+      return;
+    }
+
+    if (!savedAnalysisName.trim()) {
+      alert("Please enter a name for this analysis.");
+      return;
+    }
+
+    saveAnalysisMutation.mutate({
+      name: savedAnalysisName,
+      description: savedAnalysisDescription || undefined,
+      radiusKm,
+      centerLat: radiusCenter[1].toString(),
+      centerLng: radiusCenter[0].toString(),
+      results: analysisResults,
+      filterState: {
+        selectedStates,
+        visibleLayers: layers.filter((l) => l.visible).map((l) => l.id),
+        capacityRanges: {
+          "sugar-mills": { min: sugarMillCapacity[0], max: sugarMillCapacity[1] },
+          "biogas-facilities": { min: biogasCapacity[0], max: biogasCapacity[1] },
+          "biofuel-plants": { min: biofuelCapacity[0], max: biofuelCapacity[1] },
+          "transport-infrastructure": { min: portThroughput[0], max: portThroughput[1] },
+        } as Record<string, { min: number; max: number }>,
+      },
+    });
+  };
+
   // Clear radius and analysis
   const clearRadius = () => {
     if (!map.current) return;
@@ -652,8 +703,17 @@ export default function FeedstockMap() {
                   </div>
                 )}
 
-                {/* Download Report Button */}
-                <div className="pt-4 border-t">
+                {/* Action Buttons */}
+                <div className="pt-4 border-t space-y-2">
+                  <Button
+                    onClick={() => setShowSaveDialog(true)}
+                    disabled={isExporting}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <Target className="h-4 w-4 mr-2" />
+                    Save Analysis
+                  </Button>
                   <Button
                     onClick={handleExportPDF}
                     disabled={isExporting}
@@ -919,6 +979,74 @@ export default function FeedstockMap() {
           )}
         </div>
       </div>
+
+      {/* Save Analysis Dialog */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save Radius Analysis</DialogTitle>
+            <DialogDescription>
+              Save this analysis to your account for future reference and comparison.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="analysis-name">Analysis Name *</Label>
+              <Input
+                id="analysis-name"
+                placeholder="e.g., Brisbane North Site Assessment"
+                value={savedAnalysisName}
+                onChange={(e) => setSavedAnalysisName(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="analysis-description">Description (Optional)</Label>
+              <Textarea
+                id="analysis-description"
+                placeholder="Add notes about this analysis..."
+                value={savedAnalysisDescription}
+                onChange={(e) => setSavedAnalysisDescription(e.target.value)}
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+
+            {analysisResults && (
+              <div className="bg-muted p-3 rounded-md text-sm">
+                <p className="font-medium mb-1">Analysis Summary:</p>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li>• Radius: {radiusKm} km</li>
+                  <li>• Feasibility Score: {analysisResults.feasibilityScore}/100</li>
+                  <li>• Total Feedstock: {analysisResults.feedstockTonnes.total.toLocaleString()} tonnes/year</li>
+                  <li>• Facilities: {Object.values(analysisResults.facilities).reduce((a, b) => a + b, 0)} total</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowSaveDialog(false);
+                setSavedAnalysisName("");
+                setSavedAnalysisDescription("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveAnalysis}
+              disabled={saveAnalysisMutation.isPending || !savedAnalysisName.trim()}
+            >
+              {saveAnalysisMutation.isPending ? "Saving..." : "Save Analysis"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -161,7 +161,7 @@
 - [x] Add search functionality placeholder
 - [x] Complete remaining GeoJSON layers (forestry, biogas, biofuel, transport)
 - [ ] Implement advanced filtering by state and capacity
-- [ ] Add data export (GeoJSON/CSV)
+- [x] Add data export (GeoJSON/CSV)
 - [ ] Integrate with existing feedstock database
 
 ## Compliance Reporting (New Request - Session 3)
@@ -182,6 +182,14 @@
 - [x] Add "Reset Filters" button
 - [ ] Show active filter count badge
 
+## Save Analysis Feature (Session 3 - TODO 3)
+- [x] Create saved_analyses database table (user_id, name, radius_km, center_coords, results_json, created_at)
+- [x] Add tRPC endpoints for save/list/delete analyses
+- [x] Build "Save Analysis" dialog with name input
+- [ ] Create "Saved Analyses" panel in sidebar
+- [ ] Add "Load Analysis" functionality to restore saved state
+- [ ] Implement analysis comparison view
+
 ## Enhanced 50km Radius Analysis (Session 3)
 - [x] Build calculation engine for feedstock tonnes within radius
 - [x] Count facilities by category (sugar mills, biogas, biofuel, ports)
@@ -190,7 +198,7 @@
 - [x] Identify transport infrastructure within radius
 - [x] Create results display panel with metrics breakdown
 - [x] Add supply chain feasibility scoring (0-100 with recommendations)
-- [ ] Implement PDF export for analysis reports
+- [x] Implement PDF export for analysis reports
 - [x] Add "Clear Radius" button
 
 ## Adjustable Radius Slider (Session 3)
@@ -208,3 +216,6 @@
 - [x] Display current radius value in UI (badge shows {radiusKm} km)
 - [x] Update circle visualization with dynamic radius
 - [x] Update button text to show current radius value
+
+## Bugs & Issues (Session 3)
+- [x] Fix Browse Feedstocks page - not working at all (CRITICAL)

@@ -449,6 +449,65 @@ export type SavedSearch = typeof savedSearches.$inferSelect;
 export type InsertSavedSearch = typeof savedSearches.$inferInsert;
 
 // ============================================================================
+// SAVED RADIUS ANALYSES (Feedstock Map)
+// ============================================================================
+
+export const savedAnalyses = mysqlTable("savedAnalyses", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  userId: int("userId").notNull().references(() => users.id),
+  
+  // Analysis metadata
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  
+  // Geographic parameters
+  radiusKm: int("radiusKm").notNull(), // 10-200km
+  centerLat: varchar("centerLat", { length: 20 }).notNull(),
+  centerLng: varchar("centerLng", { length: 20 }).notNull(),
+  
+  // Analysis results (stored as JSON)
+  results: json("results").$type<{
+    feasibilityScore: number;
+    facilities: {
+      sugarMills: number;
+      biogasFacilities: number;
+      biofuelPlants: number;
+      ports: number;
+      grainHubs: number;
+    };
+    feedstockTonnes: {
+      bagasse: number;
+      grainStubble: number;
+      forestryResidue: number;
+      biogas: number;
+      total: number;
+    };
+    infrastructure: {
+      ports: string[];
+      railLines: string[];
+    };
+    recommendations: string[];
+  }>().notNull(),
+  
+  // Filter state at time of analysis
+  filterState: json("filterState").$type<{
+    selectedStates: string[];
+    visibleLayers: string[];
+    capacityRanges: Record<string, { min: number; max: number }>;
+  }>(),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("savedAnalyses_userId_idx").on(table.userId),
+  createdAtIdx: index("savedAnalyses_createdAt_idx").on(table.createdAt),
+}));
+
+export type SavedAnalysis = typeof savedAnalyses.$inferSelect;
+export type InsertSavedAnalysis = typeof savedAnalyses.$inferInsert;
+
+// ============================================================================
 // AUDIT LOGS
 // ============================================================================
 

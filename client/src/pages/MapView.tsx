@@ -295,19 +295,18 @@ export default function MapView() {
 
             <Card className="overflow-hidden">
               <div className="h-[600px] relative">
-                {isLoading ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                <GoogleMapView
+                  onMapReady={handleMapReady}
+                  initialCenter={{ lat: -25.2744, lng: 133.7751 }} // Center of Australia
+                  initialZoom={4}
+                />
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75">
                     <div className="text-center">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p className="text-gray-600">Loading map...</p>
+                      <p className="text-gray-600">Loading feedstocks...</p>
                     </div>
                   </div>
-                ) : (
-                  <GoogleMapView
-                    onMapReady={handleMapReady}
-                    initialCenter={{ lat: -25.2744, lng: 133.7751 }} // Center of Australia
-                    initialZoom={4}
-                  />
                 )}
               </div>
             </Card>
