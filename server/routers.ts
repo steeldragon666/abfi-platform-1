@@ -1355,6 +1355,74 @@ export const appRouter = router({
         return await db.getCertificateSnapshotsByCertificate(input.certificateId);
       }),
   }),
+  
+  // Temporal Versioning & Validity
+  temporal: router({
+    // Get entity as of specific date
+    getAsOfDate: protectedProcedure
+      .input(z.object({
+        entityType: z.enum(["feedstock", "certificate", "supply_agreement", "bankability_assessment"]),
+        entityId: z.number(),
+        asOfDate: z.date(),
+      }))
+      .query(async ({ input }) => {
+        const { getEntityAsOfDate } = await import('./temporal.js');
+        return await getEntityAsOfDate(input.entityType, input.entityId, input.asOfDate);
+      }),
+    
+    // Get current version
+    getCurrent: protectedProcedure
+      .input(z.object({
+        entityType: z.enum(["feedstock", "certificate", "supply_agreement", "bankability_assessment"]),
+        entityId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        const { getCurrentVersion } = await import('./temporal.js');
+        return await getCurrentVersion(input.entityType, input.entityId);
+      }),
+    
+    // Get version history
+    getHistory: protectedProcedure
+      .input(z.object({
+        entityType: z.enum(["feedstock", "certificate", "supply_agreement", "bankability_assessment"]),
+        entityId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        const { getEntityHistory } = await import('./temporal.js');
+        return await getEntityHistory(input.entityType, input.entityId);
+      }),
+    
+    // Get version timeline
+    getTimeline: protectedProcedure
+      .input(z.object({
+        entityType: z.enum(["feedstock", "certificate", "supply_agreement", "bankability_assessment"]),
+        entityId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        const { getVersionTimeline } = await import('./temporal.js');
+        return await getVersionTimeline(input.entityType, input.entityId);
+      }),
+    
+    // Compare two versions
+    compareVersions: protectedProcedure
+      .input(z.object({
+        entityType: z.enum(["feedstock", "certificate", "supply_agreement", "bankability_assessment"]),
+        oldVersionId: z.number(),
+        newVersionId: z.number(),
+      }))
+      .query(async ({ input }) => {
+        const { getCurrentVersion, compareVersions } = await import('./temporal.js');
+        
+        const oldVersion = await getCurrentVersion(input.entityType, input.oldVersionId);
+        const newVersion = await getCurrentVersion(input.entityType, input.newVersionId);
+        
+        if (!oldVersion || !newVersion) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Version not found' });
+        }
+        
+        return compareVersions(oldVersion, newVersion);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

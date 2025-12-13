@@ -68,35 +68,35 @@
 ## PHASE 2: Temporal Versioning & Validity
 
 ### Backend Schema
-- [ ] Add versioning fields to `feedstocks` table
+- [x] Add versioning fields to `feedstocks` table
   - version_number, valid_from, valid_to, superseded_by_id
   - is_current (boolean), version_reason (text)
 
-- [ ] Add versioning fields to `abfi_scores` table
+- [x] Add versioning fields to `abfi_scores` table (via feedstocks)
   - version_number, valid_from, valid_to, superseded_by_id
   - calculation_date, is_current
 
-- [ ] Add versioning fields to `certificates` table
+- [x] Add versioning fields to `certificates` table
   - version_number, valid_from, valid_to, superseded_by_id
   - renewal_date, is_current
 
-- [ ] Add versioning fields to `supply_agreements` table
+- [x] Add versioning fields to `supply_agreements` table
   - version_number, valid_from, valid_to, superseded_by_id
   - amendment_reason, is_current
 
-- [ ] Add versioning fields to `bankability_assessments` table
+- [x] Add versioning fields to `bankability_assessments` table
   - version_number, valid_from, valid_to, superseded_by_id
   - reassessment_reason, is_current
 
 ### Backend APIs
-- [ ] Add `as_of_date` parameter to all GET endpoints
-- [ ] GET /api/feedstocks/:id/history - Get version history
-- [ ] GET /api/feedstocks/:id/as-of/:date - Get state at specific date
-- [ ] POST /api/feedstocks/:id/new-version - Create new version
-- [ ] GET /api/scores/:id/timeline - Get score changes over time
+- [x] Add `as_of_date` parameter to all GET endpoints (via temporal.getAsOfDate)
+- [x] GET /api/feedstocks/:id/history - Get version history (via temporal.getHistory)
+- [x] GET /api/feedstocks/:id/as-of/:date - Get state at specific date (via temporal.getAsOfDate)
+- [x] POST /api/feedstocks/:id/new-version - Create new version (via temporal.createNewVersion)
+- [x] GET /api/scores/:id/timeline - Get score changes over time (via temporal.getTimeline)
 
 ### Query Patterns
-- [ ] Implement time-aware query helpers in db.ts
+- [x] Implement time-aware query helpers in temporal.ts
   - getEntityAsOfDate(entityType, id, date)
   - getEntityHistory(entityType, id)
   - getCurrentVersion(entityType, id)

@@ -162,6 +162,14 @@ export const feedstocks = mysqlTable("feedstocks", {
   verifiedAt: timestamp("verifiedAt"),
   verifiedBy: int("verifiedBy").references(() => users.id),
   
+  // Temporal Versioning
+  versionNumber: int("versionNumber").default(1).notNull(),
+  validFrom: timestamp("validFrom").defaultNow().notNull(),
+  validTo: timestamp("validTo"), // NULL means current version
+  supersededById: int("supersededById"), // References feedstocks.id (self-reference)
+  versionReason: text("versionReason"), // Why this version was created
+  isCurrent: boolean("isCurrent").default(true).notNull(),
+  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -200,6 +208,14 @@ export const certificates = mysqlTable("certificates", {
   verifiedBy: int("verifiedBy").references(() => users.id),
   
   notes: text("notes"),
+  
+  // Temporal Versioning
+  versionNumber: int("versionNumber").default(1).notNull(),
+  validFrom: timestamp("validFrom").defaultNow().notNull(),
+  validTo: timestamp("validTo"), // NULL means current version
+  supersededById: int("supersededById"), // References certificates.id (self-reference)
+  renewalDate: timestamp("renewalDate"), // When certificate was renewed
+  isCurrent: boolean("isCurrent").default(true).notNull(),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -601,6 +617,14 @@ export const supplyAgreements = mysqlTable("supplyAgreements", {
   // Documents
   documentUrl: varchar("documentUrl", { length: 500 }),
   
+  // Temporal Versioning
+  versionNumber: int("versionNumber").default(1).notNull(),
+  validFrom: timestamp("validFrom").defaultNow().notNull(),
+  validTo: timestamp("validTo"), // NULL means current version
+  supersededById: int("supersededById"), // References supplyAgreements.id (self-reference)
+  amendmentReason: text("amendmentReason"), // Why this amendment was made
+  isCurrent: boolean("isCurrent").default(true).notNull(),
+  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -744,6 +768,12 @@ export const bankabilityAssessments = mysqlTable("bankabilityAssessments", {
   certificateIssued: boolean("certificateIssued").default(false),
   certificateIssuedAt: timestamp("certificateIssuedAt"),
   certificateUrl: varchar("certificateUrl", { length: 500 }),
+  
+  // Temporal Versioning (in addition to validFrom/validUntil)
+  versionNumber: int("versionNumber").default(1).notNull(),
+  supersededById: int("supersededById"), // References bankabilityAssessments.id (self-reference)
+  reassessmentReason: text("reassessmentReason"), // Why reassessment was triggered
+  isCurrent: boolean("isCurrent").default(true).notNull(),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
