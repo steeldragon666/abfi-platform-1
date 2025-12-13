@@ -243,6 +243,10 @@ export const appRouter = router({
         return { buyerId };
       }),
     
+    get: buyerProcedure.query(async ({ ctx }) => {
+      return await db.getBuyerById(ctx.buyer.id);
+    }),
+    
     update: buyerProcedure
       .input(z.object({
         companyName: z.string().min(1).optional(),

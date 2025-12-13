@@ -5,7 +5,8 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import FeedstockDetail from "./pages/FeedstockDetail";
+import FeedstockDetail from "@/pages/FeedstockDetail";
+import FeedstockEdit from "@/pages/FeedstockEdit";
 import Browse from "./pages/Browse";
 import Dashboard from "./pages/Dashboard";
 import SupplierRegistration from "./pages/SupplierRegistration";
@@ -20,7 +21,8 @@ import BuyerInquiries from "./pages/BuyerInquiries";
 import SupplierFeedstocks from "./pages/SupplierFeedstocks";
 import BankabilityDashboard from "./pages/BankabilityDashboard";
 import SavedSearches from "./pages/SavedSearches";
-import SupplierProfile from "./pages/SupplierProfile";
+import SupplierProfile from "@/pages/SupplierProfile";
+import BuyerProfile from "@/pages/BuyerProfile";
 import Notifications from "./pages/Notifications";
 import QualityTestUpload from "./pages/QualityTestUpload";
 
@@ -29,6 +31,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path="/feedstock/:id" component={FeedstockDetail} />
+      <Route path="/feedstock/edit/:id" component={FeedstockEdit} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/supplier/register" component={SupplierRegistration} />
       <Route path="/buyer/register" component={BuyerRegistration} />
@@ -41,6 +44,7 @@ function Router() {
       <Route path="/bankability" component={BankabilityDashboard} />
       <Route path="/saved-searches" component={SavedSearches} />
       <Route path="/supplier/profile" component={SupplierProfile} />
+      <Route path="/buyer/profile" component={BuyerProfile} />
       <Route path="/notifications" component={Notifications} />
       <Route path="/quality-test/upload" component={QualityTestUpload} />
       <Route path="/map" component={MapView} />

@@ -38,7 +38,7 @@
 - [x] Add quality test report upload
 - [ ] Build availability calendar
 - [x] Implement feedstock list/grid view for suppliers
-- [ ] Add feedstock detail/edit page
+- [x] Add feedstock detail/edit page
 - [x] Create status workflow (draft, pending, active, suspended)
 
 ## Phase 5: ABFI Rating System
@@ -57,7 +57,7 @@
 ## Phase 6: Buyer Portal
 - [x] Create buyer registration flow
 - [x] Build buyer dashboard homepage
-- [ ] Implement buyer profile management page
+- [x] Implement buyer profile management page
 - [ ] Add facility location management
 
 ## Phase 7: Search & Discovery

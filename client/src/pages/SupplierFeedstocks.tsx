@@ -153,10 +153,12 @@ export default function SupplierFeedstocks() {
                         View Details
                       </Button>
                     </Link>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
+                    <Link href={`/feedstock/edit/${feedstock.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </Link>
                     {feedstock.status === 'active' && (
                       <Button variant="outline" size="sm">
                         Suspend
