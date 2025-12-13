@@ -238,9 +238,11 @@ export default function Browse() {
                       )}
 
                       <div className="mt-4 flex gap-2">
-                        <Button className="flex-1" size="sm">
-                          View Details
-                        </Button>
+                        <Link href={`/feedstock/${feedstock.id}`} className="flex-1">
+                          <Button className="w-full" size="sm">
+                            View Details
+                          </Button>
+                        </Link>
                         <Link href={`/inquiry/send?feedstockId=${feedstock.id}`}>
                           <Button variant="outline" size="sm">
                             Send Inquiry

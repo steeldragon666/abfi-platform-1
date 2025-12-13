@@ -68,7 +68,7 @@
 - [ ] Implement pagination
 - [ ] Create saved searches functionality
 - [ ] Add shortlist/favorites system
-- [ ] Build feedstock detail page
+- [x] Build feedstock detail page
 
 ## Phase 8: Inquiry & Communication
 - [x] Create inquiry form (buyer to supplier)
