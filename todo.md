@@ -500,3 +500,45 @@ Note: Seed script encounters schema mismatches. Recommend using UI workflows to 
 
 ## Session 8 - Landing Page User Groups
 - [x] Redesign landing page to clearly represent three user groups (Growers, Project Developers, Lenders)
+
+## Session 9 - Complete Remaining Tasks
+### High Priority (Revenue-Enabling & Critical Functionality)
+- [ ] Create seed data script with realistic Australian data
+- [ ] Implement subscription tier system for market intelligence
+- [ ] Build API gateway with usage metering
+- [ ] Create market indices (regional availability, quality-adjusted, carbon-adjusted)
+- [ ] Add certificate download functionality to assessment pages
+- [ ] Build user management interface for admin
+- [ ] Create audit log viewer
+- [ ] Add shortlist/favorites system for buyers
+- [ ] Build communication history view
+- [ ] Implement notification preferences
+
+### Medium Priority (UX & Polish)
+- [ ] Build settings interface for suppliers
+- [ ] Add location picker with map integration for feedstock creation
+- [ ] Build availability calendar for feedstocks
+- [ ] Create ScoreCard component for ABFI ratings
+- [ ] Build ScoreBreakdown visualization
+- [ ] Add ScoreTrend chart
+- [ ] Create ScoreBadge component
+- [ ] Add facility location management for buyers
+- [ ] Implement inquiry status tracking
+- [ ] Responsive design testing
+- [ ] Accessibility audit (WCAG 2.1 AA)
+- [ ] Loading states and skeletons
+- [ ] Empty states with helpful guidance
+
+### Low Priority (Documentation & Future Enhancement)
+- [ ] Performance optimization
+- [ ] API documentation
+- [ ] User guides
+- [ ] Add forward indicators (availability curves, price bands)
+- [ ] Create governance documentation
+- [ ] Implement data anonymization layer
+
+## Session 9 Progress
+- [~] Create seed data script - Deferred: Schema has many required fields, recommend using UI workflows instead
+- [ ] Implement certificate download functionality (in progress)
+- [x] Create ScoreCard/ScoreBadge components (ScoreCard, ScoreBadge, RatingBadge, CompactScore)
+- [ ] Build user management interface for admin (deferred to next session)
