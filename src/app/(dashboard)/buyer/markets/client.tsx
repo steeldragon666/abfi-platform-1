@@ -842,7 +842,130 @@ export function MarketsClient({
         </TabsContent>
 
         {/* Price Indices Tab */}
-        <TabsContent value="indices" className="space-y-4 mt-6">
+        <TabsContent value="indices" className="space-y-6 mt-6">
+          {/* Indicative Prices Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Indicative Market Prices
+            </h3>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Canola Oil (FOB Adelaide)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">$1,420</span>
+                    <span className="text-sm text-muted-foreground">/tonne</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-green-600 text-sm mt-1">
+                    <TrendingUp className="h-4 w-4" />
+                    <span>+2.3% this week</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Tallow (ex-Works Brisbane)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">$1,180</span>
+                    <span className="text-sm text-muted-foreground">/tonne</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-red-600 text-sm mt-1">
+                    <TrendingDown className="h-4 w-4" />
+                    <span>-1.1% this week</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    UCO (collected Sydney)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">$890</span>
+                    <span className="text-sm text-muted-foreground">/tonne</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-green-600 text-sm mt-1">
+                    <TrendingUp className="h-4 w-4" />
+                    <span>+0.8% this week</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Sugarcane Bagasse (ex-Mill QLD)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">$85</span>
+                    <span className="text-sm text-muted-foreground">/tonne</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1">
+                    <ArrowRight className="h-4 w-4" />
+                    <span>Unchanged</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Wood Pellets (FOB Newcastle)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">$245</span>
+                    <span className="text-sm text-muted-foreground">/tonne</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-green-600 text-sm mt-1">
+                    <TrendingUp className="h-4 w-4" />
+                    <span>+3.2% this week</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    ACCU Spot Price
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold">$32.50</span>
+                    <span className="text-sm text-muted-foreground">/tCO2e</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-red-600 text-sm mt-1">
+                    <TrendingDown className="h-4 w-4" />
+                    <span>-4.5% this week</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              * Indicative prices only. Contact ABFI for verified price assessments. Last updated: {new Date().toLocaleDateString()}
+            </p>
+          </div>
+
+          <Separator />
+
+          {/* Reference Indices Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
