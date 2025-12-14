@@ -378,3 +378,11 @@ Note: Seed script encounters schema mismatches. Recommend using UI workflows to 
 - [x] Add producer CTA button to homepage hero section
 - [ ] Test complete registration flow end-to-end
 - [ ] Verify data persistence in database
+
+## British Spelling Conversion (Session 12)
+- [x] Update producer registration API to use fertiliser (not fertilizer)
+- [x] Fix schema field name mismatches in producer API
+- [x] Update all enum values to match database schema
+- [ ] Update carbon calculator UI text to British spelling
+- [ ] Update all UI labels and descriptions to British spelling (optimise, colour, organisation, etc.)
+- [ ] Update documentation and help text to British spelling

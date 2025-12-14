@@ -1208,5 +1208,5 @@ export async function getProductionHistoryByProperty(propertyId: number) {
     .select()
     .from(productionHistory)
     .where(eq(productionHistory.propertyId, propertyId))
-    .orderBy(desc(productionHistory.year));
+    .orderBy(desc(productionHistory.seasonYear));
 }

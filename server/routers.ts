@@ -2440,13 +2440,13 @@ export const appRouter = router({
         
         // Property info
         propertyName: z.string(),
-        address: z.string(),
-        state: z.string(),
+        primaryAddress: z.string(),
+        state: z.enum(['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT']),
         postcode: z.string(),
-        latitude: z.number(),
-        longitude: z.number(),
-        landArea: z.number(),
-        waterAccess: z.string(),
+        latitude: z.string(),
+        longitude: z.string(),
+        totalLandArea: z.number(),
+        waterAccessType: z.enum(['irrigated_surface', 'irrigated_groundwater', 'irrigated_recycled', 'dryland', 'mixed_irrigation']).optional(),
         boundaries: z.string().optional(),
         
         // Production profile
@@ -2460,30 +2460,27 @@ export const appRouter = router({
           notes: z.string().optional(),
         })),
         
-        // Carbon practices
-        tillagePractice: z.enum(['no_till', 'minimum_till', 'conventional', 'multiple_passes']),
-        fertilizerType: z.enum(['synthetic', 'organic', 'mixed', 'none']),
-        fertilizerRate: z.number(),
-        machineryType: z.enum(['diesel', 'biodiesel', 'electric', 'hybrid']),
-        energySource: z.enum(['grid', 'solar', 'wind', 'biomass', 'mixed']),
-        landUseChange: z.enum(['none', 'cleared_forest', 'cleared_grassland', 'restored_land']),
-        carbonScore: z.number(),
+        // Carbon practices (simplified for MVP - can expand later)
+        tillagePractice: z.enum(['no_till', 'minimum_till', 'conventional', 'multiple_passes']).optional(),
+        nitrogenKgPerHa: z.number().optional(),
+        fertiliserType: z.enum(['urea', 'anhydrous_ammonia', 'dap_map', 'organic_compost', 'controlled_release', 'mixed_blend']).optional(),
+        carbonScore: z.number().optional(),
         
         // Existing contracts
         existingContracts: z.array(z.object({
           buyerName: z.string(),
           contractedVolumeTonnes: z.number(),
-          contractEndDate: z.string(),
+          contractEndDate: z.string(), // Will be converted to Date
           isConfidential: z.boolean().optional(),
         })),
         
         // Marketplace listing
-        availableVolume: z.number(),
-        priceMin: z.number(),
-        priceMax: z.number(),
-        deliveryTerms: z.string(),
+        tonnesAvailableThisSeason: z.number(),
+        tonnesAvailableAnnually: z.number(),
+        minimumAcceptablePricePerTonne: z.number(),
+        deliveryTermsPreferred: z.enum(['ex_farm', 'delivered_to_buyer', 'fob_port', 'flexible']),
         qualitySpecs: z.string(),
-        visibility: z.enum(['public', 'verified_only', 'private']),
+        visibility: z.enum(['public_marketplace', 'verified_buyers_only', 'private_network', 'unlisted']).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Create or get supplier profile
@@ -2493,9 +2490,7 @@ export const appRouter = router({
             userId: ctx.user.id,
             companyName: input.companyName,
             abn: input.abn,
-            contactName: input.contactName,
-            email: input.email,
-            phone: input.phone,
+            contactEmail: input.email,
             verificationStatus: 'pending',
           });
           supplier = await db.getSupplierByUserId(ctx.user.id);
@@ -2511,15 +2506,15 @@ export const appRouter = router({
         // Insert property
         const propertyId = await db.createProperty({
           supplierId: supplier.id,
-          name: input.propertyName,
-          address: input.address,
+          propertyName: input.propertyName,
+          primaryAddress: input.primaryAddress,
           state: input.state,
           postcode: input.postcode,
           latitude: input.latitude,
           longitude: input.longitude,
-          landArea: input.landArea,
-          waterAccess: input.waterAccess,
-          boundaries: input.boundaries,
+          totalLandArea: input.totalLandArea,
+          waterAccessType: input.waterAccessType,
+          boundaryFileUrl: input.boundaries,
         });
         
         // Insert production history
@@ -2534,17 +2529,15 @@ export const appRouter = router({
           });
         }
         
-        // Insert carbon practices
-        await db.createCarbonPractice({
-          propertyId,
-          tillagePractice: input.tillagePractice,
-          fertilizerType: input.fertilizerType,
-          fertilizerRate: input.fertilizerRate,
-          machineryType: input.machineryType,
-          energySource: input.energySource,
-          landUseChange: input.landUseChange,
-          carbonScore: input.carbonScore,
-        });
+        // Insert carbon practices (simplified for MVP)
+        if (input.tillagePractice || input.nitrogenKgPerHa || input.fertiliserType) {
+          await db.createCarbonPractice({
+            propertyId,
+            tillagePractice: input.tillagePractice,
+            nitrogenKgPerHa: input.nitrogenKgPerHa,
+            fertiliserType: input.fertiliserType,
+          });
+        }
         
         // Insert existing contracts
         for (const contract of input.existingContracts) {
@@ -2552,7 +2545,7 @@ export const appRouter = router({
             supplierId: supplier.id,
             buyerName: contract.buyerName,
             contractedVolumeTonnes: contract.contractedVolumeTonnes,
-            contractEndDate: contract.contractEndDate,
+            contractEndDate: new Date(contract.contractEndDate),
             isConfidential: contract.isConfidential,
           });
         }
@@ -2560,12 +2553,10 @@ export const appRouter = router({
         // Insert marketplace listing
         await db.createMarketplaceListing({
           supplierId: supplier.id,
-          availableVolumeTonnes: input.availableVolume,
-          pricePerTonneMin: input.priceMin,
-          pricePerTonneMax: input.priceMax,
-          deliveryTerms: input.deliveryTerms,
-          qualitySpecifications: input.qualitySpecs,
-          visibility: input.visibility,
+          tonnesAvailableThisSeason: input.tonnesAvailableThisSeason,
+          tonnesAvailableAnnually: input.tonnesAvailableAnnually,
+          minimumAcceptablePricePerTonne: input.minimumAcceptablePricePerTonne,
+          deliveryTermsPreferred: input.deliveryTermsPreferred,
         });
         
         return {
