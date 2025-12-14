@@ -421,3 +421,11 @@ Note: Seed script encounters schema mismatches. Recommend using UI workflows to 
 - [x] Integrate calculator into grower benefits page
 - [x] Add responsive design for mobile use
 - [x] Test calculator with various input values
+
+## Hero CTA Section for Feedstock Registration (Session 16)
+- [x] Review reference design for hero CTA layout
+- [x] Update home page with prominent hero section
+- [x] Add large CTA button for "Register Your Planned or Projected Feedstocks Today"
+- [x] Style hero section to match platform design
+- [x] Link CTA button to producer registration flow
+- [x] Test hero section on home page

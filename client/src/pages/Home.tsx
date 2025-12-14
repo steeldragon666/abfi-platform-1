@@ -40,58 +40,111 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section - BioFeed AU Navy Blue Background */}
-      <section className="relative overflow-hidden bg-[#0F3A5C] py-24">
-        {/* Circuit pattern overlay */}
-        <div className="absolute inset-0 opacity-5">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="circuit-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                <path d="M10,10 h20 v20 h-20 z M70,10 h20 v20 h-20 z M10,70 h20 v20 h-20 z M70,70 h20 v20 h-20 z" stroke="#F4C430" strokeWidth="1" fill="none"/>
-                <line x1="30" y1="20" x2="70" y2="20" stroke="#F4C430" strokeWidth="1"/>
-                <line x1="30" y1="80" x2="70" y2="80" stroke="#F4C430" strokeWidth="1"/>
-                <line x1="20" y1="30" x2="20" y2="70" stroke="#F4C430" strokeWidth="1"/>
-                <line x1="80" y1="30" x2="80" y2="70" stroke="#F4C430" strokeWidth="1"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#circuit-pattern)" />
-          </svg>
-        </div>
-        
+      {/* Hero Section - Grower-Focused CTA */}
+      <section className="relative overflow-hidden py-20" style={{ background: 'linear-gradient(135deg, #faf8f3 0%, #f5f0e6 100%)' }}>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl">
-            <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-white">Australian</span>
-              <br />
-              <span className="text-[#F4C430]">Biofuel Feedstock</span>
-              <br />
-              <span className="text-white">Index</span>
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Badge */}
+            <div className="inline-block mb-6">
+              <Badge className="px-4 py-2 text-xs font-semibold uppercase tracking-wide" style={{ 
+                background: '#fef3c7', 
+                color: '#b8860b',
+                border: 'none'
+              }}>
+                🌾 Grower Registration
+              </Badge>
+            </div>
+
+            {/* Main Heading */}
+            <h1 className="text-5xl md:text-6xl font-normal mb-6 leading-tight" style={{ 
+              fontFamily: "'DM Serif Display', serif",
+              color: '#1a2e1a'
+            }}>
+              Register Your Planned or<br />
+              <span style={{ color: '#2d5a27' }}>Projected Feedstocks Today</span>
             </h1>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
-              Evidence-Backed Feedstock Infrastructure for Australia's Bioenergy Transition
+
+            {/* Subtext */}
+            <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto" style={{ 
+              color: '#4a5a4a',
+              fontWeight: 300,
+              lineHeight: 1.7
+            }}>
+              Add your plantation or projected supply to receive market signals, connect with verified offtakers, and secure fair prices based on real demand.
             </p>
-            <div className="flex flex-wrap gap-4 mb-12">
-              <Link href="/producer-registration">
-                <Button size="lg" className="text-lg px-8 py-6 bg-[#F4C430] hover:bg-[#F4C430]/90 text-[#0F3A5C] font-semibold shadow-lg">
-                  List Your Feedstock
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/browse">
-                <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2 border-[#F4C430] text-white hover:bg-[#F4C430]/10">
-                  Browse Feedstocks
-                </Button>
-              </Link>
-              <Link href="/feedstock-map">
-                <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2 border-[#F4C430] text-white hover:bg-[#F4C430]/10">
-                  Interactive Map
-                </Button>
-              </Link>
+
+            {/* Large CTA Button */}
+            <Link href="/producer-registration">
+              <Button 
+                size="lg" 
+                className="text-xl px-12 py-8 font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                style={{
+                  background: 'linear-gradient(135deg, #2d5a27, #4a7c43)',
+                  color: 'white',
+                  borderRadius: '12px'
+                }}
+              >
+                Start Registration Now
+                <ArrowRight className="ml-3 h-6 w-6" />
+              </Button>
+            </Link>
+
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap justify-center gap-8 mt-12 text-sm" style={{ color: '#6b7c6b' }}>
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5" style={{ color: '#2d5a27' }} />
+                <span>Verified Data</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" style={{ color: '#2d5a27' }} />
+                <span>Fair Market Prices</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Zap className="h-5 w-5" style={{ color: '#2d5a27' }} />
+                <span>Fast Approval</span>
+              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Floating metric cards - inspired by mockup */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
+      {/* Secondary CTAs */}
+      <section className="py-12 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/grower-benefits">
+              <Button size="lg" variant="outline" className="text-base px-6 py-3 border-2" style={{
+                borderColor: '#2d5a27',
+                color: '#2d5a27'
+              }}>
+                See Grower Benefits
+              </Button>
+            </Link>
+            <Link href="/browse">
+              <Button size="lg" variant="outline" className="text-base px-6 py-3 border-2" style={{
+                borderColor: '#2d5a27',
+                color: '#2d5a27'
+              }}>
+                Browse Feedstocks
+              </Button>
+            </Link>
+            <Link href="/feedstock-map">
+              <Button size="lg" variant="outline" className="text-base px-6 py-3 border-2" style={{
+                borderColor: '#2d5a27',
+                color: '#2d5a27'
+              }}>
+                Interactive Map
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Original Metrics Section */}
+      <section className="py-12" style={{ background: '#faf8f3' }}>
+        <div className="container mx-auto px-4">
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="border-2 border-[#F4C430] shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
