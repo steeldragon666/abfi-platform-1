@@ -429,3 +429,8 @@ Note: Seed script encounters schema mismatches. Recommend using UI workflows to 
 - [x] Style hero section to match platform design
 - [x] Link CTA button to producer registration flow
 - [x] Test hero section on home page
+
+## Fix Nested Anchor Tags (Session 17)
+- [x] Identify nested anchor tags in producer registration page
+- [x] Remove nested <a> tags inside Link components
+- [x] Test producer registration page for errors

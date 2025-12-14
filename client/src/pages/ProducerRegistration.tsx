@@ -9,15 +9,13 @@ export default function ProducerRegistration() {
       {/* Header */}
       <header className="border-b border-white/10 bg-[#0F3A5C]/50 backdrop-blur">
         <div className="container mx-auto flex h-16 items-center justify-between">
-          <Link href="/">
-            <a className="flex items-center gap-2 text-white hover:opacity-80">
-              <Leaf className="h-6 w-6" />
-              <span className="text-xl font-semibold">ABFI</span>
-            </a>
+          <Link href="/" className="flex items-center gap-2 text-white hover:opacity-80">
+            <Leaf className="h-6 w-6" />
+            <span className="text-xl font-semibold">ABFI</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/login">
-              <a className="text-white/80 hover:text-white">Sign In</a>
+            <Link href="/login" className="text-white/80 hover:text-white">
+              Sign In
             </Link>
             <Link href="/buyer-registration">
               <Button variant="outline" className="border-[#F4C430] text-[#F4C430] hover:bg-[#F4C430] hover:text-[#0F3A5C]">
