@@ -32,6 +32,7 @@ interface NavItem {
 const supplierNavItems: NavItem[] = [
   { title: "Dashboard", href: "/supplier", icon: LayoutDashboard },
   { title: "My Feedstocks", href: "/supplier/feedstocks", icon: Package },
+  { title: "CI Reports", href: "/supplier/ci-reports", icon: Leaf },
   { title: "Documents", href: "/supplier/documents", icon: FileText },
   { title: "Inquiries", href: "/supplier/inquiries", icon: MessageSquare },
   { title: "Settings", href: "/supplier/settings", icon: Settings },
@@ -53,8 +54,16 @@ const adminNavItems: NavItem[] = [
   { title: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
+const auditorNavItems: NavItem[] = [
+  { title: "Dashboard", href: "/auditor", icon: LayoutDashboard },
+  { title: "CI Verification", href: "/auditor/ci-verification", icon: CheckCircle },
+  { title: "Completed Audits", href: "/auditor/completed", icon: FileText },
+  { title: "Analytics", href: "/auditor/analytics", icon: BarChart3 },
+  { title: "Settings", href: "/auditor/settings", icon: Settings },
+];
+
 interface SidebarProps {
-  role: "supplier" | "buyer" | "admin";
+  role: "supplier" | "buyer" | "admin" | "auditor";
 }
 
 export function Sidebar({ role }: SidebarProps) {
@@ -67,7 +76,9 @@ export function Sidebar({ role }: SidebarProps) {
       ? supplierNavItems
       : role === "buyer"
         ? buyerNavItems
-        : adminNavItems;
+        : role === "auditor"
+          ? auditorNavItems
+          : adminNavItems;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

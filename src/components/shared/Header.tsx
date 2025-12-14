@@ -26,7 +26,7 @@ interface HeaderProps {
     full_name?: string | null;
     avatar_url?: string | null;
   };
-  role: "supplier" | "buyer" | "admin";
+  role: "supplier" | "buyer" | "admin" | "auditor";
   notificationCount?: number;
 }
 

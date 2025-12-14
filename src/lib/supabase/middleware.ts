@@ -35,7 +35,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Protected routes
-  const protectedPaths = ['/supplier', '/buyer', '/admin'];
+  const protectedPaths = ['/supplier', '/buyer', '/admin', '/auditor'];
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );
@@ -68,6 +68,8 @@ export async function updateSession(request: NextRequest) {
       url.pathname = '/buyer';
     } else if (profile?.role === 'admin') {
       url.pathname = '/admin';
+    } else if (profile?.role === 'auditor') {
+      url.pathname = '/auditor';
     } else {
       url.pathname = '/';
     }
@@ -89,6 +91,11 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(new URL('/', request.url));
     }
     if (request.nextUrl.pathname.startsWith('/admin') && profile?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    // Auditors and admins can access auditor routes
+    if (request.nextUrl.pathname.startsWith('/auditor') &&
+        profile?.role !== 'auditor' && profile?.role !== 'admin') {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
