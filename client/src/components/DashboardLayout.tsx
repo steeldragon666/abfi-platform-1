@@ -35,6 +35,7 @@ const menuItems = [
 const adminMenuItems = [
   { icon: Shield, label: "Assessor Workflow", path: "/admin/assessor-workflow" },
   { icon: Clock, label: "Monitoring Jobs", path: "/admin/monitoring-jobs" },
+  { icon: Users, label: "User Management", path: "/admin/users" },
   { icon: PieChart, label: "Admin Dashboard", path: "/admin" },
 ];
 

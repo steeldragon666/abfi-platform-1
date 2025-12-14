@@ -542,3 +542,9 @@ Note: Seed script encounters schema mismatches. Recommend using UI workflows to 
 - [ ] Implement certificate download functionality (in progress)
 - [x] Create ScoreCard/ScoreBadge components (ScoreCard, ScoreBadge, RatingBadge, CompactScore)
 - [ ] Build user management interface for admin (deferred to next session)
+
+## Session 10 - Continue High-Priority Features
+- [x] Implement certificate download functionality for bankability assessments
+- [x] Build admin user management interface at /admin/users
+- [ ] Test complete workflows (producer registration, project registration, financial onboarding)
+- [ ] Add sample data via UI workflows (3-5 entities per category)

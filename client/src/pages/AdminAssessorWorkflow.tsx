@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle, XCircle, Clock, AlertTriangle, Edit, Eye, TrendingUp, Shield } from "lucide-react";
+import { CheckCircle, XCircle, Clock, AlertTriangle, Edit, Eye, TrendingUp, Shield, Download } from "lucide-react";
 import { RatingBadge, ScoreBreakdown } from "@/components/ScoreCard";
 
 export default function AdminAssessorWorkflow() {
@@ -46,6 +46,27 @@ export default function AdminAssessorWorkflow() {
   const adjustScore = trpc.bankability.adjustAssessmentScore.useMutation({
     onSuccess: () => {
       refetch();
+    },
+  });
+
+  const downloadCertificate = trpc.bankability.downloadCertificate.useMutation({
+    onSuccess: (data) => {
+      // Convert base64 to blob and trigger download
+      const byteCharacters = atob(data.data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: data.mimeType });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = data.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     },
   });
 
@@ -417,7 +438,18 @@ export default function AdminAssessorWorkflow() {
                             Approved on {formatDate(assessment.updatedAt)}
                           </CardDescription>
                         </div>
-                        <RatingBadge rating={assessment.rating} />
+                        <div className="flex items-center gap-3">
+                          <RatingBadge rating={assessment.rating} />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadCertificate.mutate({ assessmentId: assessment.id })}
+                            disabled={downloadCertificate.isPending}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            {downloadCertificate.isPending ? 'Generating...' : 'Download Certificate'}
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                   </Card>

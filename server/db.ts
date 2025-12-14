@@ -1,4 +1,4 @@
-import { eq, and, desc, asc, gte, lte, inArray, like, sql } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, inArray, like, sql, or, isNull, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users,
@@ -124,6 +124,18 @@ export async function updateUserRole(userId: number, role: "user" | "admin" | "s
   const db = await getDb();
   if (!db) return;
   await db.update(users).set({ role }).where(eq(users.id, userId));
+}
+
+export async function getAllUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(users).orderBy(desc(users.createdAt));
+}
+
+export async function updateUser(userId: number, updates: Partial<InsertUser>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set(updates).where(eq(users.id, userId));
 }
 
 // ============================================================================

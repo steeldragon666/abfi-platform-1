@@ -1283,6 +1283,35 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return await db.getAuditLogs(input);
       }),
+    
+    // User Management
+    listUsers: adminProcedure.query(async () => {
+      return await db.getAllUsers();
+    }),
+    
+    updateUserRole: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        role: z.enum(["admin", "supplier", "buyer"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Prevent changing own role
+        if (input.userId === ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Cannot change your own role' });
+        }
+        
+        await db.updateUser(input.userId, { role: input.role });
+        
+        await createAuditLog({
+          userId: ctx.user.id,
+          action: 'update_user_role',
+          entityType: 'user',
+          entityId: input.userId,
+          changes: { after: { role: input.role } } as any,
+        });
+        
+        return { success: true };
+      }),
   }),
   
   // ============================================================================
@@ -1845,6 +1874,62 @@ export const appRouter = router({
           throw new TRPCError({ code: 'FORBIDDEN' });
         }
         return await db.getLenderAccessByProjectId(input.projectId);
+      }),
+    
+    // Download Certificate
+    downloadCertificate: protectedProcedure
+      .input(z.object({ assessmentId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const assessment = await db.getBankabilityAssessmentById(input.assessmentId);
+        if (!assessment) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Assessment not found' });
+        }
+        
+        // Only allow download for approved assessments
+        if (assessment.status !== 'approved') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Certificate can only be downloaded for approved assessments' });
+        }
+        
+        const project = await db.getProjectById(assessment.projectId);
+        if (!project) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Project not found' });
+        }
+        
+        // Check permissions: owner or admin
+        if (project.userId !== ctx.user.id && ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN' });
+        }
+        
+        const { generateBankabilityCertificate, getBankabilityRating } = await import('./bankabilityCertificate');
+        
+        const certificateData = {
+          assessmentId: assessment.id,
+          projectName: project.name,
+          projectLocation: project.facilityLocation || project.siteAddress || project.region || 'Australia',
+          feedstockType: project.feedstockType || 'Mixed Feedstock',
+          annualVolume: project.annualFeedstockVolume || 0,
+          compositeScore: assessment.compositeScore,
+          rating: getBankabilityRating(assessment.compositeScore),
+          volumeSecurityScore: assessment.volumeSecurityScore,
+          counterpartyQualityScore: assessment.counterpartyQualityScore,
+          contractStructureScore: assessment.contractStructureScore,
+          concentrationRiskScore: assessment.concentrationRiskScore,
+          operationalReadinessScore: assessment.operationalReadinessScore,
+          assessmentDate: assessment.createdAt,
+          approvedBy: assessment.assessedBy ? String(assessment.assessedBy) : undefined,
+          approvedDate: assessment.updatedAt,
+        };
+        
+        const pdfBuffer = await generateBankabilityCertificate(certificateData);
+        
+        // Convert buffer to base64 for transmission
+        const base64Pdf = pdfBuffer.toString('base64');
+        
+        return {
+          filename: `ABFI-Bankability-Certificate-${project.name.replace(/\s+/g, '-')}-${assessment.id}.pdf`,
+          data: base64Pdf,
+          mimeType: 'application/pdf',
+        };
       }),
   }),
   
