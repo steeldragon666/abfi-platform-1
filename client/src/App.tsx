@@ -50,12 +50,15 @@ import ProjectRegistration from "./pages/ProjectRegistration";
 import ProjectRegistrationFlow from "./pages/ProjectRegistrationFlow";
 import ProjectRegistrationSuccess from "./pages/ProjectRegistrationSuccess";
 import CertificateVerification from "./pages/CertificateVerification";
+import ProducerRegistrationSuccess from "./pages/ProducerRegistrationSuccess";
+import FinancialOnboardingSuccess from "./pages/FinancialOnboardingSuccess";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path="/financial-onboarding" component={FinancialOnboarding} />
+      <Route path="/financial-onboarding/success" component={FinancialOnboardingSuccess} />
       <Route path="/bankability-explainer" component={BankabilityExplainer} />
       <Route path="/grower-benefits" component={GrowerBenefits} />
       <Route path="/project-registration" component={ProjectRegistration} />
@@ -98,6 +101,7 @@ function Router() {
       <Route path="/producer-registration/contracts" component={ProducerContracts} />
       <Route path="/producer-registration/marketplace-listing" component={ProducerMarketplaceListing} />
       <Route path="/producer-registration/review" component={ProducerReview} />
+      <Route path="/producer-registration/success" component={ProducerRegistrationSuccess} />
       <Route path="/producer-registration/success" component={ProducerSuccess} />
       <Route path="/certificate/upload" component={CertificateUpload} />
       <Route path="/404" component={NotFound} />

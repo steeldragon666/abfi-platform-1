@@ -461,8 +461,8 @@ Note: Seed script encounters schema mismatches. Recommend using UI workflows to 
 - [x] Wire producer registration form to trpc.suppliers.registerProducer mutation
 - [x] Wire project registration form to trpc.bankability.registerProject mutation
 - [x] Wire financial onboarding form to database
-- [ ] Create ProducerRegistrationSuccess page with application tracking
+- [x] Create ProducerRegistrationSuccess page with application tracking
 - [x] Create ProjectRegistrationSuccess page with application tracking
-- [ ] Create FinancialOnboardingSuccess page with application tracking
+- [x] Create FinancialOnboardingSuccess page with application tracking
 - [x] Add form validation and error handling for project registration
 - [x] Test complete registration flows end-to-end
