@@ -39,6 +39,7 @@ interface NavItem {
 const supplierNavItems: NavItem[] = [
   { title: "Dashboard", href: "/supplier", icon: LayoutDashboard },
   { title: "My Feedstocks", href: "/supplier/feedstocks", icon: Package },
+  { title: "Markets", href: "/supplier/markets", icon: LineChart },
   { title: "CI Reports", href: "/supplier/ci-reports", icon: Leaf },
   { title: "Documents", href: "/supplier/documents", icon: FileText },
   { title: "Inquiries", href: "/supplier/inquiries", icon: MessageSquare },
