@@ -45,6 +45,7 @@ import ProducerReview from "./pages/ProducerReview";
 import ProducerSuccess from "./pages/ProducerSuccess";
 import FinancialOnboarding from "./pages/FinancialOnboarding";
 import BankabilityExplainer from "./pages/BankabilityExplainer";
+import GrowerBenefits from "./pages/GrowerBenefits";
 
 function Router() {
   return (
@@ -52,6 +53,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path="/financial-onboarding" component={FinancialOnboarding} />
       <Route path="/bankability-explainer" component={BankabilityExplainer} />
+      <Route path="/grower-benefits" component={GrowerBenefits} />
       <Route path="/browse" component={Browse} />
       <Route path="/feedstock/:id" component={FeedstockDetail} />
       <Route path="/feedstock/edit/:id" component={FeedstockEdit} />
