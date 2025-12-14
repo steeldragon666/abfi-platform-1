@@ -9,11 +9,11 @@
    ============================================ */
 
 /* ============================================
-   TYPOGRAPHY TOKENS
+   TYPOGRAPHY TOKENS - Matching abfi.io
    ============================================ */
 @theme inline {
   /* Font Families */
-  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, serif;
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
@@ -162,64 +162,64 @@
 }
 
 /* ============================================
-   LIGHT THEME - Premium Palette
+   LIGHT THEME - Matching abfi.io Design
    ============================================ */
 :root {
   /* Base Radius */
   --radius: 0.625rem;
 
-  /* Neutral Base (Soft Off-White + Rich Charcoal) */
-  --background: oklch(0.992 0.002 240);
-  --foreground: oklch(0.165 0.015 245);
+  /* Warm Cream Background (matching abfi.io) */
+  --background: oklch(0.98 0.008 85);
+  --foreground: oklch(0.20 0.02 250);
 
-  /* Card Surface */
+  /* Card Surface - Pure White */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.165 0.015 245);
+  --card-foreground: oklch(0.20 0.02 250);
 
   /* Popover */
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.165 0.015 245);
+  --popover-foreground: oklch(0.20 0.02 250);
 
-  /* Primary - Deep Forest Green (ABFI Brand) */
-  --primary: oklch(0.295 0.066 163);
-  --primary-foreground: oklch(0.985 0.002 110);
+  /* Primary - Teal (matching abfi.io #0d9488) */
+  --primary: oklch(0.55 0.12 175);
+  --primary-foreground: oklch(0.99 0 0);
 
   /* Secondary */
-  --secondary: oklch(0.965 0.003 240);
-  --secondary-foreground: oklch(0.295 0.066 163);
+  --secondary: oklch(0.96 0.008 85);
+  --secondary-foreground: oklch(0.35 0.02 250);
 
-  /* Muted */
-  --muted: oklch(0.965 0.003 240);
-  --muted-foreground: oklch(0.45 0.015 245);
+  /* Muted - Warm Gray */
+  --muted: oklch(0.96 0.006 85);
+  --muted-foreground: oklch(0.50 0.015 250);
 
-  /* Accent - Gold (ABFI Accent) */
-  --accent: oklch(0.965 0.003 240);
-  --accent-foreground: oklch(0.295 0.066 163);
+  /* Accent - Teal matching primary */
+  --accent: oklch(0.96 0.008 85);
+  --accent-foreground: oklch(0.55 0.12 175);
 
   /* Destructive */
   --destructive: oklch(0.577 0.2 25);
 
-  /* Borders & Inputs */
-  --border: oklch(0.915 0.005 245);
-  --input: oklch(0.915 0.005 245);
-  --ring: oklch(0.295 0.066 163);
+  /* Borders & Inputs - Warm tone */
+  --border: oklch(0.90 0.008 85);
+  --input: oklch(0.90 0.008 85);
+  --ring: oklch(0.55 0.12 175);
 
   /* Chart Colors - Professional Palette */
-  --chart-1: oklch(0.295 0.066 163);
-  --chart-2: oklch(0.58 0.12 175);
-  --chart-3: oklch(0.75 0.14 85);
-  --chart-4: oklch(0.65 0.18 280);
-  --chart-5: oklch(0.6 0.15 30);
+  --chart-1: oklch(0.55 0.12 175);
+  --chart-2: oklch(0.70 0.15 55);
+  --chart-3: oklch(0.60 0.16 145);
+  --chart-4: oklch(0.58 0.14 250);
+  --chart-5: oklch(0.65 0.12 30);
 
-  /* Sidebar - Premium Dark */
-  --sidebar: oklch(0.18 0.02 245);
-  --sidebar-foreground: oklch(0.92 0.01 240);
-  --sidebar-primary: oklch(0.75 0.14 85);
-  --sidebar-primary-foreground: oklch(0.18 0.02 245);
-  --sidebar-accent: oklch(0.25 0.02 245);
-  --sidebar-accent-foreground: oklch(0.92 0.01 240);
-  --sidebar-border: oklch(0.28 0.02 245);
-  --sidebar-ring: oklch(0.75 0.14 85);
+  /* Sidebar - Deep Forest Green (matching abfi.io CTA) */
+  --sidebar: oklch(0.25 0.06 160);
+  --sidebar-foreground: oklch(0.95 0.01 85);
+  --sidebar-primary: oklch(0.55 0.12 175);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.30 0.05 160);
+  --sidebar-accent-foreground: oklch(0.95 0.01 85);
+  --sidebar-border: oklch(0.32 0.05 160);
+  --sidebar-ring: oklch(0.55 0.12 175);
 
   /* ============================================
      SEMANTIC COLORS
@@ -367,29 +367,42 @@
     font-feature-settings: "tnum", "zero";
   }
 
-  /* Premium Heading Styles */
+  /* Premium Heading Styles - Matching abfi.io */
   .heading-1 {
-    @apply font-display text-4xl font-bold tracking-tight leading-tight;
+    @apply font-sans text-4xl font-bold tracking-tight leading-tight;
   }
 
   .heading-2 {
-    @apply font-display text-3xl font-bold tracking-tight leading-tight;
+    @apply font-sans text-3xl font-bold tracking-tight leading-tight;
   }
 
   .heading-3 {
-    @apply font-display text-2xl font-semibold tracking-tight leading-snug;
+    @apply font-sans text-2xl font-semibold tracking-tight leading-snug;
   }
 
   .heading-4 {
-    @apply font-display text-xl font-semibold tracking-tight leading-snug;
+    @apply font-sans text-xl font-semibold tracking-tight leading-snug;
   }
 
   .heading-5 {
-    @apply font-display text-lg font-semibold leading-normal;
+    @apply font-sans text-lg font-semibold leading-normal;
   }
 
   .heading-6 {
-    @apply font-display text-base font-semibold leading-normal;
+    @apply font-sans text-base font-semibold leading-normal;
+  }
+
+  /* Elegant Serif Heading - for section titles like "More Ways We Help" */
+  .heading-serif {
+    font-family: var(--font-display);
+    font-style: italic;
+    @apply text-3xl font-medium tracking-normal leading-snug;
+  }
+
+  .heading-serif-lg {
+    font-family: var(--font-display);
+    font-style: italic;
+    @apply text-4xl font-medium tracking-normal leading-tight;
   }
 
   /* Body Text */
@@ -440,15 +453,107 @@
    PREMIUM EFFECTS & ANIMATIONS
    ============================================ */
 @layer utilities {
-  /* Premium Card Hover Effect */
+  /* Premium Card Hover Effect - Matching abfi.io */
   .card-hover {
-    transition: transform 200ms var(--ease-premium),
-                box-shadow 200ms var(--ease-premium);
+    transition: all 200ms var(--ease-premium);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
   }
 
   .card-hover:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-card-hover);
+    border-color: oklch(0.55 0.12 175 / 0.3);
+  }
+
+  /* ABFI-style feature card (like "Keep Your Independence" cards) */
+  .card-feature {
+    background: var(--card);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 200ms var(--ease-premium);
+  }
+
+  .card-feature:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ABFI-style CTA section (deep green background) */
+  .cta-section {
+    background: oklch(0.25 0.06 160);
+    border-radius: var(--radius-2xl);
+    padding: 3rem 2rem;
+    color: oklch(0.98 0.008 85);
+  }
+
+  .cta-section h2,
+  .cta-section h3 {
+    color: oklch(1 0 0);
+  }
+
+  .cta-section p {
+    color: oklch(0.85 0.01 85);
+  }
+
+  /* ABFI-style primary button (teal) */
+  .btn-abfi-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: oklch(0.55 0.12 175);
+    color: oklch(1 0 0);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    transition: all 150ms var(--ease-out);
+    box-shadow: 0 2px 4px oklch(0.55 0.12 175 / 0.2);
+  }
+
+  .btn-abfi-primary:hover {
+    background: oklch(0.50 0.11 175);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px oklch(0.55 0.12 175 / 0.25);
+  }
+
+  /* ABFI-style secondary button (outlined) */
+  .btn-abfi-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: oklch(1 0 0);
+    color: oklch(0.20 0.02 250);
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid oklch(0.85 0.008 85);
+    transition: all 150ms var(--ease-out);
+  }
+
+  .btn-abfi-secondary:hover {
+    background: oklch(0.98 0.008 85);
+    border-color: oklch(0.55 0.12 175);
+  }
+
+  /* ABFI-style white button (for dark backgrounds) */
+  .btn-abfi-white {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: oklch(1 0 0);
+    color: oklch(0.25 0.06 160);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-lg);
+    transition: all 150ms var(--ease-out);
+  }
+
+  .btn-abfi-white:hover {
+    background: oklch(0.98 0.008 85);
+    transform: translateY(-1px);
   }
 
   /* Subtle Press Effect */

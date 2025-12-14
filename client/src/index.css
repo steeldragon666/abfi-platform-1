@@ -74,10 +74,10 @@
   --color-rating-f: var(--rating-f);
 
   /* ============================================
-     TYPOGRAPHY SYSTEM - Premium Scale
+     TYPOGRAPHY SYSTEM - Matching abfi.io
      Based on 1.25 modular scale (major third)
      ============================================ */
-  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
 
@@ -140,21 +140,21 @@
 
 :root {
   /* ============================================
-     PREMIUM COLOR PALETTE v3.0
-     Bloomberg × AEMO × Stripe Infrastructure
+     PREMIUM COLOR PALETTE - Matching abfi.io
+     Warm Cream + Teal Design System
      ============================================ */
 
-  /* Primary: Deep Teal - Trust, Authority, Stability */
-  --color-teal-50: oklch(0.97 0.02 195);
-  --color-teal-100: oklch(0.93 0.04 195);
-  --color-teal-200: oklch(0.85 0.08 195);
-  --color-teal-300: oklch(0.72 0.12 195);
-  --color-teal-400: oklch(0.58 0.14 195);
-  --color-teal-500: oklch(0.48 0.12 195);  /* Primary */
-  --color-teal-600: oklch(0.40 0.10 195);
-  --color-teal-700: oklch(0.34 0.08 195);
-  --color-teal-800: oklch(0.28 0.06 195);
-  --color-teal-900: oklch(0.22 0.04 195);
+  /* Primary: Teal - Matching abfi.io (#0d9488) */
+  --color-teal-50: oklch(0.97 0.02 175);
+  --color-teal-100: oklch(0.93 0.04 175);
+  --color-teal-200: oklch(0.85 0.08 175);
+  --color-teal-300: oklch(0.72 0.12 175);
+  --color-teal-400: oklch(0.62 0.14 175);
+  --color-teal-500: oklch(0.55 0.12 175);  /* Primary - matches abfi.io */
+  --color-teal-600: oklch(0.48 0.11 175);
+  --color-teal-700: oklch(0.40 0.09 175);
+  --color-teal-800: oklch(0.32 0.07 175);
+  --color-teal-900: oklch(0.25 0.05 175);
 
   /* CTA: Warm Orange - Action, Energy, Urgency */
   --color-orange-50: oklch(0.97 0.02 55);
@@ -166,18 +166,18 @@
   --color-orange-600: oklch(0.58 0.18 40);
   --color-orange-700: oklch(0.50 0.15 38);
 
-  /* Neutral: Warm Slate - Premium feel */
-  --color-slate-50: oklch(0.985 0.002 280);
-  --color-slate-100: oklch(0.965 0.003 280);
-  --color-slate-200: oklch(0.925 0.005 280);
-  --color-slate-300: oklch(0.85 0.008 280);
-  --color-slate-400: oklch(0.65 0.01 280);
-  --color-slate-500: oklch(0.50 0.012 280);
-  --color-slate-600: oklch(0.40 0.015 280);
-  --color-slate-700: oklch(0.30 0.015 280);
-  --color-slate-800: oklch(0.22 0.012 280);
-  --color-slate-900: oklch(0.15 0.008 280);
-  --color-slate-950: oklch(0.10 0.005 280);
+  /* Neutral: Warm Cream - Matching abfi.io background */
+  --color-slate-50: oklch(0.98 0.008 85);
+  --color-slate-100: oklch(0.96 0.006 85);
+  --color-slate-200: oklch(0.92 0.008 85);
+  --color-slate-300: oklch(0.88 0.010 85);
+  --color-slate-400: oklch(0.65 0.015 250);
+  --color-slate-500: oklch(0.50 0.015 250);
+  --color-slate-600: oklch(0.40 0.018 250);
+  --color-slate-700: oklch(0.30 0.018 250);
+  --color-slate-800: oklch(0.22 0.015 250);
+  --color-slate-900: oklch(0.15 0.012 250);
+  --color-slate-950: oklch(0.10 0.008 250);
 
   /* Semantic: Success - Deep emerald for verified/positive */
   --color-success-50: oklch(0.96 0.03 155);
@@ -243,28 +243,29 @@
   --rating-d: oklch(0.62 0.18 50);
   --rating-f: oklch(0.55 0.22 30);
 
-  /* Core UI tokens - Light Mode */
+  /* Core UI tokens - Light Mode - Matching abfi.io */
   --primary: var(--color-teal-500);
-  --primary-foreground: oklch(1 0 0);
+  --primary-foreground: oklch(0.99 0 0);
   --secondary: var(--color-slate-100);
   --secondary-foreground: var(--color-slate-700);
-  --accent: var(--color-orange-500);
-  --accent-foreground: oklch(1 0 0);
+  --accent: var(--color-teal-500);
+  --accent-foreground: oklch(0.99 0 0);
   --muted: var(--color-slate-100);
   --muted-foreground: var(--color-slate-500);
   --destructive: var(--color-error-500);
   --destructive-foreground: oklch(0.985 0 0);
 
   --radius: 0.625rem;
-  --background: oklch(0.995 0.002 280);
+  /* Warm cream background matching abfi.io */
+  --background: oklch(0.98 0.008 85);
   --foreground: var(--color-slate-900);
   --card: oklch(1 0 0);
   --card-foreground: var(--color-slate-900);
   --popover: oklch(1 0 0);
   --popover-foreground: var(--color-slate-900);
-  --border: var(--color-slate-200);
-  --input: var(--color-slate-200);
-  --ring: var(--color-teal-400);
+  --border: oklch(0.90 0.008 85);
+  --input: oklch(0.90 0.008 85);
+  --ring: var(--color-teal-500);
 
   /* Chart colors - Premium palette */
   --chart-1: var(--color-teal-500);
@@ -273,15 +274,15 @@
   --chart-4: var(--color-info-500);
   --chart-5: var(--color-warning-500);
 
-  /* Sidebar - Light Mode */
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: var(--color-slate-700);
+  /* Sidebar - Deep Forest Green (matching abfi.io CTA section) */
+  --sidebar: oklch(0.25 0.06 160);
+  --sidebar-foreground: oklch(0.95 0.01 85);
   --sidebar-primary: var(--color-teal-500);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: var(--color-slate-100);
-  --sidebar-accent-foreground: var(--color-slate-900);
-  --sidebar-border: var(--color-slate-200);
-  --sidebar-ring: var(--color-teal-400);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.30 0.05 160);
+  --sidebar-accent-foreground: oklch(0.95 0.01 85);
+  --sidebar-border: oklch(0.32 0.05 160);
+  --sidebar-ring: var(--color-teal-500);
 }
 
 .dark {
@@ -336,17 +337,17 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-sans);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', 'DM Serif Display', sans-serif;
+    font-family: var(--font-sans);
     font-weight: 600;
     letter-spacing: -0.025em;
   }
-  
+
   code, pre, .font-mono {
-    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    font-family: var(--font-mono);
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -403,9 +404,9 @@
     }
   }
 
-  /* Premium Typography Classes */
+  /* Premium Typography Classes - Matching abfi.io */
   .heading-1 {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     font-size: 2.5rem;
     font-weight: 700;
     line-height: 1.1;
@@ -413,7 +414,7 @@
   }
 
   .heading-2 {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     font-size: 2rem;
     font-weight: 600;
     line-height: 1.2;
@@ -421,11 +422,30 @@
   }
 
   .heading-3 {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     font-size: 1.5rem;
     font-weight: 600;
     line-height: 1.3;
     letter-spacing: -0.01em;
+  }
+
+  /* Elegant Serif Heading - for section titles like "More Ways We Help" */
+  .heading-serif {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0;
+  }
+
+  .heading-serif-lg {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 2.25rem;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0;
   }
 
   .body-lg {
@@ -462,21 +482,113 @@
     line-height: 1;
   }
 
-  /* Premium Card Effects */
+  /* Premium Card Effects - Matching abfi.io */
   .card-hover {
     transition: all var(--duration-normal) var(--ease-smooth);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
   }
 
   .card-hover:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
-    border-color: hsl(var(--primary) / 0.3);
+    border-color: oklch(0.55 0.12 175 / 0.3);
   }
 
   .card-glass {
-    background: hsl(var(--card) / 0.8);
+    background: oklch(1 0 0 / 0.8);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* ABFI-style feature card (like "Keep Your Independence" cards) */
+  .card-feature {
+    background: var(--card);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--duration-normal) var(--ease-smooth);
+  }
+
+  .card-feature:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ABFI-style CTA section (deep green background) */
+  .cta-section {
+    background: oklch(0.25 0.06 160);
+    border-radius: var(--radius-2xl);
+    padding: var(--spacing-12) var(--spacing-8);
+    color: oklch(0.98 0.008 85);
+  }
+
+  .cta-section h2,
+  .cta-section h3 {
+    color: oklch(1 0 0);
+  }
+
+  .cta-section p {
+    color: oklch(0.85 0.01 85);
+  }
+
+  /* ABFI-style primary button (teal with arrow) */
+  .btn-abfi-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    background: oklch(0.55 0.12 175);
+    color: oklch(1 0 0);
+    font-weight: 600;
+    padding: var(--spacing-3) var(--spacing-6);
+    border-radius: var(--radius-lg);
+    transition: all var(--duration-fast) var(--ease-out);
+    box-shadow: 0 2px 4px oklch(0.55 0.12 175 / 0.2);
+  }
+
+  .btn-abfi-primary:hover {
+    background: oklch(0.50 0.11 175);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px oklch(0.55 0.12 175 / 0.25);
+  }
+
+  /* ABFI-style secondary button (outlined) */
+  .btn-abfi-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    background: oklch(1 0 0);
+    color: oklch(0.20 0.02 250);
+    font-weight: 500;
+    padding: var(--spacing-3) var(--spacing-6);
+    border-radius: var(--radius-lg);
+    border: 1px solid oklch(0.85 0.008 85);
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .btn-abfi-secondary:hover {
+    background: oklch(0.98 0.008 85);
+    border-color: oklch(0.55 0.12 175);
+  }
+
+  /* ABFI-style white button (for use on dark backgrounds) */
+  .btn-abfi-white {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    background: oklch(1 0 0);
+    color: oklch(0.25 0.06 160);
+    font-weight: 600;
+    padding: var(--spacing-3) var(--spacing-6);
+    border-radius: var(--radius-lg);
+    transition: all var(--duration-fast) var(--ease-out);
+  }
+
+  .btn-abfi-white:hover {
+    background: oklch(0.98 0.008 85);
+    transform: translateY(-1px);
   }
 
   /* Skeleton Animation */
