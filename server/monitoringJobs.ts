@@ -6,6 +6,7 @@
 import { getDb } from './db';
 import { projects, supplyAgreements, covenantBreachEvents, bankabilityAssessments } from '../drizzle/schema';
 import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { notifyLendersOfCovenantBreach, notifyLendersOfContractRenewal } from './lenderNotifications';
 
 /**
  * Daily Covenant Check Job
@@ -64,7 +65,22 @@ export async function dailyCovenantCheck(): Promise<{
         });
         
         breachesDetected++;
-        notificationsSent++;
+        
+        // Send lender notification
+        const notifyResult = await notifyLendersOfCovenantBreach({
+          projectId: project.id,
+          projectName: project.name,
+          breachType: 'Tier 1 Supply Coverage',
+          severity: tier1Coverage < tier1Target * 0.8 ? 'critical' : 'breach',
+          currentValue: tier1Coverage,
+          thresholdValue: tier1Target,
+          impactNarrative: `Tier 1 supply coverage (${tier1Coverage}%) is below the minimum threshold of ${tier1Target}%. Current Tier 1 supply: ${tier1Total} tonnes vs annual demand: ${annualDemand} tonnes.`,
+          detectedAt: new Date(),
+        });
+        
+        if (notifyResult.success) {
+          notificationsSent++;
+        }
       }
     }
     
@@ -229,6 +245,19 @@ export async function contractRenewalAlerts(): Promise<{
           });
           
           alertsGenerated++;
+          
+          // Send lender notification
+          await notifyLendersOfContractRenewal({
+            projectId: agreement.projectId,
+            projectName: `Project ${agreement.projectId}`,
+            agreementId: agreement.id,
+            supplierName: `Supplier ${agreement.supplierId}`,
+            expiryDate: endDate,
+            daysUntilExpiry,
+            annualVolume: agreement.annualVolume || 0,
+            tier: agreement.tier,
+            impactLevel: agreement.tier === 'tier1' ? 'high' : 'medium',
+          });
         }
       }
     }

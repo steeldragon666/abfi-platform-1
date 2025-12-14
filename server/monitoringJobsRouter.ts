@@ -62,7 +62,7 @@ export const monitoringJobsRouter = router({
       return results;
     }),
   
-  // Get monitoring job status (placeholder for future implementation)
+  // Get monitoring job status
   getJobStatus: protectedProcedure
     .query(async ({ ctx }) => {
       // Only admins can view job status
@@ -70,32 +70,35 @@ export const monitoringJobsRouter = router({
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
       
-      // TODO: Implement job status tracking
+      // Import scheduler status dynamically to avoid circular dependencies
+      const { getJobStatus } = await import('./scheduler');
+      const status = getJobStatus();
+      
       return {
-        lastCovenantCheck: null,
-        lastSupplyRecalc: null,
-        lastRenewalCheck: null,
+        lastCovenantCheck: status.covenantCheck.lastRun,
+        lastSupplyRecalc: status.supplyRecalc.lastRun,
+        lastRenewalCheck: status.renewalAlerts.lastRun,
         scheduledJobs: [
           {
             name: 'Daily Covenant Check',
-            schedule: 'Every day at 6:00 AM',
-            lastRun: null,
-            nextRun: null,
-            status: 'pending_setup',
+            schedule: status.covenantCheck.schedule,
+            lastRun: status.covenantCheck.lastRun,
+            nextRun: status.covenantCheck.nextRun,
+            status: status.covenantCheck.status,
           },
           {
             name: 'Weekly Supply Recalculation',
-            schedule: 'Every Monday at 2:00 AM',
-            lastRun: null,
-            nextRun: null,
-            status: 'pending_setup',
+            schedule: status.supplyRecalc.schedule,
+            lastRun: status.supplyRecalc.lastRun,
+            nextRun: status.supplyRecalc.nextRun,
+            status: status.supplyRecalc.status,
           },
           {
             name: 'Contract Renewal Alerts',
-            schedule: 'Every day at 7:00 AM',
-            lastRun: null,
-            nextRun: null,
-            status: 'pending_setup',
+            schedule: status.renewalAlerts.schedule,
+            lastRun: status.renewalAlerts.lastRun,
+            nextRun: status.renewalAlerts.nextRun,
+            status: status.renewalAlerts.status,
           },
         ],
       };
