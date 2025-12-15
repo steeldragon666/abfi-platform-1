@@ -86,24 +86,43 @@ declare global {
   }
 }
 
-const API_KEY = import.meta.env.VITE_FRONTEND_FORGE_API_KEY;
+// Forge proxy configuration
+const FORGE_API_KEY = import.meta.env.VITE_FRONTEND_FORGE_API_KEY;
 const FORGE_BASE_URL =
   import.meta.env.VITE_FRONTEND_FORGE_API_URL ||
   "https://forge.butterfly-effect.dev";
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 
+// Direct Google Maps API key (fallback)
+const DIRECT_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+// Determine which approach to use
+const USE_PROXY = !!FORGE_API_KEY;
+const API_KEY = USE_PROXY ? FORGE_API_KEY : DIRECT_API_KEY;
+
 function loadMapScript() {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
+    if (!API_KEY) {
+      console.error("No Google Maps API key configured. Set VITE_FRONTEND_FORGE_API_KEY or VITE_GOOGLE_MAPS_API_KEY.");
+      reject(new Error("No API key"));
+      return;
+    }
+
     const script = document.createElement("script");
-    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
+    if (USE_PROXY) {
+      script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
+      script.crossOrigin = "anonymous";
+    } else {
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
+    }
     script.async = true;
-    script.crossOrigin = "anonymous";
     script.onload = () => {
       resolve(null);
       script.remove(); // Clean up immediately
     };
     script.onerror = () => {
-      console.error("Failed to load Google Maps script");
+      console.error(`Failed to load Google Maps script${USE_PROXY ? " via proxy" : ""}`);
+      reject(new Error("Script load failed"));
     };
     document.head.appendChild(script);
   });

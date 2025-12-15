@@ -1,14 +1,23 @@
 /**
- * Custom hook to load Google Maps via the Forge proxy.
- * This bypasses the direct Google Maps API key and uses a backend proxy instead.
+ * Custom hook to load Google Maps via the Forge proxy or direct API.
+ * Prefers Forge proxy when VITE_FRONTEND_FORGE_API_KEY is set,
+ * otherwise falls back to direct Google Maps API key.
  */
 import { useEffect, useState, useRef } from "react";
 
-const API_KEY = import.meta.env.VITE_FRONTEND_FORGE_API_KEY;
+// Forge proxy configuration
+const FORGE_API_KEY = import.meta.env.VITE_FRONTEND_FORGE_API_KEY;
 const FORGE_BASE_URL =
   import.meta.env.VITE_FRONTEND_FORGE_API_URL ||
   "https://forge.butterfly-effect.dev";
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
+
+// Direct Google Maps API key (fallback)
+const DIRECT_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+// Determine which approach to use
+const USE_PROXY = !!FORGE_API_KEY;
+const API_KEY = USE_PROXY ? FORGE_API_KEY : DIRECT_API_KEY;
 
 // Track global loading state to avoid duplicate script loads
 let isLoading = false;
@@ -38,12 +47,24 @@ function loadMapScript(): Promise<void> {
       return;
     }
 
+    if (!API_KEY) {
+      const error = new Error("No Google Maps API key configured. Set VITE_FRONTEND_FORGE_API_KEY or VITE_GOOGLE_MAPS_API_KEY.");
+      loadError = error;
+      reject(error);
+      return;
+    }
+
     isLoading = true;
 
     const script = document.createElement("script");
-    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry,visualization`;
+
+    if (USE_PROXY) {
+      script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry,visualization`;
+      script.crossOrigin = "anonymous";
+    } else {
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry,visualization`;
+    }
     script.async = true;
-    script.crossOrigin = "anonymous";
 
     script.onload = () => {
       isLoading = false;
@@ -56,7 +77,7 @@ function loadMapScript(): Promise<void> {
     script.onerror = () => {
       isLoading = false;
       isLoaded = false;
-      loadError = new Error("Failed to load Google Maps script via proxy");
+      loadError = new Error(`Failed to load Google Maps script${USE_PROXY ? " via proxy" : ""}`);
       notifyCallbacks(false, loadError);
       reject(loadError);
     };
