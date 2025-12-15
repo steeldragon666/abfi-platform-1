@@ -24,9 +24,9 @@ export const springStiff: Transition = {
   damping: 35,
 };
 
-// Easing curves
-export const easeOut = [0.16, 1, 0.3, 1];
-export const easeInOut = [0.65, 0, 0.35, 1];
+// Easing curves (typed as tuples for Framer Motion)
+export const easeOut: [number, number, number, number] = [0.16, 1, 0.3, 1];
+export const easeInOut: [number, number, number, number] = [0.65, 0, 0.35, 1];
 
 // Fade animations
 export const fadeIn: Variants = {
