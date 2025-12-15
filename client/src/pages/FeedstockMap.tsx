@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Polygon, MarkerClusterer } from "@react-google-maps/api";
+import { GoogleMap, Marker, InfoWindow, Polygon, MarkerClusterer } from "@react-google-maps/api";
+import { useProxyMapLoader } from "@/hooks/useProxyMapLoader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,8 +17,7 @@ import { exportAsGeoJSON, exportAsCSV } from "@/lib/mapExport";
 import { trpc } from "@/lib/trpc";
 import { Textarea } from "@/components/ui/textarea";
 
-// Google Maps API Key
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+// Google Maps API Key loaded via proxy (useProxyMapLoader hook)
 
 // Map container style
 const containerStyle = {
@@ -55,10 +55,8 @@ interface GeoJSONData {
 }
 
 export default function FeedstockMap() {
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-  });
+  // Load Google Maps via Forge proxy instead of direct API key
+  const { isLoaded, loadError } = useProxyMapLoader();
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const [selectedStates, setSelectedStates] = useState<string[]>(["QLD", "NSW", "VIC", "SA", "WA", "TAS"]);
