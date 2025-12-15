@@ -1883,6 +1883,9 @@ export const appRouter = router({
     // Get projects that the current user has lender access to (by email)
     getMyLenderProjects: protectedProcedure
       .query(async ({ ctx }) => {
+        if (!ctx.user.email) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'User email is required' });
+        }
         // Get projects the current user has lender access to
         const lenderProjects = await db.getProjectsForLender(ctx.user.email);
         return lenderProjects;
@@ -1891,6 +1894,9 @@ export const appRouter = router({
     // Get lender access records for the current user
     getMyLenderAccess: protectedProcedure
       .query(async ({ ctx }) => {
+        if (!ctx.user.email) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'User email is required' });
+        }
         return await db.getLenderAccessByEmail(ctx.user.email);
       }),
     
