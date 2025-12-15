@@ -146,34 +146,169 @@ const getEOIStatusIcon = (status: string) => {
   }
 };
 
-// Mock data for demonstration
-const MOCK_FUTURES = {
-  id: 1,
-  futuresId: "FUT-2025-0001",
-  title: "Hunter Valley Eucalyptus Plantation",
-  cropType: "eucalyptus",
-  cropVariety: "E. grandis",
-  description:
-    "Large-scale eucalyptus plantation managed for sustainable biomass production. Established plantation with proven yield history. First rotation harvest completed successfully. Modern harvesting and processing infrastructure on-site.",
-  state: "NSW",
-  region: "Hunter Valley",
-  landAreaHectares: "2500",
-  projectionStartYear: 2025,
-  projectionEndYear: 2035,
-  firstHarvestYear: 2025,
-  totalProjectedTonnes: "250000",
-  totalContractedTonnes: "75000",
-  totalAvailableTonnes: "175000",
-  indicativePricePerTonne: "120.00",
-  priceEscalationPercent: "2.5",
-  pricingNotes:
-    "Base price indexed to CPI. Volume discounts available for commitments over 10,000 tonnes/year.",
-  expectedCarbonIntensity: "15.5",
-  expectedMoistureContent: "35",
-  expectedEnergyContent: "18.5",
-  status: "active",
-  publishedAt: "2025-01-15",
+// Mock data for demonstration - keyed by ID to match marketplace listings
+const MOCK_FUTURES_MAP: Record<number, any> = {
+  1: {
+    id: 1,
+    futuresId: "FUT-2025-0001",
+    title: "Blue Mallee Eucalyptus - Certified Sustainable Plantation",
+    cropType: "eucalyptus",
+    cropVariety: "E. grandis",
+    description:
+      "Large-scale eucalyptus plantation in Victoria's Mallee region, managed for sustainable biomass production. Established plantation with proven yield history. First rotation harvest completed successfully. Modern harvesting and processing infrastructure on-site.",
+    state: "VIC",
+    region: "Mallee Region",
+    landAreaHectares: "2500",
+    projectionStartYear: 2026,
+    projectionEndYear: 2040,
+    firstHarvestYear: 2026,
+    totalProjectedTonnes: "145000",
+    totalContractedTonnes: "20000",
+    totalAvailableTonnes: "125000",
+    indicativePricePerTonne: "85.00",
+    priceEscalationPercent: "2.5",
+    pricingNotes:
+      "Base price indexed to CPI. Volume discounts available for commitments over 10,000 tonnes/year.",
+    expectedCarbonIntensity: "15.5",
+    expectedMoistureContent: "35",
+    expectedEnergyContent: "18.5",
+    status: "active",
+    publishedAt: "2025-01-15",
+  },
+  2: {
+    id: 2,
+    futuresId: "FUT-2025-0002",
+    title: "Giant Miscanthus Energy Crop - High Yield Variety",
+    cropType: "miscanthus",
+    cropVariety: "Miscanthus x giganteus",
+    description:
+      "High-yield miscanthus plantation in the fertile Riverina region. This perennial grass requires minimal inputs and provides consistent annual harvests. Ideal for bioenergy applications with excellent combustion properties.",
+    state: "NSW",
+    region: "Riverina",
+    landAreaHectares: "1200",
+    projectionStartYear: 2026,
+    projectionEndYear: 2035,
+    firstHarvestYear: 2027,
+    totalProjectedTonnes: "75000",
+    totalContractedTonnes: "0",
+    totalAvailableTonnes: "75000",
+    indicativePricePerTonne: "95.00",
+    priceEscalationPercent: "2.0",
+    pricingNotes: "Fixed pricing with annual CPI adjustment. Flexible delivery terms.",
+    expectedCarbonIntensity: "12.0",
+    expectedMoistureContent: "20",
+    expectedEnergyContent: "17.5",
+    status: "active",
+    publishedAt: "2025-02-01",
+  },
+  3: {
+    id: 3,
+    futuresId: "FUT-2025-0003",
+    title: "Dendrocalamus Bamboo - Fast-Growing Biomass",
+    cropType: "bamboo",
+    cropVariety: "Dendrocalamus asper",
+    description:
+      "Premium bamboo plantation on Queensland's Sunshine Coast. Fast-growing tropical bamboo with exceptional biomass yields. Sustainable harvesting practices ensure continuous production over the 20-year projection period.",
+    state: "QLD",
+    region: "Sunshine Coast Hinterland",
+    landAreaHectares: "3500",
+    projectionStartYear: 2025,
+    projectionEndYear: 2045,
+    firstHarvestYear: 2025,
+    totalProjectedTonnes: "200000",
+    totalContractedTonnes: "20000",
+    totalAvailableTonnes: "180000",
+    indicativePricePerTonne: "75.00",
+    priceEscalationPercent: "2.5",
+    pricingNotes: "Long-term contracts preferred. Volume bonuses available.",
+    expectedCarbonIntensity: "10.0",
+    expectedMoistureContent: "45",
+    expectedEnergyContent: "16.0",
+    status: "active",
+    publishedAt: "2025-01-10",
+  },
+  4: {
+    id: 4,
+    futuresId: "FUT-2025-0004",
+    title: "Short Rotation Forestry - Mixed Hardwood",
+    cropType: "rotation_forestry",
+    cropVariety: "Mixed Eucalyptus species",
+    description:
+      "Diverse short-rotation forestry operation in Tasmania's North East. Mixed hardwood species provide resilience and consistent yields. FSC certified sustainable forestry practices.",
+    state: "TAS",
+    region: "North East",
+    landAreaHectares: "5000",
+    projectionStartYear: 2026,
+    projectionEndYear: 2041,
+    firstHarvestYear: 2028,
+    totalProjectedTonnes: "320000",
+    totalContractedTonnes: "40000",
+    totalAvailableTonnes: "280000",
+    indicativePricePerTonne: "65.00",
+    priceEscalationPercent: "2.0",
+    pricingNotes: "Competitive pricing for bulk contracts. Rail logistics available.",
+    expectedCarbonIntensity: "14.0",
+    expectedMoistureContent: "40",
+    expectedEnergyContent: "18.0",
+    status: "active",
+    publishedAt: "2025-01-20",
+  },
+  5: {
+    id: 5,
+    futuresId: "FUT-2025-0005",
+    title: "Industrial Hemp - Multi-Purpose Biomass",
+    cropType: "hemp",
+    cropVariety: "Industrial Hemp (low THC)",
+    description:
+      "Industrial hemp cultivation on Adelaide Plains. Fast-growing annual crop with multiple harvest cycles. Biomass suitable for various applications including bioenergy and biocomposites.",
+    state: "SA",
+    region: "Adelaide Plains",
+    landAreaHectares: "800",
+    projectionStartYear: 2025,
+    projectionEndYear: 2030,
+    firstHarvestYear: 2025,
+    totalProjectedTonnes: "45000",
+    totalContractedTonnes: "0",
+    totalAvailableTonnes: "45000",
+    indicativePricePerTonne: "120.00",
+    priceEscalationPercent: "3.0",
+    pricingNotes: "Premium pricing reflects high-quality biomass. Flexible contract terms.",
+    expectedCarbonIntensity: "8.0",
+    expectedMoistureContent: "15",
+    expectedEnergyContent: "17.0",
+    status: "active",
+    publishedAt: "2025-02-15",
+  },
+  6: {
+    id: 6,
+    futuresId: "FUT-2025-0006",
+    title: "Switchgrass - Low Input Energy Crop",
+    cropType: "switchgrass",
+    cropVariety: "Panicum virgatum",
+    description:
+      "Native switchgrass plantation in Western Australia's South West. Low-input perennial grass with excellent drought tolerance. Ideal for marginal lands and sustainable bioenergy production.",
+    state: "WA",
+    region: "South West",
+    landAreaHectares: "1800",
+    projectionStartYear: 2026,
+    projectionEndYear: 2036,
+    firstHarvestYear: 2027,
+    totalProjectedTonnes: "90000",
+    totalContractedTonnes: "0",
+    totalAvailableTonnes: "90000",
+    indicativePricePerTonne: "88.00",
+    priceEscalationPercent: "2.5",
+    pricingNotes: "Competitive pricing for long-term offtake agreements.",
+    expectedCarbonIntensity: "11.0",
+    expectedMoistureContent: "25",
+    expectedEnergyContent: "17.5",
+    status: "active",
+    publishedAt: "2025-02-20",
+  },
 };
+
+// Default mock futures for unknown IDs
+const DEFAULT_MOCK_FUTURES = MOCK_FUTURES_MAP[1];
 
 const MOCK_PROJECTIONS = [
   {
@@ -214,16 +349,70 @@ const MOCK_PROJECTIONS = [
   },
 ];
 
-const MOCK_SUPPLIER = {
-  companyName: "Hunter Forestry Partners",
-  city: "Singleton",
-  state: "NSW",
-  description:
-    "Leading sustainable forestry operation in the Hunter Valley with over 20 years of experience in biomass production.",
-  contactEmail: "contact@hunterforestry.com.au",
-  contactPhone: "+61 2 6555 1234",
-  website: "https://hunterforestry.com.au",
+const MOCK_SUPPLIERS: Record<number, any> = {
+  1: {
+    companyName: "Mallee Sustainable Energy",
+    city: "Mildura",
+    state: "VIC",
+    description:
+      "Pioneer in sustainable mallee eucalyptus cultivation for bioenergy. Operating in Victoria's Mallee region since 2005.",
+    contactEmail: "contact@malleesustainable.com.au",
+    contactPhone: "+61 3 5022 1234",
+    website: "https://malleesustainable.com.au",
+  },
+  2: {
+    companyName: "Riverina Biomass Co",
+    city: "Wagga Wagga",
+    state: "NSW",
+    description:
+      "Specializing in perennial grass energy crops across the fertile Riverina region.",
+    contactEmail: "info@riverinabio mass.com.au",
+    contactPhone: "+61 2 6925 5678",
+    website: "https://riverinabio mass.com.au",
+  },
+  3: {
+    companyName: "Tropical Bamboo Farms",
+    city: "Nambour",
+    state: "QLD",
+    description:
+      "Australia's largest bamboo plantation operator, focused on sustainable tropical biomass.",
+    contactEmail: "sales@tropicalbamboo.com.au",
+    contactPhone: "+61 7 5476 9012",
+    website: "https://tropicalbamboo.com.au",
+  },
+  4: {
+    companyName: "Tasmanian Forestry Alliance",
+    city: "Launceston",
+    state: "TAS",
+    description:
+      "FSC-certified forestry cooperative with decades of sustainable timber and biomass experience.",
+    contactEmail: "contact@tasforestry.com.au",
+    contactPhone: "+61 3 6331 4567",
+    website: "https://tasforestry.com.au",
+  },
+  5: {
+    companyName: "SA Hemp Industries",
+    city: "Adelaide",
+    state: "SA",
+    description:
+      "Leading industrial hemp producer in South Australia, pioneering hemp biomass applications.",
+    contactEmail: "info@sahempind.com.au",
+    contactPhone: "+61 8 8232 7890",
+    website: "https://sahempind.com.au",
+  },
+  6: {
+    companyName: "WA Energy Crops",
+    city: "Bunbury",
+    state: "WA",
+    description:
+      "Sustainable energy crop specialists in Western Australia's South West region.",
+    contactEmail: "contact@waenergycrops.com.au",
+    contactPhone: "+61 8 9721 3456",
+    website: "https://waenergycrops.com.au",
+  },
 };
+
+const DEFAULT_MOCK_SUPPLIER = MOCK_SUPPLIERS[1];
 
 export default function FuturesDetailBuyer() {
   const { user, loading: authLoading } = useAuth();
@@ -250,15 +439,22 @@ export default function FuturesDetailBuyer() {
 
   const { data, isLoading, error } = trpc.futures.getPublic.useQuery(
     { id: futuresId },
-    { enabled: futuresId > 0 }
+    {
+      enabled: futuresId > 0,
+      retry: false, // Don't retry on NOT_FOUND errors
+    }
   );
 
-  // Use mock data if API returns empty
-  const futures = data?.futures || MOCK_FUTURES;
+  // Get mock data for this specific ID
+  const mockFutures = MOCK_FUTURES_MAP[futuresId] || DEFAULT_MOCK_FUTURES;
+  const mockSupplier = MOCK_SUPPLIERS[futuresId] || DEFAULT_MOCK_SUPPLIER;
+
+  // Use mock data if API returns empty, errors, or query is disabled
+  const showingMockData = !data?.futures || !!error;
+  const futures = data?.futures || mockFutures;
   const projections = data?.projections || MOCK_PROJECTIONS;
-  const supplier = data?.supplier || MOCK_SUPPLIER;
+  const supplier = data?.supplier || mockSupplier;
   const existingEOI = data?.existingEOI || null;
-  const showingMockData = !data?.futures;
 
   const submitEOIMutation = trpc.futures.submitEOI.useMutation({
     onSuccess: result => {
@@ -306,7 +502,8 @@ export default function FuturesDetailBuyer() {
     });
   };
 
-  if (isLoading) {
+  // Show loading only while actually fetching (not when using mock data)
+  if (isLoading && futuresId > 0) {
     return (
       <PageLayout>
         <PageContainer size="lg" padding="lg">
