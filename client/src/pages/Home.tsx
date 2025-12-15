@@ -122,15 +122,17 @@ export default function Home() {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="p-2 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-              <Leaf className="h-6 w-6 text-primary" />
+          <Link href="/">
+            <div className="flex items-center gap-3 group cursor-pointer">
+              <div className="p-2 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <Leaf className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-foreground font-display">ABFI</span>
+                <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block">Bank-Grade Infrastructure</span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold text-foreground font-display">ABFI</span>
-              <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block">Bank-Grade Infrastructure</span>
-            </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">

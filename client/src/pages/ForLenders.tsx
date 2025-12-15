@@ -155,7 +155,7 @@ export default function ForLenders() {
                 </Button>
               </Link>
               <Link href="/compliance-dashboard">
-                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 bg-transparent">
                   View Compliance Dashboard
                 </Button>
               </Link>

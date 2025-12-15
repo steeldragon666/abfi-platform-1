@@ -42,7 +42,6 @@ import ProducerCarbonCalculator from "./pages/ProducerCarbonCalculator";
 import ProducerContracts from "./pages/ProducerContracts";
 import ProducerMarketplaceListing from "./pages/ProducerMarketplaceListing";
 import ProducerReview from "./pages/ProducerReview";
-import ProducerSuccess from "./pages/ProducerSuccess";
 import FinancialOnboarding from "./pages/FinancialOnboarding";
 import BankabilityExplainer from "./pages/BankabilityExplainer";
 import GrowerBenefits from "./pages/GrowerBenefits";
@@ -136,7 +135,6 @@ function Router() {
       <Route path="/producer-registration/marketplace-listing" component={ProducerMarketplaceListing} />
       <Route path="/producer-registration/review" component={ProducerReview} />
       <Route path="/producer-registration/success" component={ProducerRegistrationSuccess} />
-      <Route path="/producer-registration/success" component={ProducerSuccess} />
       <Route path="/certificate/upload" component={CertificateUpload} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

@@ -137,7 +137,7 @@ export default function ForDevelopers() {
                 </Button>
               </Link>
               <Link href="/futures">
-                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 bg-transparent">
                   Browse Futures
                 </Button>
               </Link>
