@@ -91,33 +91,61 @@ export const rsieRouter = router({
 
   dataSources: router({
     list: protectedProcedure.query(async () => {
-      // TODO: Implement db.listDataSources()
-      return [];
+      return await db.listDataSources();
     }),
+
+    listEnabled: protectedProcedure.query(async () => {
+      return await db.listDataSources(true);
+    }),
+
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const source = await db.getDataSourceById(input.id);
+        if (!source) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Data source not found" });
+        }
+        return source;
+      }),
 
     create: adminProcedure
       .input(
         z.object({
-          name: z.string().min(1),
-          sourceType: z.enum(DATA_SOURCE_TYPES),
-          baseUrl: z.string().url().optional(),
-          apiKeyEnvVar: z.string().optional(),
-          description: z.string().optional(),
-          refreshIntervalMinutes: z.number().int().positive().optional(),
-          isActive: z.boolean().default(true),
+          sourceKey: z.string().min(1).max(64),
+          name: z.string().min(1).max(128),
+          licenseClass: z.enum(["CC_BY_4", "CC_BY_3", "COMMERCIAL", "RESTRICTED", "UNKNOWN"]),
+          termsUrl: z.string().url().max(512).optional(),
+          attributionText: z.string().max(512).optional(),
+          isEnabled: z.boolean().default(true),
         })
       )
       .mutation(async ({ input }) => {
-        // TODO: Implement db.createDataSource()
-        console.log("[RSIE] Creating data source:", input.name);
-        return { id: 1 };
+        const id = await db.createDataSource(input);
+        console.log("[RSIE] Created data source:", input.name, "id:", id);
+        return { id };
       }),
 
-    toggleActive: adminProcedure
-      .input(z.object({ id: z.number(), isActive: z.boolean() }))
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          name: z.string().min(1).max(128).optional(),
+          termsUrl: z.string().url().max(512).optional(),
+          attributionText: z.string().max(512).optional(),
+          isEnabled: z.boolean().optional(),
+        })
+      )
       .mutation(async ({ input }) => {
-        // TODO: Implement db.updateDataSource()
-        console.log("[RSIE] Toggling data source:", input.id, input.isActive);
+        const { id, ...updates } = input;
+        await db.updateDataSource(id, updates);
+        return { success: true };
+      }),
+
+    toggleEnabled: adminProcedure
+      .input(z.object({ id: z.number(), isEnabled: z.boolean() }))
+      .mutation(async ({ input }) => {
+        await db.toggleDataSourceEnabled(input.id, input.isEnabled);
+        console.log("[RSIE] Toggled data source:", input.id, "enabled:", input.isEnabled);
         return { success: true };
       }),
   }),
@@ -131,80 +159,127 @@ export const rsieRouter = router({
     list: protectedProcedure
       .input(
         z.object({
-          eventType: z.array(z.enum(RISK_EVENT_TYPES)).optional(),
+          eventType: z.array(z.string()).optional(),
           severity: z.array(z.enum(RISK_SEVERITY)).optional(),
-          state: z.array(z.enum(AUSTRALIAN_STATES)).optional(),
-          activeOnly: z.boolean().default(true),
+          eventStatus: z.array(z.enum(["watch", "active", "resolved"])).optional(),
           limit: z.number().int().positive().default(50),
           offset: z.number().int().nonnegative().default(0),
         })
       )
       .query(async ({ input }) => {
-        // TODO: Implement db.searchRiskEvents()
-        console.log("[RSIE] Listing risk events with filters:", input);
-        return {
-          events: [],
-          total: 0,
-        };
+        return await db.searchRiskEvents({
+          eventType: input.eventType,
+          severity: input.severity,
+          eventStatus: input.eventStatus,
+          limit: input.limit,
+          offset: input.offset,
+        });
       }),
 
     // Get single risk event with full details
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
-        // TODO: Implement db.getRiskEventById()
-        throw new TRPCError({ code: "NOT_FOUND", message: "Risk event not found" });
+        const event = await db.getRiskEventById(input.id);
+        if (!event) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Risk event not found" });
+        }
+        return event;
+      }),
+
+    // Get risk event by fingerprint (for deduplication)
+    getByFingerprint: protectedProcedure
+      .input(z.object({ fingerprint: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getRiskEventByFingerprint(input.fingerprint);
+      }),
+
+    // Get active risk events in a bounding box
+    getInBbox: protectedProcedure
+      .input(
+        z.object({
+          minLat: z.number().min(-90).max(90),
+          maxLat: z.number().min(-90).max(90),
+          minLng: z.number().min(-180).max(180),
+          maxLng: z.number().min(-180).max(180),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.getActiveRiskEventsInBbox(
+          input.minLat,
+          input.maxLat,
+          input.minLng,
+          input.maxLng
+        );
       }),
 
     // Create risk event (admin/system)
     create: adminProcedure
       .input(
         z.object({
-          eventType: z.enum(RISK_EVENT_TYPES),
+          eventType: z.enum([
+            "drought", "cyclone", "storm", "flood", "bushfire", "heatwave",
+            "frost", "pest", "disease", "policy", "industrial_action", "logistics_disruption"
+          ]),
+          eventClass: z.enum(["hazard", "biosecurity", "systemic"]).default("hazard"),
+          eventStatus: z.enum(["watch", "active", "resolved"]).default("active"),
           severity: z.enum(RISK_SEVERITY),
-          title: z.string().min(1),
-          description: z.string().optional(),
-          // GeoJSON geometry
-          geometryJson: z.string(), // Valid GeoJSON
-          // Bounding box for fast queries
-          bboxMinLat: z.number().min(-90).max(90),
-          bboxMaxLat: z.number().min(-90).max(90),
-          bboxMinLng: z.number().min(-180).max(180),
-          bboxMaxLng: z.number().min(-180).max(180),
-          // Timing
-          detectedAt: z.date(),
-          expiresAt: z.date().optional(),
-          // Source reference
+          affectedRegionGeojson: z.any(), // GeoJSON object
+          bboxMinLat: z.string(),
+          bboxMaxLat: z.string(),
+          bboxMinLng: z.string(),
+          bboxMaxLng: z.string(),
+          startDate: z.date(),
+          endDate: z.date().optional(),
+          scoreTotal: z.number().int(),
+          scoreComponents: z.any(),
+          confidence: z.string(),
+          methodVersion: z.string(),
           sourceId: z.number().optional(),
-          externalId: z.string().optional(),
+          sourceRefs: z.any().optional(),
+          ingestionRunId: z.number().optional(),
         })
       )
       .mutation(async ({ input }) => {
         // Generate fingerprint for deduplication
         const fingerprint = generateEventFingerprint(
           input.eventType,
-          input.geometryJson,
-          input.detectedAt
+          JSON.stringify(input.affectedRegionGeojson),
+          input.startDate
         );
 
-        // TODO: Implement db.createRiskEvent()
-        console.log("[RSIE] Creating risk event:", input.title);
-        return { id: 1, fingerprint };
+        const id = await db.createRiskEvent({
+          ...input,
+          eventFingerprint: fingerprint,
+        });
+
+        console.log("[RSIE] Created risk event, id:", id, "fingerprint:", fingerprint);
+        return { id, fingerprint };
       }),
 
-    // Update risk event status
-    updateStatus: adminProcedure
+    // Update risk event
+    update: adminProcedure
       .input(
         z.object({
           id: z.number(),
-          isActive: z.boolean(),
-          resolvedAt: z.date().optional(),
-          resolutionNotes: z.string().optional(),
+          eventStatus: z.enum(["watch", "active", "resolved"]).optional(),
+          severity: z.enum(RISK_SEVERITY).optional(),
+          endDate: z.date().optional(),
         })
       )
       .mutation(async ({ input }) => {
-        // TODO: Implement db.updateRiskEvent()
-        console.log("[RSIE] Updating risk event status:", input.id);
+        const { id, ...updates } = input;
+        await db.updateRiskEvent(id, updates);
+        console.log("[RSIE] Updated risk event:", id);
+        return { success: true };
+      }),
+
+    // Resolve a risk event
+    resolve: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.resolveRiskEvent(input.id);
+        console.log("[RSIE] Resolved risk event:", input.id);
         return { success: true };
       }),
   }),
@@ -224,17 +299,7 @@ export const rsieRouter = router({
         });
       }
 
-      // TODO: Implement db.getSupplierExposureSummary()
-      return {
-        supplierId: supplier.id,
-        activeRiskCount: 0,
-        criticalCount: 0,
-        highCount: 0,
-        mediumCount: 0,
-        lowCount: 0,
-        totalTonnesAtRisk: 0,
-        exposures: [],
-      };
+      return await db.getSupplierExposureSummary(supplier.id);
     }),
 
     // List exposures for a specific supplier site
@@ -249,18 +314,62 @@ export const rsieRouter = router({
           });
         }
 
-        // TODO: Verify site belongs to supplier
-        // TODO: Implement db.getExposuresBySiteId()
-        return [];
+        // Verify site belongs to supplier
+        const site = await db.getSupplierSiteById(input.siteId);
+        if (!site || site.supplierId !== supplier.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Site not found or not owned by supplier",
+          });
+        }
+
+        return await db.getExposuresBySiteId(input.siteId);
       }),
 
-    // Calculate exposure for all supplier sites against active risk events
+    // Get exposures by risk event
+    byRiskEvent: protectedProcedure
+      .input(z.object({ riskEventId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getExposuresByRiskEventId(input.riskEventId);
+      }),
+
+    // Update mitigation status for an exposure
+    updateMitigation: protectedProcedure
+      .input(
+        z.object({
+          exposureId: z.number(),
+          mitigationStatus: z.enum(["none", "partial", "full"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Verify ownership
+        const supplier = await db.getSupplierByUserId(ctx.user.id);
+        if (!supplier) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Supplier profile required",
+          });
+        }
+
+        await db.updateExposureMitigation(input.exposureId, input.mitigationStatus);
+        return { success: true };
+      }),
+
+    // Calculate exposure for all supplier sites against active risk events (admin)
     recalculate: adminProcedure.mutation(async () => {
-      // This would be called by a scheduled job
-      // TODO: Implement exposure calculation logic
       console.log("[RSIE] Recalculating all supplier exposures...");
-      return { processed: 0 };
+      const result = await db.recalculateAllExposures();
+      console.log("[RSIE] Processed", result.processed, "exposures for", result.eventCount, "events");
+      return result;
     }),
+
+    // Calculate exposure for a specific risk event (admin)
+    recalculateForEvent: adminProcedure
+      .input(z.object({ riskEventId: z.number() }))
+      .mutation(async ({ input }) => {
+        console.log("[RSIE] Calculating exposures for risk event:", input.riskEventId);
+        return await db.calculateExposuresForRiskEvent(input.riskEventId);
+      }),
   }),
 
   // ==========================================================================
@@ -268,23 +377,56 @@ export const rsieRouter = router({
   // ==========================================================================
 
   weather: router({
-    // Get weather data for a location
-    getForLocation: protectedProcedure
+    // Get weather data for a grid cell
+    getForCell: protectedProcedure
       .input(
         z.object({
-          latitude: z.number().min(-90).max(90),
-          longitude: z.number().min(-180).max(180),
+          cellId: z.string(),
           startDate: z.date().optional(),
           endDate: z.date().optional(),
         })
       )
       .query(async ({ input }) => {
-        // TODO: Implement weather grid lookup
-        console.log("[RSIE] Getting weather for:", input.latitude, input.longitude);
-        return {
-          historical: [],
-          forecast: [],
-        };
+        const historical = await db.getWeatherForCell(
+          input.cellId,
+          input.startDate,
+          input.endDate
+        );
+        return { historical };
+      }),
+
+    // Get forecast for a grid cell
+    getForecast: protectedProcedure
+      .input(
+        z.object({
+          cellId: z.string(),
+          hoursAhead: z.number().int().positive().default(168), // 7 days
+        })
+      )
+      .query(async ({ input }) => {
+        const forecast = await db.getForecastForCell(input.cellId, input.hoursAhead);
+        return { forecast };
+      }),
+
+    // Get combined weather data (historical + forecast) for a cell
+    getCombined: protectedProcedure
+      .input(
+        z.object({
+          cellId: z.string(),
+          historicalDays: z.number().int().positive().default(30),
+          forecastHours: z.number().int().positive().default(168),
+        })
+      )
+      .query(async ({ input }) => {
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - input.historicalDays);
+
+        const [historical, forecast] = await Promise.all([
+          db.getWeatherForCell(input.cellId, startDate),
+          db.getForecastForCell(input.cellId, input.forecastHours),
+        ]);
+
+        return { historical, forecast };
       }),
 
     // Get weather alerts for supplier sites
@@ -297,7 +439,10 @@ export const rsieRouter = router({
         });
       }
 
-      // TODO: Implement weather alerts based on supplier sites
+      // Get supplier's sites and check for weather alerts
+      const sites = await db.getSupplierSitesBySupplierId(supplier.id);
+
+      // For now, return empty - would implement weather threshold checking
       return [];
     }),
   }),
@@ -318,23 +463,26 @@ export const rsieRouter = router({
         })
       )
       .query(async ({ input }) => {
-        // TODO: Implement db.listIntelligenceItems()
-        console.log("[RSIE] Listing intelligence items:", input);
-        return {
-          items: [],
-          total: 0,
-        };
+        return await db.listIntelligenceItems({
+          itemType: input.itemType,
+          tags: input.tags,
+          limit: input.limit,
+          offset: input.offset,
+        });
       }),
 
     // Get single intelligence item
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
-        // TODO: Implement db.getIntelligenceItemById()
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Intelligence item not found",
-        });
+        const item = await db.getIntelligenceItemById(input.id);
+        if (!item) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Intelligence item not found",
+          });
+        }
+        return item;
       }),
 
     // Create intelligence item (admin/system)
@@ -342,18 +490,50 @@ export const rsieRouter = router({
       .input(
         z.object({
           itemType: z.enum(INTELLIGENCE_ITEM_TYPES),
-          title: z.string().min(1),
-          sourceUrl: z.string().url(),
-          publisher: z.string().optional(),
+          title: z.string().min(1).max(256),
+          sourceUrl: z.string().url().max(512),
+          publisher: z.string().max(128).optional(),
           publishedAt: z.date().optional(),
           summary: z.string().optional(),
+          summaryModel: z.string().max(64).optional(),
           tags: z.array(z.string()).optional(),
         })
       )
       .mutation(async ({ input }) => {
-        // TODO: Implement db.createIntelligenceItem()
-        console.log("[RSIE] Creating intelligence item:", input.title);
-        return { id: 1 };
+        const id = await db.createIntelligenceItem({
+          ...input,
+          summaryGeneratedAt: input.summary ? new Date() : undefined,
+        });
+        console.log("[RSIE] Created intelligence item:", input.title, "id:", id);
+        return { id };
+      }),
+
+    // Update intelligence item
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          title: z.string().min(1).max(256).optional(),
+          summary: z.string().optional(),
+          summaryModel: z.string().max(64).optional(),
+          tags: z.array(z.string()).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...updates } = input;
+        if (updates.summary) {
+          (updates as any).summaryGeneratedAt = new Date();
+        }
+        await db.updateIntelligenceItem(id, updates);
+        return { success: true };
+      }),
+
+    // Delete intelligence item
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteIntelligenceItem(input.id);
+        return { success: true };
       }),
   }),
 
@@ -367,34 +547,72 @@ export const rsieRouter = router({
       .input(
         z.object({
           sourceId: z.number().optional(),
-          status: z.enum(["running", "success", "partial", "failed"]).optional(),
+          status: z.enum(["started", "succeeded", "partial", "failed"]).optional(),
           limit: z.number().int().positive().default(20),
         })
       )
       .query(async ({ input }) => {
-        // TODO: Implement db.listIngestionRuns()
-        console.log("[RSIE] Listing ingestion runs:", input);
-        return [];
+        return await db.listIngestionRuns({
+          sourceId: input.sourceId,
+          status: input.status,
+          limit: input.limit,
+        });
       }),
 
     // Get single ingestion run details
     getRunById: adminProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
-        // TODO: Implement db.getIngestionRunById()
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Ingestion run not found",
-        });
+        const run = await db.getIngestionRunById(input.id);
+        if (!run) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Ingestion run not found",
+          });
+        }
+        return run;
       }),
 
-    // Trigger manual ingestion for a data source
-    triggerIngestion: adminProcedure
-      .input(z.object({ sourceId: z.number() }))
+    // Create a new ingestion run (for manual or scheduled triggers)
+    create: adminProcedure
+      .input(
+        z.object({
+          sourceId: z.number(),
+          runType: z.enum(["baseline", "weather", "impact", "policy", "spatial"]),
+        })
+      )
       .mutation(async ({ input }) => {
-        // TODO: Implement manual ingestion trigger
-        console.log("[RSIE] Triggering ingestion for source:", input.sourceId);
-        return { runId: 1 };
+        const id = await db.createIngestionRun({
+          sourceId: input.sourceId,
+          runType: input.runType,
+          status: "started",
+          startedAt: new Date(),
+        });
+        console.log("[RSIE] Created ingestion run:", id, "for source:", input.sourceId);
+        return { runId: id };
+      }),
+
+    // Complete an ingestion run
+    complete: adminProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          status: z.enum(["succeeded", "partial", "failed"]),
+          recordsIn: z.number().int().nonnegative(),
+          recordsOut: z.number().int().nonnegative(),
+          errorMessage: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.completeIngestionRun(
+          input.id,
+          input.status,
+          input.recordsIn,
+          input.recordsOut,
+          input.errorMessage
+        );
+        console.log("[RSIE] Completed ingestion run:", input.id, "status:", input.status);
+        return { success: true };
       }),
   }),
 
@@ -407,25 +625,60 @@ export const rsieRouter = router({
     submit: protectedProcedure
       .input(
         z.object({
-          surveyId: z.string(),
-          responses: z.record(z.string(), z.unknown()),
-          npScore: z.number().int().min(0).max(10).optional(),
+          sessionDurationMinutes: z.number().int().nonnegative().optional(),
+          likes: z.array(z.string()).optional(),
+          improvements: z.array(z.string()).optional(),
           featureRequests: z.string().optional(),
-          painPoints: z.string().optional(),
+          npsScore: z.number().int().min(0).max(10).optional(),
+          otherFeedback: z.string().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        // TODO: Implement db.createUserFeedback()
-        console.log("[RSIE] Submitting feedback from user:", ctx.user.id);
-        return { id: 1 };
+        const id = await db.createUserFeedback({
+          userId: ctx.user.id,
+          sessionDurationMinutes: input.sessionDurationMinutes,
+          likes: input.likes,
+          improvements: input.improvements,
+          featureRequests: input.featureRequests,
+          npsScore: input.npsScore,
+          otherFeedback: input.otherFeedback,
+        });
+        console.log("[RSIE] Submitted feedback from user:", ctx.user.id, "id:", id);
+        return { id };
       }),
 
-    // Check if user has completed a survey
-    hasCompleted: protectedProcedure
-      .input(z.object({ surveyId: z.string() }))
-      .query(async ({ ctx, input }) => {
-        // TODO: Implement db.hasUserCompletedSurvey()
-        return false;
+    // Mark feedback as dismissed without completing
+    dismiss: protectedProcedure.mutation(async ({ ctx }) => {
+      const id = await db.createUserFeedback({
+        userId: ctx.user.id,
+        dismissedWithoutCompleting: true,
+      });
+      return { id };
+    }),
+
+    // Check if user has submitted feedback
+    hasSubmitted: protectedProcedure.query(async ({ ctx }) => {
+      return await db.hasUserSubmittedFeedback(ctx.user.id);
+    }),
+
+    // Get feedback stats (admin only)
+    stats: adminProcedure.query(async () => {
+      return await db.getFeedbackStats();
+    }),
+
+    // List all feedback (admin only)
+    list: adminProcedure
+      .input(
+        z.object({
+          limit: z.number().int().positive().default(50),
+          offset: z.number().int().nonnegative().default(0),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.listUserFeedback({
+          limit: input.limit,
+          offset: input.offset,
+        });
       }),
   }),
 });

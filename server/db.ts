@@ -76,6 +76,27 @@ import {
   InsertFuturesYieldProjection,
   futuresEOI,
   InsertFuturesEOI,
+  // RSIE Tables
+  dataSources,
+  InsertDataSource,
+  ingestionRuns,
+  InsertIngestionRun,
+  riskEvents,
+  InsertRiskEvent,
+  supplierSites,
+  InsertSupplierSite,
+  supplierRiskExposure,
+  InsertSupplierRiskExposure,
+  contractRiskExposure,
+  InsertContractRiskExposure,
+  weatherGridDaily,
+  InsertWeatherGridDaily,
+  forecastGridHourly,
+  InsertForecastGridHourly,
+  userFeedback,
+  InsertUserFeedback,
+  intelligenceItems,
+  InsertIntelligenceItem,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -2212,4 +2233,810 @@ export async function countEOIsByFuturesId(futuresId: number) {
     ).length,
     accepted: eois.filter(e => e.status === "accepted").length,
   };
+}
+
+// ============================================================================
+// RSIE: DATA SOURCES
+// ============================================================================
+
+export async function listDataSources(enabledOnly: boolean = false) {
+  const db = await getDb();
+  if (!db) return [];
+
+  if (enabledOnly) {
+    return await db
+      .select()
+      .from(dataSources)
+      .where(eq(dataSources.isEnabled, true))
+      .orderBy(asc(dataSources.name));
+  }
+
+  return await db.select().from(dataSources).orderBy(asc(dataSources.name));
+}
+
+export async function getDataSourceById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(dataSources)
+    .where(eq(dataSources.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function createDataSource(source: InsertDataSource) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(dataSources).values(source);
+  return Number((result as any).insertId);
+}
+
+export async function updateDataSource(
+  id: number,
+  updates: Partial<InsertDataSource>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(dataSources).set(updates).where(eq(dataSources.id, id));
+}
+
+export async function toggleDataSourceEnabled(id: number, isEnabled: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(dataSources)
+    .set({ isEnabled })
+    .where(eq(dataSources.id, id));
+}
+
+// ============================================================================
+// RSIE: INGESTION RUNS
+// ============================================================================
+
+export async function createIngestionRun(run: InsertIngestionRun) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(ingestionRuns).values(run);
+  return Number((result as any).insertId);
+}
+
+export async function getIngestionRunById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(ingestionRuns)
+    .where(eq(ingestionRuns.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function listIngestionRuns(filters: {
+  sourceId?: number;
+  status?: string;
+  limit?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+  if (filters.sourceId) {
+    conditions.push(eq(ingestionRuns.sourceId, filters.sourceId));
+  }
+  if (filters.status) {
+    conditions.push(eq(ingestionRuns.status, filters.status as any));
+  }
+
+  const query = db
+    .select()
+    .from(ingestionRuns)
+    .orderBy(desc(ingestionRuns.startedAt))
+    .limit(filters.limit || 20);
+
+  if (conditions.length > 0) {
+    return await query.where(and(...conditions));
+  }
+  return await query;
+}
+
+export async function updateIngestionRun(
+  id: number,
+  updates: Partial<InsertIngestionRun>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(ingestionRuns).set(updates).where(eq(ingestionRuns.id, id));
+}
+
+export async function completeIngestionRun(
+  id: number,
+  status: "succeeded" | "partial" | "failed",
+  recordsIn: number,
+  recordsOut: number,
+  errorMessage?: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(ingestionRuns)
+    .set({
+      status,
+      finishedAt: new Date(),
+      recordsIn,
+      recordsOut,
+      errorMessage,
+    })
+    .where(eq(ingestionRuns.id, id));
+}
+
+// ============================================================================
+// RSIE: RISK EVENTS
+// ============================================================================
+
+export async function createRiskEvent(event: InsertRiskEvent) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(riskEvents).values(event);
+  return Number((result as any).insertId);
+}
+
+export async function getRiskEventById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(riskEvents)
+    .where(eq(riskEvents.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getRiskEventByFingerprint(fingerprint: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(riskEvents)
+    .where(eq(riskEvents.eventFingerprint, fingerprint))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function searchRiskEvents(filters: {
+  eventType?: string[];
+  severity?: string[];
+  eventStatus?: string[];
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { events: [], total: 0 };
+
+  const conditions = [];
+
+  // Default to showing active and watch status events
+  if (filters.eventStatus && filters.eventStatus.length > 0) {
+    conditions.push(inArray(riskEvents.eventStatus, filters.eventStatus as any));
+  } else {
+    conditions.push(inArray(riskEvents.eventStatus, ["active", "watch"] as any));
+  }
+
+  if (filters.eventType && filters.eventType.length > 0) {
+    conditions.push(inArray(riskEvents.eventType, filters.eventType as any));
+  }
+
+  if (filters.severity && filters.severity.length > 0) {
+    conditions.push(inArray(riskEvents.severity, filters.severity as any));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const events = await db
+    .select()
+    .from(riskEvents)
+    .where(whereClause)
+    .orderBy(desc(riskEvents.startDate))
+    .limit(filters.limit || 50)
+    .offset(filters.offset || 0);
+
+  // Get total count
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(riskEvents)
+    .where(whereClause);
+
+  return {
+    events,
+    total: Number(countResult[0]?.count || 0),
+  };
+}
+
+export async function updateRiskEvent(
+  id: number,
+  updates: Partial<InsertRiskEvent>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(riskEvents)
+    .set(updates)
+    .where(eq(riskEvents.id, id));
+}
+
+export async function resolveRiskEvent(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(riskEvents)
+    .set({
+      eventStatus: "resolved",
+      endDate: new Date(),
+    })
+    .where(eq(riskEvents.id, id));
+}
+
+export async function getActiveRiskEventsInBbox(
+  minLat: number,
+  maxLat: number,
+  minLng: number,
+  maxLng: number
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Decimal columns in Drizzle return strings, use SQL for numeric comparison
+  return await db
+    .select()
+    .from(riskEvents)
+    .where(
+      and(
+        eq(riskEvents.eventStatus, "active"),
+        sql`${riskEvents.bboxMinLat} <= ${maxLat}`,
+        sql`${riskEvents.bboxMaxLat} >= ${minLat}`,
+        sql`${riskEvents.bboxMinLng} <= ${maxLng}`,
+        sql`${riskEvents.bboxMaxLng} >= ${minLng}`
+      )
+    );
+}
+
+// ============================================================================
+// RSIE: SUPPLIER SITES
+// ============================================================================
+
+export async function createSupplierSite(site: InsertSupplierSite) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(supplierSites).values(site);
+  return Number((result as any).insertId);
+}
+
+export async function getSupplierSiteById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(supplierSites)
+    .where(eq(supplierSites.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getSupplierSitesBySupplierId(supplierId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(supplierSites)
+    .where(eq(supplierSites.supplierId, supplierId))
+    .orderBy(asc(supplierSites.name));
+}
+
+export async function updateSupplierSite(
+  id: number,
+  updates: Partial<InsertSupplierSite>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(supplierSites)
+    .set(updates)
+    .where(eq(supplierSites.id, id));
+}
+
+export async function deleteSupplierSite(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(supplierSites).where(eq(supplierSites.id, id));
+}
+
+export async function getAllSitesWithBbox() {
+  const db = await getDb();
+  if (!db) return [];
+  // Return all sites that have a valid bounding box
+  return await db
+    .select()
+    .from(supplierSites)
+    .where(
+      and(
+        isNotNull(supplierSites.bboxMinLat),
+        isNotNull(supplierSites.bboxMaxLat),
+        isNotNull(supplierSites.bboxMinLng),
+        isNotNull(supplierSites.bboxMaxLng)
+      )
+    );
+}
+
+// ============================================================================
+// RSIE: SUPPLIER RISK EXPOSURE
+// ============================================================================
+
+export async function createSupplierRiskExposure(
+  exposure: InsertSupplierRiskExposure
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(supplierRiskExposure).values(exposure);
+  return Number((result as any).insertId);
+}
+
+export async function getExposuresBySiteId(siteId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(supplierRiskExposure)
+    .where(eq(supplierRiskExposure.supplierSiteId, siteId))
+    .orderBy(desc(supplierRiskExposure.computedAt));
+}
+
+export async function getExposuresByRiskEventId(riskEventId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(supplierRiskExposure)
+    .where(eq(supplierRiskExposure.riskEventId, riskEventId));
+}
+
+export async function getSupplierExposureSummary(supplierId: number) {
+  const db = await getDb();
+  if (!db)
+    return {
+      supplierId,
+      activeRiskCount: 0,
+      criticalCount: 0,
+      highCount: 0,
+      mediumCount: 0,
+      lowCount: 0,
+      totalTonnesAtRisk: 0,
+      exposures: [],
+    };
+
+  // Get all sites for this supplier
+  const sites = await getSupplierSitesBySupplierId(supplierId);
+  if (sites.length === 0) {
+    return {
+      supplierId,
+      activeRiskCount: 0,
+      criticalCount: 0,
+      highCount: 0,
+      mediumCount: 0,
+      lowCount: 0,
+      totalTonnesAtRisk: 0,
+      exposures: [],
+    };
+  }
+
+  const siteIds = sites.map(s => s.id);
+
+  // Get all exposures for these sites
+  const exposures = await db
+    .select()
+    .from(supplierRiskExposure)
+    .where(inArray(supplierRiskExposure.supplierSiteId, siteIds));
+
+  // Get unique active risk event IDs
+  const activeRiskEventIds = Array.from(new Set(exposures.map(e => e.riskEventId)));
+
+  // Count by severity (would need to join with riskEvents for accurate count)
+  let criticalCount = 0;
+  let highCount = 0;
+  let mediumCount = 0;
+  let lowCount = 0;
+  let totalTonnesAtRisk = 0;
+
+  for (const exp of exposures) {
+    const tonnes = Number(exp.estimatedImpactTonnes) || 0;
+    totalTonnesAtRisk += tonnes;
+    // Note: To get severity, we'd need to join with riskEvents
+  }
+
+  return {
+    supplierId,
+    activeRiskCount: activeRiskEventIds.length,
+    criticalCount,
+    highCount,
+    mediumCount,
+    lowCount,
+    totalTonnesAtRisk,
+    exposures,
+  };
+}
+
+export async function updateExposureMitigation(
+  id: number,
+  mitigationStatus: "none" | "partial" | "full"
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(supplierRiskExposure)
+    .set({
+      mitigationStatus,
+    })
+    .where(eq(supplierRiskExposure.id, id));
+}
+
+export async function deleteExposuresForRiskEvent(riskEventId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .delete(supplierRiskExposure)
+    .where(eq(supplierRiskExposure.riskEventId, riskEventId));
+}
+
+// ============================================================================
+// RSIE: CONTRACT RISK EXPOSURE
+// ============================================================================
+
+export async function createContractRiskExposure(
+  exposure: InsertContractRiskExposure
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contractRiskExposure).values(exposure);
+  return Number((result as any).insertId);
+}
+
+export async function getContractExposuresByContractId(contractId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(contractRiskExposure)
+    .where(eq(contractRiskExposure.contractId, contractId))
+    .orderBy(desc(contractRiskExposure.computedAt));
+}
+
+export async function getContractExposuresByRiskEventId(riskEventId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(contractRiskExposure)
+    .where(eq(contractRiskExposure.riskEventId, riskEventId));
+}
+
+// ============================================================================
+// RSIE: WEATHER GRID
+// ============================================================================
+
+export async function insertWeatherGridDaily(data: InsertWeatherGridDaily) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(weatherGridDaily).values(data);
+  return Number((result as any).insertId);
+}
+
+export async function bulkInsertWeatherGridDaily(
+  data: InsertWeatherGridDaily[]
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (data.length === 0) return;
+  await db.insert(weatherGridDaily).values(data);
+}
+
+export async function getWeatherForCell(
+  cellId: string,
+  startDate?: Date,
+  endDate?: Date
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [eq(weatherGridDaily.cellId, cellId)];
+
+  if (startDate) {
+    conditions.push(gte(weatherGridDaily.date, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(weatherGridDaily.date, endDate));
+  }
+
+  return await db
+    .select()
+    .from(weatherGridDaily)
+    .where(and(...conditions))
+    .orderBy(desc(weatherGridDaily.date))
+    .limit(365); // Max 1 year of daily data
+}
+
+export async function insertForecastGridHourly(data: InsertForecastGridHourly) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(forecastGridHourly).values(data);
+  return Number((result as any).insertId);
+}
+
+export async function getForecastForCell(
+  cellId: string,
+  hoursAhead: number = 168 // 7 days default
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const now = new Date();
+  const futureDate = new Date(now.getTime() + hoursAhead * 60 * 60 * 1000);
+
+  return await db
+    .select()
+    .from(forecastGridHourly)
+    .where(
+      and(
+        eq(forecastGridHourly.cellId, cellId),
+        gte(forecastGridHourly.hourTime, now),
+        lte(forecastGridHourly.hourTime, futureDate)
+      )
+    )
+    .orderBy(asc(forecastGridHourly.hourTime));
+}
+
+// ============================================================================
+// RSIE: INTELLIGENCE ITEMS
+// ============================================================================
+
+export async function createIntelligenceItem(item: InsertIntelligenceItem) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(intelligenceItems).values(item);
+  return Number((result as any).insertId);
+}
+
+export async function getIntelligenceItemById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(intelligenceItems)
+    .where(eq(intelligenceItems.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function listIntelligenceItems(filters: {
+  itemType?: string[];
+  tags?: string[];
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { items: [], total: 0 };
+
+  const conditions = [];
+
+  if (filters.itemType && filters.itemType.length > 0) {
+    conditions.push(
+      inArray(intelligenceItems.itemType, filters.itemType as any)
+    );
+  }
+
+  // Tags would require JSON search or a separate junction table
+  // For now, skip tag filtering
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const items = await db
+    .select()
+    .from(intelligenceItems)
+    .where(whereClause)
+    .orderBy(desc(intelligenceItems.publishedAt))
+    .limit(filters.limit || 20)
+    .offset(filters.offset || 0);
+
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(intelligenceItems)
+    .where(whereClause);
+
+  return {
+    items,
+    total: Number(countResult[0]?.count || 0),
+  };
+}
+
+export async function updateIntelligenceItem(
+  id: number,
+  updates: Partial<InsertIntelligenceItem>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .update(intelligenceItems)
+    .set(updates)
+    .where(eq(intelligenceItems.id, id));
+}
+
+export async function deleteIntelligenceItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(intelligenceItems).where(eq(intelligenceItems.id, id));
+}
+
+// ============================================================================
+// RSIE: USER FEEDBACK
+// ============================================================================
+
+export async function createUserFeedback(feedback: InsertUserFeedback) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(userFeedback).values(feedback);
+  return Number((result as any).insertId);
+}
+
+export async function getUserFeedbackById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(userFeedback)
+    .where(eq(userFeedback.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function hasUserSubmittedFeedback(userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db
+    .select()
+    .from(userFeedback)
+    .where(eq(userFeedback.userId, userId))
+    .limit(1);
+  return result.length > 0;
+}
+
+export async function listUserFeedback(filters: {
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(userFeedback)
+    .orderBy(desc(userFeedback.createdAt))
+    .limit(filters.limit || 50)
+    .offset(filters.offset || 0);
+}
+
+export async function getFeedbackStats() {
+  const db = await getDb();
+  if (!db) return { count: 0, avgNps: null };
+
+  const feedback = await db.select().from(userFeedback);
+
+  if (feedback.length === 0) {
+    return { count: 0, avgNps: null };
+  }
+
+  const npsScores = feedback
+    .filter(f => f.npsScore !== null)
+    .map(f => f.npsScore as number);
+
+  const avgNps =
+    npsScores.length > 0
+      ? npsScores.reduce((a, b) => a + b, 0) / npsScores.length
+      : null;
+
+  return {
+    count: feedback.length,
+    avgNps,
+  };
+}
+
+// ============================================================================
+// RSIE: EXPOSURE CALCULATION HELPERS
+// ============================================================================
+
+/**
+ * Calculate exposures for all supplier sites against a specific risk event
+ * Uses bounding box intersection to find overlapping sites
+ */
+export async function calculateExposuresForRiskEvent(riskEventId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const event = await getRiskEventById(riskEventId);
+  if (!event || event.eventStatus === "resolved") {
+    return { processed: 0 };
+  }
+
+  // Get sites whose bbox overlaps with the risk event's bbox
+  const sites = await db
+    .select()
+    .from(supplierSites)
+    .where(
+      and(
+        isNotNull(supplierSites.bboxMinLat),
+        isNotNull(supplierSites.bboxMaxLat),
+        isNotNull(supplierSites.bboxMinLng),
+        isNotNull(supplierSites.bboxMaxLng),
+        // Bbox intersection check using SQL for decimal comparisons
+        sql`${supplierSites.bboxMinLat} <= ${event.bboxMaxLat}`,
+        sql`${supplierSites.bboxMaxLat} >= ${event.bboxMinLat}`,
+        sql`${supplierSites.bboxMinLng} <= ${event.bboxMaxLng}`,
+        sql`${supplierSites.bboxMaxLng} >= ${event.bboxMinLng}`
+      )
+    );
+
+  let processed = 0;
+
+  for (const site of sites) {
+    // Check if exposure already exists
+    const existing = await db
+      .select()
+      .from(supplierRiskExposure)
+      .where(
+        and(
+          eq(supplierRiskExposure.supplierSiteId, site.id),
+          eq(supplierRiskExposure.riskEventId, riskEventId)
+        )
+      )
+      .limit(1);
+
+    if (existing.length === 0) {
+      // Create new exposure
+      // In a real system, calculate overlap fraction using GeoJSON intersection
+      const exposureFraction = "0.5000"; // Placeholder: 50% overlap
+      const estimatedImpactTonnes = "0.00"; // Would calculate from supplier capacity
+
+      await createSupplierRiskExposure({
+        supplierId: site.supplierId,
+        supplierSiteId: site.id,
+        riskEventId,
+        exposureFraction,
+        estimatedImpactTonnes,
+        computedAt: new Date(),
+        mitigationStatus: "none",
+      });
+      processed++;
+    }
+  }
+
+  return { processed };
+}
+
+/**
+ * Recalculate all exposures for all active risk events
+ */
+export async function recalculateAllExposures() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const activeEvents = await db
+    .select()
+    .from(riskEvents)
+    .where(inArray(riskEvents.eventStatus, ["active", "watch"] as any));
+
+  let totalProcessed = 0;
+
+  for (const event of activeEvents) {
+    const result = await calculateExposuresForRiskEvent(event.id);
+    totalProcessed += result.processed;
+  }
+
+  return { processed: totalProcessed, eventCount: activeEvents.length };
 }
