@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import DashboardLayout from "@/components/DashboardLayout";
 import {
   Card,
   CardContent,
@@ -38,40 +39,44 @@ export default function AdminUserManagement() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Skeleton className="h-64 w-full max-w-2xl" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Skeleton className="h-64 w-full max-w-2xl" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   // Check admin permissions
   if (user.role !== "admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="py-12 text-center">
-            <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
-            <p className="text-sm text-muted-foreground">
-              You don't have permission to access user management.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Card className="max-w-md">
+            <CardContent className="py-12 text-center">
+              <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
+              <p className="text-sm text-muted-foreground">
+                You don't have permission to access user management.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container py-8">
-          <Skeleton className="h-8 w-64 mb-8" />
+      <DashboardLayout>
+        <div className="space-y-8">
+          <Skeleton className="h-8 w-64" />
           <div className="grid gap-6">
             <Skeleton className="h-64" />
             <Skeleton className="h-64" />
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -108,11 +113,11 @@ export default function AdminUserManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-            <Users className="h-8 w-8" />
+    <DashboardLayout>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold mb-2 flex items-center gap-3">
+            <Users className="h-7 w-7" />
             User Management
           </h1>
           <p className="text-muted-foreground">
@@ -261,6 +266,6 @@ export default function AdminUserManagement() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

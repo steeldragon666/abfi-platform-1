@@ -86,6 +86,9 @@ const AdminRSIE = lazy(() => import("@/pages/AdminRSIE"));
 const MonitoringJobsScheduler = lazy(
   () => import("./pages/MonitoringJobsScheduler"),
 );
+const GrowerQualificationTiers = lazy(
+  () => import("./pages/GrowerQualificationTiers"),
+);
 const ConcentrationAnalysis = lazy(
   () => import("./pages/ConcentrationAnalysis"),
 );
@@ -211,6 +214,7 @@ function Router() {
         <Route path="/futures/:id" component={FuturesDetailBuyer} />
         <Route path="/buyer/eois" component={MyEOIs} />
         <Route path="/for-growers" component={ForGrowers} />
+        <Route path="/grower-qualification" component={GrowerQualificationTiers} />
         <Route path="/for-developers" component={ForDevelopers} />
         <Route path="/for-lenders" component={ForLenders} />
         <Route path="/platform-features" component={PlatformFeatures} />

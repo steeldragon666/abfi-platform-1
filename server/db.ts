@@ -2265,6 +2265,17 @@ export async function getDataSourceById(id: number) {
   return result.length > 0 ? result[0] : null;
 }
 
+export async function getDataSourceByKey(sourceKey: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(dataSources)
+    .where(eq(dataSources.sourceKey, sourceKey))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
 export async function createDataSource(source: InsertDataSource) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

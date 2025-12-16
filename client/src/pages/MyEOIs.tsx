@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { PageLayout } from "@/components/layout";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { formatDate } from "@/const";
 import {
@@ -259,14 +259,14 @@ export default function MyEOIs() {
 
   if (authLoading || !user) {
     return (
-      <PageLayout>
+      <DashboardLayout>
         <div className="min-h-[60vh] flex items-center justify-center">
           <div className="text-center">
             <Skeleton className="h-8 w-64 mx-auto mb-4" />
             <Skeleton className="h-4 w-48 mx-auto" />
           </div>
         </div>
-      </PageLayout>
+      </DashboardLayout>
     );
   }
 
@@ -297,71 +297,27 @@ export default function MyEOIs() {
   };
 
   return (
-    <PageLayout>
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-teal-600 via-emerald-600 to-green-700 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-
-        <div className="container mx-auto px-4 py-16 lg:py-20 relative z-10">
-          <div className="max-w-4xl">
-            <div className="flex items-center gap-3 mb-6">
-              <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                <FileText className="h-3.5 w-3.5 mr-1.5" />
-                EOI Management
+    <DashboardLayout>
+      <div className="space-y-8">
+        {/* Header */}
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <FileText className="h-7 w-7 text-primary" />
+            <h1 className="text-2xl font-bold">My Expressions of Interest</h1>
+            {isUsingMockData && (
+              <Badge className="bg-amber-100 text-amber-800">
+                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                Demo Data
               </Badge>
-              {isUsingMockData && (
-                <Badge className="bg-amber-500/90 text-white border-amber-400">
-                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                  Demo Data
-                </Badge>
-              )}
-            </div>
-
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">
-              My Expressions
-              <span className="block text-emerald-200">of Interest</span>
-            </h1>
-
-            <p className="text-lg md:text-xl text-emerald-100 mb-8 max-w-2xl">
-              Track and manage your submitted EOIs for futures listings. Monitor
-              responses from suppliers and manage your contracting pipeline.
-            </p>
-
-            {/* Quick Stats Row */}
-            <div className="flex flex-wrap gap-6 text-sm">
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <FileText className="h-4 w-4 text-emerald-300" />
-                <span className="font-semibold">{stats.total}</span>
-                <span className="text-emerald-200">Total EOIs</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <Clock className="h-4 w-4 text-yellow-300" />
-                <span className="font-semibold">{stats.pending}</span>
-                <span className="text-emerald-200">Pending</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-                <span className="font-semibold">{stats.accepted}</span>
-                <span className="text-emerald-200">Accepted</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <TrendingUp className="h-4 w-4 text-emerald-300" />
-                <span className="font-semibold">
-                  {stats.acceptedVolume.toLocaleString()}t
-                </span>
-                <span className="text-emerald-200">Contracted</span>
-              </div>
-            </div>
+            )}
           </div>
+          <p className="text-muted-foreground">
+            Track and manage your submitted EOIs for futures listings
+          </p>
         </div>
-      </section>
 
-      {/* Stats Cards */}
-      <section className="bg-background py-8 border-b">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="border-l-4 border-l-teal-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -422,14 +378,10 @@ export default function MyEOIs() {
                 <p className="text-xs text-muted-foreground">Total committed</p>
               </CardContent>
             </Card>
-          </div>
         </div>
-      </section>
 
-      {/* EOI List */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          {isLoading ? (
+        {/* EOI List */}
+        {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map(i => (
                 <Card key={i}>
@@ -548,9 +500,8 @@ export default function MyEOIs() {
               </CardContent>
             </Card>
           )}
-        </div>
-      </section>
-    </PageLayout>
+      </div>
+    </DashboardLayout>
   );
 }
 

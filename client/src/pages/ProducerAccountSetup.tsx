@@ -85,7 +85,7 @@ export default function ProducerAccountSetup() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="border-b bg-white">
+      <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between">
           <Link
             href="/"

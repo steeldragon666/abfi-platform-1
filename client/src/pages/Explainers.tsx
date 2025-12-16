@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ExplainerCarousel, EXPLAINER_SETS } from "@/components/ExplainerCarousel";
+import DashboardLayout from "@/components/DashboardLayout";
 import {
   Hash,
   Cloud,
@@ -49,8 +50,9 @@ export default function Explainers() {
   const activeSet = EXPLAINER_SETS[activeExplainer];
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
-      {/* Header */}
+    <DashboardLayout>
+      <div style={{ background: "var(--bg-primary)" }}>
+        {/* Header */}
       <div className="py-12 px-8" style={{ background: "var(--bg-secondary)", borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="max-w-6xl mx-auto">
           <h1
@@ -201,6 +203,7 @@ export default function Explainers() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

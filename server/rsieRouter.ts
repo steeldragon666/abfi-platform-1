@@ -681,6 +681,83 @@ export const rsieRouter = router({
         });
       }),
   }),
+
+  // ==========================================================================
+  // ADMIN OPERATIONS
+  // ==========================================================================
+
+  admin: router({
+    // Seed Australian data sources
+    seedDataSources: adminProcedure.mutation(async () => {
+      const { AUSTRALIAN_DATA_SOURCES } = await import("./rsieDataSources.js");
+      const results: { created: number; skipped: number; errors: string[] } = {
+        created: 0,
+        skipped: 0,
+        errors: [],
+      };
+
+      for (const source of AUSTRALIAN_DATA_SOURCES) {
+        try {
+          // Check if source already exists
+          const existing = await db.getDataSourceByKey(source.sourceKey);
+          if (existing) {
+            results.skipped++;
+            continue;
+          }
+
+          await db.createDataSource({
+            sourceKey: source.sourceKey,
+            name: source.name,
+            licenseClass: source.licenseClass,
+            termsUrl: source.termsUrl,
+            attributionText: source.attributionText,
+            isEnabled: source.isEnabled,
+          });
+          results.created++;
+        } catch (error) {
+          results.errors.push(`${source.sourceKey}: ${error instanceof Error ? error.message : "Unknown error"}`);
+        }
+      }
+
+      console.log("[RSIE] Seeded data sources:", results);
+      return results;
+    }),
+
+    // Check weather API status
+    checkWeatherApi: adminProcedure.query(async () => {
+      const { checkWeatherApiStatus } = await import("./weatherService.js");
+      return await checkWeatherApiStatus();
+    }),
+
+    // Ingest weather data
+    ingestWeather: adminProcedure.mutation(async () => {
+      const { ingestWeatherData } = await import("./weatherService.js");
+      console.log("[RSIE] Starting weather ingestion...");
+      const result = await ingestWeatherData();
+      console.log("[RSIE] Weather ingestion complete:", result);
+      return result;
+    }),
+
+    // Get Australian grid cells
+    getGridCells: adminProcedure.query(async () => {
+      const { AUSTRALIAN_GRID_CELLS } = await import("./weatherService.js");
+      return AUSTRALIAN_GRID_CELLS;
+    }),
+
+    // Get weather alerts for a location
+    getWeatherAlerts: adminProcedure
+      .input(z.object({ lat: z.number(), lng: z.number() }))
+      .query(async ({ input }) => {
+        const { getWeatherAlerts } = await import("./weatherService.js");
+        return await getWeatherAlerts(input.lat, input.lng);
+      }),
+
+    // Get available data source configurations
+    getAvailableDataSources: adminProcedure.query(async () => {
+      const { AUSTRALIAN_DATA_SOURCES } = await import("./rsieDataSources.js");
+      return AUSTRALIAN_DATA_SOURCES;
+    }),
+  }),
 });
 
 // ============================================================================

@@ -14,7 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/lib/trpc";
-import { PageLayout, PageContainer } from "@/components/layout";
+import DashboardLayout from "@/components/DashboardLayout";
+import { PageContainer } from "@/components/layout";
 import {
   Sprout,
   Plus,
@@ -138,12 +139,12 @@ export default function SupplierFutures() {
 
   if (authLoading || !user) {
     return (
-      <PageLayout>
-        <PageContainer size="lg" padding="lg">
+      <DashboardLayout>
+        <div className="py-8">
           <Skeleton className="h-8 w-64 mx-auto mb-4" />
           <Skeleton className="h-4 w-48 mx-auto" />
-        </PageContainer>
-      </PageLayout>
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -193,81 +194,84 @@ export default function SupplierFutures() {
   };
 
   return (
-    <PageLayout>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-teal-800 via-emerald-800 to-green-900 text-white">
-        <PageContainer size="xl" padding="md" className="py-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              {showingMockData && (
-                <Badge className="mb-3 bg-white/20 text-white border-white/30">
-                  Demo Data
-                </Badge>
-              )}
-              <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
-                Futures Listings
-              </h1>
-              <p className="text-white/70">
-                Manage your long-term perennial crop projections and EOIs
-              </p>
-            </div>
-            <Button
-              size="lg"
-              onClick={() => setLocation("/supplier/futures/create")}
-              className="bg-white text-emerald-800 hover:bg-white/90"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Futures Listing
-            </Button>
+    <DashboardLayout>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            {showingMockData && (
+              <Badge className="mb-3 bg-amber-100 text-amber-800">
+                Demo Data
+              </Badge>
+            )}
+            <h1 className="text-2xl font-bold mb-1">
+              Futures Listings
+            </h1>
+            <p className="text-muted-foreground">
+              Manage your long-term perennial crop projections and EOIs
+            </p>
           </div>
+          <Button
+            size="lg"
+            onClick={() => setLocation("/supplier/futures/create")}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create Futures Listing
+          </Button>
+        </div>
 
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-2">
-                <Sprout className="h-4 w-4 text-white/70" />
-                <span className="text-sm text-white/70">Active Listings</span>
+                <Sprout className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Active Listings</span>
               </div>
               <div className="text-3xl font-bold font-mono">{stats.active}</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-4 w-4 text-white/70" />
-                <span className="text-sm text-white/70">Total Projected</span>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Total Projected</span>
               </div>
               <div className="text-3xl font-bold font-mono">
                 {(stats.totalProjected / 1000).toFixed(0)}k t
               </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-2">
-                <FileText className="h-4 w-4 text-white/70" />
-                <span className="text-sm text-white/70">Contracted</span>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Contracted</span>
               </div>
               <div className="text-3xl font-bold font-mono">
                 {(stats.totalContracted / 1000).toFixed(0)}k t
               </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-2">
-                <Users className="h-4 w-4 text-white/70" />
-                <span className="text-sm text-white/70">Pending EOIs</span>
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Pending EOIs</span>
               </div>
               <div className="text-3xl font-bold font-mono">
                 {stats.pendingEOIs}
               </div>
               {stats.pendingEOIs > 0 && (
-                <div className="text-xs text-amber-300 mt-1">
+                <div className="text-xs text-amber-600 mt-1">
                   Requires attention
                 </div>
               )}
-            </div>
-          </div>
-        </PageContainer>
-      </section>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Main Content */}
-      <PageContainer size="xl" padding="md">
+        {/* Main Content */}
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
@@ -505,32 +509,32 @@ export default function SupplierFutures() {
             </CardContent>
           </Card>
         )}
-      </PageContainer>
 
-      {/* CTA Section */}
-      <section className="bg-gradient-to-r from-emerald-50 to-teal-50 border-t">
-        <PageContainer size="lg" padding="md">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-emerald-100 rounded-xl">
-                <Package className="h-6 w-6 text-emerald-600" />
+        {/* CTA Section */}
+        <Card className="bg-gradient-to-r from-emerald-50 to-teal-50 border">
+          <CardContent className="py-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-100 rounded-xl">
+                  <Package className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">View Your EOIs</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Track and respond to expressions of interest from buyers
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold">View Your EOIs</h3>
-                <p className="text-sm text-muted-foreground">
-                  Track and respond to expressions of interest from buyers
-                </p>
-              </div>
+              <Link href="/buyer/eois">
+                <Button variant="outline" className="gap-2">
+                  View My EOIs
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
-            <Link href="/buyer/eois">
-              <Button variant="outline" className="gap-2">
-                View My EOIs
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </PageContainer>
-      </section>
-    </PageLayout>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 }

@@ -41,6 +41,7 @@ import {
   StaggerItem,
   HoverCard,
 } from "@/components/ui/motion";
+import DashboardLayout from "@/components/DashboardLayout";
 
 // Australian feedstock types with bamboo focus
 const FEEDSTOCK_TYPES = [
@@ -349,8 +350,8 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <PageWrapper className="container mx-auto px-4 py-8 max-w-7xl">
+    <DashboardLayout>
+      <PageWrapper className="max-w-7xl">
         {/* Welcome Section */}
         <FadeInUp className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-1">
@@ -411,7 +412,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="grid md:grid-cols-3 gap-4">
                 <Link href="/admin">
-                  <Card className="border-amber-200 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                  <Card className="border-amber-200 hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-2">
                         <Clock className="h-4 w-4 text-amber-600" />
@@ -424,7 +425,7 @@ export default function Dashboard() {
                   </Card>
                 </Link>
 
-                <Card className="border-slate-200 bg-white">
+                <Card className="border-slate-200">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3 mb-2">
                       <BarChart3 className="h-4 w-4 text-slate-600" />
@@ -436,7 +437,7 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-slate-200 bg-white">
+                <Card className="border-slate-200">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3 mb-2">
                       <FileText className="h-4 w-4 text-slate-600" />
@@ -657,11 +658,11 @@ export default function Dashboard() {
                     and ideal characteristics for biofuel production.
                   </p>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="bg-white rounded-lg p-3 border border-emerald-100">
+                    <div className="bg-card rounded-lg p-3 border border-emerald-100">
                       <p className="text-muted-foreground">Energy Content</p>
                       <p className="font-semibold text-emerald-800">18.5 MJ/kg</p>
                     </div>
-                    <div className="bg-white rounded-lg p-3 border border-emerald-100">
+                    <div className="bg-card rounded-lg p-3 border border-emerald-100">
                       <p className="text-muted-foreground">Moisture</p>
                       <p className="font-semibold text-emerald-800">8-12%</p>
                     </div>
@@ -780,6 +781,6 @@ export default function Dashboard() {
           </div>
         )}
       </PageWrapper>
-    </div>
+    </DashboardLayout>
   );
 }

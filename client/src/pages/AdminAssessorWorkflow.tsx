@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import DashboardLayout from "@/components/DashboardLayout";
 import {
   Card,
   CardContent,
@@ -102,40 +103,44 @@ export default function AdminAssessorWorkflow() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Skeleton className="h-64 w-full max-w-2xl" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Skeleton className="h-64 w-full max-w-2xl" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   // Check admin permissions
   if (user.role !== "admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="py-12 text-center">
-            <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
-            <p className="text-sm text-muted-foreground">
-              You don't have permission to access the assessor workflow.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Card className="max-w-md">
+            <CardContent className="py-12 text-center">
+              <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
+              <p className="text-sm text-muted-foreground">
+                You don't have permission to access the assessor workflow.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container py-8">
-          <Skeleton className="h-8 w-64 mb-8" />
+      <DashboardLayout>
+        <div className="space-y-8">
+          <Skeleton className="h-8 w-64" />
           <div className="grid gap-6">
             <Skeleton className="h-64" />
             <Skeleton className="h-64" />
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -222,16 +227,16 @@ export default function AdminAssessorWorkflow() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container py-8">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Assessor Workflow</h1>
+    <DashboardLayout>
+      <div className="space-y-8">
+        <div className="flex items-center gap-3">
+          <Shield className="h-7 w-7 text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold">Assessor Workflow</h1>
+            <p className="text-muted-foreground">
+              Review and approve bankability assessments for bioenergy projects
+            </p>
           </div>
-          <p className="text-muted-foreground">
-            Review and approve bankability assessments for bioenergy projects
-          </p>
         </div>
 
         <Tabs defaultValue="pending" className="space-y-6">
@@ -631,6 +636,6 @@ export default function AdminAssessorWorkflow() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

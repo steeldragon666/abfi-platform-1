@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -70,22 +71,17 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4">
-            <Skeleton className="h-8 w-32" />
-          </div>
-        </header>
-        <div className="container mx-auto px-4 py-8">
-          <Skeleton className="h-10 w-64 mb-2" />
-          <Skeleton className="h-5 w-48 mb-8" />
+      <DashboardLayout>
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-5 w-48" />
           <div className="grid md:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(i => (
               <Skeleton key={i} className="h-28 rounded-xl" />
             ))}
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -94,49 +90,18 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/">
-            <div className="flex items-center gap-2 cursor-pointer group">
-              <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <Leaf className="h-6 w-6 text-primary" />
-              </div>
-              <span className="text-xl font-bold text-foreground">ABFI</span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/notifications">
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button variant="ghost">Dashboard</Button>
-            </Link>
-            <Link href="/browse">
-              <Button variant="outline" size="sm">
-                Browse Feedstocks
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
+    <DashboardLayout>
+      <div className="space-y-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Shield className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="heading-1 text-foreground">Admin Dashboard</h1>
-              <p className="text-muted-foreground body-lg">
-                Manage verifications and platform operations
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Shield className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+            <p className="text-muted-foreground">
+              Manage verifications and platform operations
+            </p>
           </div>
         </div>
 
@@ -464,6 +429,6 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
