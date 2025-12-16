@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { initializeScheduler } from "../scheduler";
 import { handleManusWebhook } from "../manus";
 import { certificateVerificationRouter } from "../certificateVerificationApi";
+import { didResolutionRouter } from "../didResolutionApi";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -56,6 +57,11 @@ async function startServer() {
 
   // Public Certificate Verification API
   app.use("/api/verify", certificateVerificationRouter);
+
+  // DID Resolution API (W3C DID Resolution specification)
+  app.use("/api/did", didResolutionRouter);
+  // Also mount at root for .well-known paths
+  app.use(didResolutionRouter);
 
   // tRPC API
   app.use(
