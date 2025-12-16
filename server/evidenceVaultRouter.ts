@@ -10,6 +10,7 @@ import {
   merkleProofs,
 } from "../drizzle/schema";
 import { getBlockchainService } from "./services/blockchain";
+import { getIPFSService } from "./services/ipfs";
 
 // ============================================================================
 // EVIDENCE VAULT ROUTER - ABFI v3.1 Phase 1
@@ -103,6 +104,7 @@ export const evidenceVaultRouter = router({
           .default("internal"),
         sourceId: z.number().optional(),
         ingestionRunId: z.number().optional(),
+        storeOnIPFS: z.boolean().default(true),
       })
     )
     .mutation(async ({ input }) => {
@@ -125,7 +127,24 @@ export const evidenceVaultRouter = router({
 
       const manifestJson = JSON.stringify(manifest, Object.keys(manifest).sort());
       const manifestHash = computeSha256(manifestJson);
-      const manifestUri = `ipfs://abfi-staging/${manifestHash}`;
+
+      // Store manifest on IPFS if configured and requested
+      let manifestUri = `ipfs://pending/${manifestHash}`;
+      let ipfsStored = false;
+
+      if (input.storeOnIPFS) {
+        const ipfsService = getIPFSService();
+        if (ipfsService) {
+          const ipfsResult = await ipfsService.uploadJSON(manifest);
+          if (ipfsResult.success && ipfsResult.cid) {
+            manifestUri = `ipfs://${ipfsResult.cid}`;
+            ipfsStored = true;
+            console.log(`[EvidenceVault] Manifest stored on IPFS: ${manifestUri}`);
+          } else {
+            console.warn(`[EvidenceVault] IPFS upload failed: ${ipfsResult.error}`);
+          }
+        }
+      }
 
       const [result] = await db.insert(evidenceManifests).values({
         manifestUri,
@@ -143,8 +162,93 @@ export const evidenceVaultRouter = router({
         manifestHash,
         docHash: input.docHashSha256,
         status: "pending",
+        ipfsStored,
       };
     }),
+
+  // Upload document to IPFS
+  uploadToIPFS: protectedProcedure
+    .input(
+      z.object({
+        base64Content: z.string(),
+        contentType: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const ipfsService = getIPFSService();
+      if (!ipfsService) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "IPFS service not configured. Set IPFS_API_URL.",
+        });
+      }
+
+      const buffer = Buffer.from(input.base64Content, "base64");
+      const docHash = computeSha256(buffer);
+
+      const result = await ipfsService.uploadBuffer(buffer, input.contentType);
+
+      if (!result.success) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `IPFS upload failed: ${result.error}`,
+        });
+      }
+
+      return {
+        success: true,
+        cid: result.cid,
+        uri: result.uri,
+        size: result.size,
+        docHash,
+      };
+    }),
+
+  // Retrieve document from IPFS
+  retrieveFromIPFS: protectedProcedure
+    .input(z.object({ cid: z.string() }))
+    .query(async ({ input }) => {
+      const ipfsService = getIPFSService();
+      if (!ipfsService) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "IPFS service not configured",
+        });
+      }
+
+      const result = await ipfsService.retrieve(input.cid);
+
+      if (!result.success || !result.data) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: result.error || "Content not found on IPFS",
+        });
+      }
+
+      return {
+        success: true,
+        base64Content: result.data.toString("base64"),
+        contentType: result.contentType,
+        size: result.data.length,
+      };
+    }),
+
+  // Check IPFS service health
+  ipfsHealth: protectedProcedure.query(async () => {
+    const ipfsService = getIPFSService();
+    if (!ipfsService) {
+      return {
+        configured: false,
+        connected: false,
+      };
+    }
+
+    const health = await ipfsService.healthCheck();
+    return {
+      configured: true,
+      ...health,
+    };
+  }),
 
   // Hash document
   hashDocument: protectedProcedure
