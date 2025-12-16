@@ -6,6 +6,12 @@ import { monitoringJobsRouter } from "./monitoringJobsRouter";
 import { demandSignalsRouter } from "./demandSignalsRouter";
 import { futuresRouter } from "./futuresRouter";
 import { rsieRouter } from "./rsieRouter";
+// ABFI v3.1 Routers
+import { evidenceVaultRouter } from "./evidenceVaultRouter";
+import { supplyChainRouter } from "./supplyChainRouter";
+import { emissionsRouter } from "./emissionsRouter";
+import { vcRouter } from "./vcRouter";
+import { goSchemeRouter } from "./goSchemeRouter";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
@@ -60,6 +66,15 @@ export const appRouter = router({
   demandSignals: demandSignalsRouter,
   futures: futuresRouter,
   rsie: rsieRouter,
+
+  // ============================================================================
+  // ABFI v3.1 ROUTERS
+  // ============================================================================
+  evidenceVault: evidenceVaultRouter,
+  supplyChain: supplyChainRouter,
+  emissions: emissionsRouter,
+  vc: vcRouter,
+  goScheme: goSchemeRouter,
 
   // ============================================================================
   // AUTH

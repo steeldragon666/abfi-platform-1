@@ -39,6 +39,8 @@ const BankabilityAssessment = lazy(() => import("./pages/BankabilityAssessment")
 const LenderPortal = lazy(() => import("./pages/LenderPortal"));
 const ComplianceDashboard = lazy(() => import("./pages/ComplianceDashboard"));
 const EvidenceManagement = lazy(() => import("./pages/EvidenceManagement"));
+const EvidenceVaultDashboard = lazy(() => import("./pages/EvidenceVaultDashboard"));
+const SupplyChainDashboard = lazy(() => import("./pages/SupplyChainDashboard"));
 const FeedstockMap = lazy(() => import("./pages/FeedstockMap"));
 const ProducerRegistration = lazy(() => import("./pages/ProducerRegistration"));
 const ProducerAccountSetup = lazy(() => import("./pages/ProducerAccountSetup"));
@@ -190,6 +192,8 @@ function Router() {
         <Route path="/lender-portal" component={LenderPortal} />
         <Route path="/compliance-dashboard" component={ComplianceDashboard} />
         <Route path="/admin/evidence" component={EvidenceManagement} />
+        <Route path="/evidence-vault" component={EvidenceVaultDashboard} />
+        <Route path="/supply-chain" component={SupplyChainDashboard} />
         <Route
           path="/admin/assessor-workflow"
           component={AdminAssessorWorkflow}

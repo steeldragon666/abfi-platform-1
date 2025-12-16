@@ -4095,3 +4095,909 @@ export const intelligenceItems = mysqlTable(
 
 export type IntelligenceItem = typeof intelligenceItems.$inferSelect;
 export type InsertIntelligenceItem = typeof intelligenceItems.$inferInsert;
+
+// ============================================================================
+// ABFI v3.1 - EVIDENCE VAULT & CHAIN ANCHORING
+// ============================================================================
+
+/**
+ * Evidence Manifests - Canonical JSON manifests with content-addressed storage
+ * Per v3.1 spec: manifest_uri stored, never manifest_json in MySQL
+ */
+export const evidenceManifests = mysqlTable(
+  "evidence_manifests",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Content-addressed storage (IPFS CID or S3 hash-named)
+    manifestUri: varchar("manifestUri", { length: 512 }).notNull(),
+    manifestHashSha256: varchar("manifestHashSha256", { length: 64 }).notNull(),
+
+    // Document hash (the actual file this manifest describes)
+    docHashSha256: varchar("docHashSha256", { length: 64 }).notNull(),
+
+    // Source tracking
+    sourceId: int("sourceId").references(() => dataSources.id),
+    ingestionRunId: int("ingestionRunId").references(() => ingestionRuns.id),
+
+    // Classification
+    classification: mysqlEnum("classification", [
+      "public",
+      "internal",
+      "confidential",
+      "restricted",
+    ])
+      .default("internal")
+      .notNull(),
+
+    // Anchoring status
+    anchorStatus: mysqlEnum("anchorStatus", [
+      "pending",
+      "batched",
+      "anchored",
+      "failed",
+    ])
+      .default("pending")
+      .notNull(),
+    anchorId: int("anchorId").references(() => chainAnchors.id),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    manifestHashIdx: index("manifest_hash_idx").on(table.manifestHashSha256),
+    docHashIdx: index("manifest_doc_hash_idx").on(table.docHashSha256),
+    anchorStatusIdx: index("manifest_anchor_status_idx").on(table.anchorStatus),
+  })
+);
+
+export type EvidenceManifest = typeof evidenceManifests.$inferSelect;
+export type InsertEvidenceManifest = typeof evidenceManifests.$inferInsert;
+
+/**
+ * Chain Anchors - Blockchain anchoring records with Merkle batching
+ * Per v3.1 spec: Keccak-256 Merkle trees, daily/hourly batching
+ */
+export const chainAnchors = mysqlTable(
+  "chain_anchors",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Merkle root
+    merkleRoot: varchar("merkleRoot", { length: 66 }).notNull(), // 0x + 64 hex chars
+    merkleAlgorithm: varchar("merkleAlgorithm", { length: 32 })
+      .default("keccak256")
+      .notNull(),
+    leafCount: int("leafCount").notNull(),
+    treeDepth: int("treeDepth").notNull(),
+
+    // Chain transaction
+    chainId: int("chainId").notNull(), // EVM chain ID
+    chainName: varchar("chainName", { length: 64 }).notNull(),
+    txHash: varchar("txHash", { length: 66 }), // Transaction hash once confirmed
+    blockNumber: int("blockNumber"),
+    blockTimestamp: timestamp("blockTimestamp"), // From block.timestamp
+
+    // Contract details
+    contractAddress: varchar("contractAddress", { length: 42 }).notNull(),
+    anchorId: int("onChainAnchorId"), // ID returned from contract
+
+    // Status
+    status: mysqlEnum("status", [
+      "pending",
+      "submitted",
+      "confirmed",
+      "failed",
+    ])
+      .default("pending")
+      .notNull(),
+    errorMessage: text("errorMessage"),
+    retryCount: int("retryCount").default(0).notNull(),
+
+    // Batch metadata
+    batchType: mysqlEnum("batchType", ["daily", "hourly", "manual"])
+      .default("daily")
+      .notNull(),
+    batchPeriodStart: timestamp("batchPeriodStart").notNull(),
+    batchPeriodEnd: timestamp("batchPeriodEnd").notNull(),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    confirmedAt: timestamp("confirmedAt"),
+  },
+  table => ({
+    merkleRootIdx: index("anchor_merkle_root_idx").on(table.merkleRoot),
+    txHashIdx: index("anchor_tx_hash_idx").on(table.txHash),
+    statusIdx: index("anchor_status_idx").on(table.status),
+    batchPeriodIdx: index("anchor_batch_period_idx").on(table.batchPeriodStart),
+  })
+);
+
+export type ChainAnchor = typeof chainAnchors.$inferSelect;
+export type InsertChainAnchor = typeof chainAnchors.$inferInsert;
+
+/**
+ * Merkle Proofs - Individual document proofs within batched anchors
+ */
+export const merkleProofs = mysqlTable(
+  "merkle_proofs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    anchorId: int("anchorId")
+      .notNull()
+      .references(() => chainAnchors.id),
+    manifestId: int("manifestId")
+      .notNull()
+      .references(() => evidenceManifests.id),
+
+    // Leaf data
+    leafHash: varchar("leafHash", { length: 66 }).notNull(),
+    leafIndex: int("leafIndex").notNull(),
+
+    // Proof path (array of {hash, position} tuples)
+    proofPath: json("proofPath")
+      .$type<Array<{ hash: string; position: "left" | "right" }>>()
+      .notNull(),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    anchorIdIdx: index("proof_anchor_idx").on(table.anchorId),
+    manifestIdIdx: index("proof_manifest_idx").on(table.manifestId),
+    leafHashIdx: index("proof_leaf_hash_idx").on(table.leafHash),
+  })
+);
+
+export type MerkleProof = typeof merkleProofs.$inferSelect;
+export type InsertMerkleProof = typeof merkleProofs.$inferInsert;
+
+// ============================================================================
+// ABFI v3.1 - SUPPLY CHAIN MODULE
+// ============================================================================
+
+/**
+ * Consignments - Farm-to-facility supply chain tracking
+ */
+export const consignments = mysqlTable(
+  "consignments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    consignmentId: varchar("consignmentId", { length: 32 }).notNull().unique(), // CONS-YYYYMMDD-XXXXX
+
+    // Origin
+    originSupplierId: int("originSupplierId")
+      .notNull()
+      .references(() => suppliers.id),
+    originPropertyId: int("originPropertyId").references(() => properties.id),
+    originLat: decimal("originLat", { precision: 10, scale: 7 }),
+    originLng: decimal("originLng", { precision: 10, scale: 7 }),
+
+    // Destination
+    destinationFacilityId: int("destinationFacilityId"),
+    destinationName: varchar("destinationName", { length: 255 }),
+    destinationLat: decimal("destinationLat", { precision: 10, scale: 7 }),
+    destinationLng: decimal("destinationLng", { precision: 10, scale: 7 }),
+
+    // Feedstock details
+    feedstockId: int("feedstockId").references(() => feedstocks.id),
+    feedstockType: varchar("feedstockType", { length: 100 }).notNull(),
+    declaredVolumeTonnes: decimal("declaredVolumeTonnes", {
+      precision: 12,
+      scale: 3,
+    }).notNull(),
+    actualVolumeTonnes: decimal("actualVolumeTonnes", {
+      precision: 12,
+      scale: 3,
+    }),
+
+    // Dates
+    harvestDate: date("harvestDate"),
+    dispatchDate: timestamp("dispatchDate"),
+    expectedArrivalDate: timestamp("expectedArrivalDate"),
+    actualArrivalDate: timestamp("actualArrivalDate"),
+
+    // Status & OTIF
+    status: mysqlEnum("status", [
+      "created",
+      "dispatched",
+      "in_transit",
+      "delivered",
+      "verified",
+      "rejected",
+    ])
+      .default("created")
+      .notNull(),
+    otifStatus: mysqlEnum("otifStatus", [
+      "pending",
+      "on_time_in_full",
+      "late",
+      "short",
+      "late_and_short",
+      "rejected",
+    ]).default("pending"),
+
+    // Contract linkage
+    agreementId: int("agreementId").references(() => supplyAgreements.id),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    consignmentIdIdx: unique("consignment_id_unique").on(table.consignmentId),
+    originSupplierIdx: index("consignment_origin_idx").on(
+      table.originSupplierId
+    ),
+    statusIdx: index("consignment_status_idx").on(table.status),
+    dispatchDateIdx: index("consignment_dispatch_idx").on(table.dispatchDate),
+  })
+);
+
+export type Consignment = typeof consignments.$inferSelect;
+export type InsertConsignment = typeof consignments.$inferInsert;
+
+/**
+ * Freight Legs - Individual transport segments with emissions attribution
+ */
+export const freightLegs = mysqlTable(
+  "freight_legs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    consignmentId: int("consignmentId")
+      .notNull()
+      .references(() => consignments.id, { onDelete: "cascade" }),
+    legNumber: int("legNumber").notNull(), // Sequence within consignment
+
+    // Transport mode (ISO 14083 aligned)
+    transportMode: mysqlEnum("transportMode", [
+      "road_truck",
+      "road_van",
+      "rail_freight",
+      "sea_container",
+      "sea_bulk",
+      "air_cargo",
+      "barge",
+      "pipeline",
+    ]).notNull(),
+
+    // Carrier details
+    carrierName: varchar("carrierName", { length: 255 }),
+    vehicleRegistration: varchar("vehicleRegistration", { length: 20 }),
+    driverName: varchar("driverName", { length: 255 }),
+
+    // Route
+    originLat: decimal("originLat", { precision: 10, scale: 7 }).notNull(),
+    originLng: decimal("originLng", { precision: 10, scale: 7 }).notNull(),
+    originAddress: varchar("originAddress", { length: 500 }),
+    destinationLat: decimal("destinationLat", { precision: 10, scale: 7 }).notNull(),
+    destinationLng: decimal("destinationLng", { precision: 10, scale: 7 }).notNull(),
+    destinationAddress: varchar("destinationAddress", { length: 500 }),
+
+    // Distance
+    distanceKm: decimal("distanceKm", { precision: 10, scale: 2 }).notNull(),
+    distanceSource: mysqlEnum("distanceSource", [
+      "gps_actual",
+      "route_calculated",
+      "straight_line",
+      "declared",
+    ])
+      .default("route_calculated")
+      .notNull(),
+
+    // Timing
+    departureTime: timestamp("departureTime"),
+    arrivalTime: timestamp("arrivalTime"),
+
+    // Emissions (ISO 14083)
+    emissionsKgCo2e: decimal("emissionsKgCo2e", { precision: 12, scale: 4 }),
+    emissionsFactor: decimal("emissionsFactor", { precision: 8, scale: 6 }), // kgCO2e/tonne-km
+    emissionsMethodVersion: varchar("emissionsMethodVersion", { length: 32 }),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    consignmentIdx: index("freight_consignment_idx").on(table.consignmentId),
+    transportModeIdx: index("freight_mode_idx").on(table.transportMode),
+  })
+);
+
+export type FreightLeg = typeof freightLegs.$inferSelect;
+export type InsertFreightLeg = typeof freightLegs.$inferInsert;
+
+/**
+ * Consignment Evidence - Photos, BOLs, weighbridge dockets
+ */
+export const consignmentEvidence = mysqlTable(
+  "consignment_evidence",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    consignmentId: int("consignmentId")
+      .notNull()
+      .references(() => consignments.id, { onDelete: "cascade" }),
+
+    evidenceType: mysqlEnum("evidenceType", [
+      "harvest_photo",
+      "loading_photo",
+      "transit_photo",
+      "delivery_photo",
+      "weighbridge_docket",
+      "bill_of_lading",
+      "delivery_note",
+      "quality_certificate",
+      "invoice",
+      "gps_track",
+      "other",
+    ]).notNull(),
+
+    // File details
+    fileUrl: varchar("fileUrl", { length: 512 }).notNull(),
+    fileHashSha256: varchar("fileHashSha256", { length: 64 }).notNull(),
+    mimeType: varchar("mimeType", { length: 100 }).notNull(),
+    fileSizeBytes: int("fileSizeBytes").notNull(),
+
+    // Geotag (for photos)
+    capturedLat: decimal("capturedLat", { precision: 10, scale: 7 }),
+    capturedLng: decimal("capturedLng", { precision: 10, scale: 7 }),
+    capturedAt: timestamp("capturedAt"),
+
+    // EXIF data
+    deviceInfo: varchar("deviceInfo", { length: 255 }),
+    exifData: json("exifData").$type<Record<string, any>>(),
+
+    // Verification
+    verified: boolean("verified").default(false).notNull(),
+    verifiedBy: int("verifiedBy").references(() => users.id),
+    verifiedAt: timestamp("verifiedAt"),
+
+    uploadedBy: int("uploadedBy")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    consignmentIdx: index("cons_evidence_consignment_idx").on(
+      table.consignmentId
+    ),
+    typeIdx: index("cons_evidence_type_idx").on(table.evidenceType),
+    hashIdx: index("cons_evidence_hash_idx").on(table.fileHashSha256),
+  })
+);
+
+export type ConsignmentEvidence = typeof consignmentEvidence.$inferSelect;
+export type InsertConsignmentEvidence = typeof consignmentEvidence.$inferInsert;
+
+// ============================================================================
+// ABFI v3.1 - EMISSIONS ENGINE (ISO 14083, 14064-1, CORSIA)
+// ============================================================================
+
+/**
+ * Emission Calculations - Versioned emission computations
+ */
+export const emissionCalculations = mysqlTable(
+  "emission_calculations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Scope
+    calculationType: mysqlEnum("calculationType", [
+      "transport_iso14083",
+      "facility_scope1",
+      "facility_scope2",
+      "scope3_upstream",
+      "scope3_downstream",
+      "corsia_saf",
+      "full_lifecycle",
+    ]).notNull(),
+
+    // Entity reference
+    entityType: mysqlEnum("entityType", [
+      "consignment",
+      "freight_leg",
+      "facility",
+      "feedstock",
+      "project",
+      "product_batch",
+    ]).notNull(),
+    entityId: int("entityId").notNull(),
+
+    // Method versioning
+    methodologyVersion: varchar("methodologyVersion", { length: 32 }).notNull(),
+    methodologyStandard: mysqlEnum("methodologyStandard", [
+      "ISO_14083",
+      "ISO_14064_1",
+      "GHG_PROTOCOL",
+      "CORSIA",
+      "RED_II",
+      "ABFI_INTERNAL",
+    ]).notNull(),
+
+    // Results
+    totalEmissionsKgCo2e: decimal("totalEmissionsKgCo2e", {
+      precision: 16,
+      scale: 4,
+    }).notNull(),
+    emissionsIntensity: decimal("emissionsIntensity", {
+      precision: 12,
+      scale: 6,
+    }), // per unit (gCO2e/MJ or kgCO2e/tonne)
+    intensityUnit: varchar("intensityUnit", { length: 32 }),
+
+    // Breakdown
+    emissionsBreakdown: json("emissionsBreakdown").$type<{
+      scope1?: number;
+      scope2?: number;
+      scope3?: number;
+      transport?: number;
+      processing?: number;
+      feedstock?: number;
+      distribution?: number;
+      [key: string]: number | undefined;
+    }>(),
+
+    // Input snapshot (for reproducibility)
+    inputSnapshot: json("inputSnapshot").$type<Record<string, any>>().notNull(),
+    inputSnapshotHash: varchar("inputSnapshotHash", { length: 64 }).notNull(),
+
+    // Uncertainty
+    uncertaintyPercent: decimal("uncertaintyPercent", { precision: 5, scale: 2 }),
+    dataQualityScore: int("dataQualityScore"), // 1-5
+
+    // Audit
+    calculatedBy: int("calculatedBy").references(() => users.id),
+    calculatedAt: timestamp("calculatedAt").defaultNow().notNull(),
+
+    // Anchoring
+    anchoredManifestId: int("anchoredManifestId").references(
+      () => evidenceManifests.id
+    ),
+  },
+  table => ({
+    entityIdx: index("emission_entity_idx").on(table.entityType, table.entityId),
+    methodIdx: index("emission_method_idx").on(table.methodologyStandard),
+    calculatedAtIdx: index("emission_calculated_idx").on(table.calculatedAt),
+  })
+);
+
+export type EmissionCalculation = typeof emissionCalculations.$inferSelect;
+export type InsertEmissionCalculation = typeof emissionCalculations.$inferInsert;
+
+/**
+ * Emission Factors - Reference data for calculations
+ */
+export const emissionFactors = mysqlTable(
+  "emission_factors",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Category
+    category: mysqlEnum("category", [
+      "transport_road",
+      "transport_rail",
+      "transport_sea",
+      "transport_air",
+      "electricity_grid",
+      "fuel_combustion",
+      "process_emissions",
+      "fertilizer",
+      "land_use",
+    ]).notNull(),
+
+    // Specifics
+    subcategory: varchar("subcategory", { length: 100 }),
+    region: varchar("region", { length: 64 }), // AU, NSW, etc.
+
+    // Factor value
+    factorValue: decimal("factorValue", { precision: 12, scale: 8 }).notNull(),
+    factorUnit: varchar("factorUnit", { length: 64 }).notNull(), // e.g., kgCO2e/tonne-km
+
+    // Source
+    sourceStandard: varchar("sourceStandard", { length: 64 }).notNull(),
+    sourceDocument: varchar("sourceDocument", { length: 255 }),
+    sourceYear: int("sourceYear").notNull(),
+
+    // Validity
+    validFrom: date("validFrom").notNull(),
+    validTo: date("validTo"),
+    isCurrent: boolean("isCurrent").default(true).notNull(),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    categoryIdx: index("factor_category_idx").on(table.category),
+    regionIdx: index("factor_region_idx").on(table.region),
+    currentIdx: index("factor_current_idx").on(table.isCurrent),
+  })
+);
+
+export type EmissionFactor = typeof emissionFactors.$inferSelect;
+export type InsertEmissionFactor = typeof emissionFactors.$inferInsert;
+
+// ============================================================================
+// ABFI v3.1 - VERIFIABLE CREDENTIALS & DIDs
+// ============================================================================
+
+/**
+ * DID Registry - Decentralized Identifiers for organizations
+ */
+export const didRegistry = mysqlTable(
+  "did_registry",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // DID identifier (did:web:abfi.au:org:supplier-123)
+    did: varchar("did", { length: 255 }).notNull().unique(),
+    didMethod: mysqlEnum("didMethod", ["did:web", "did:ethr", "did:key"])
+      .default("did:web")
+      .notNull(),
+
+    // Controller
+    controllerType: mysqlEnum("controllerType", [
+      "organization",
+      "user",
+      "system",
+    ]).notNull(),
+    controllerId: int("controllerId").notNull(), // Supplier ID, User ID, etc.
+
+    // DID Document
+    didDocumentUri: varchar("didDocumentUri", { length: 512 }).notNull(),
+    didDocumentHash: varchar("didDocumentHash", { length: 64 }).notNull(),
+
+    // Keys
+    publicKeyJwk: json("publicKeyJwk").$type<{
+      kty: string;
+      crv?: string;
+      x?: string;
+      y?: string;
+      n?: string;
+      e?: string;
+    }>(),
+    keyAlgorithm: varchar("keyAlgorithm", { length: 32 }).default("ES256"),
+
+    // Status
+    status: mysqlEnum("status", ["active", "revoked", "deactivated"])
+      .default("active")
+      .notNull(),
+    revokedAt: timestamp("revokedAt"),
+    revocationReason: text("revocationReason"),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    didIdx: unique("did_unique").on(table.did),
+    controllerIdx: index("did_controller_idx").on(
+      table.controllerType,
+      table.controllerId
+    ),
+    statusIdx: index("did_status_idx").on(table.status),
+  })
+);
+
+export type DidRecord = typeof didRegistry.$inferSelect;
+export type InsertDidRecord = typeof didRegistry.$inferInsert;
+
+/**
+ * Verifiable Credentials - W3C compliant credential issuance
+ */
+export const verifiableCredentials = mysqlTable(
+  "verifiable_credentials",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Credential identifier
+    credentialId: varchar("credentialId", { length: 255 }).notNull().unique(),
+
+    // Type
+    credentialType: mysqlEnum("credentialType", [
+      "GQTierCredential",
+      "SupplyAgreementCredential",
+      "EmissionsCertificate",
+      "SustainabilityCertificate",
+      "DeliveryConfirmation",
+      "QualityAttestation",
+      "AuditReport",
+    ]).notNull(),
+
+    // Issuer & Subject
+    issuerDid: varchar("issuerDid", { length: 255 })
+      .notNull()
+      .references(() => didRegistry.did),
+    subjectDid: varchar("subjectDid", { length: 255 }).notNull(),
+
+    // Credential content (stored as content-addressed)
+    credentialUri: varchar("credentialUri", { length: 512 }).notNull(),
+    credentialHash: varchar("credentialHash", { length: 64 }).notNull(),
+
+    // Claims summary (searchable subset)
+    claimsSummary: json("claimsSummary").$type<Record<string, any>>(),
+
+    // Validity
+    issuanceDate: timestamp("issuanceDate").notNull(),
+    expirationDate: timestamp("expirationDate"),
+
+    // Proof
+    proofType: varchar("proofType", { length: 64 }).default("Ed25519Signature2020"),
+    proofValue: text("proofValue"),
+
+    // Status
+    status: mysqlEnum("status", ["active", "revoked", "expired", "suspended"])
+      .default("active")
+      .notNull(),
+    revokedAt: timestamp("revokedAt"),
+    revocationReason: text("revocationReason"),
+
+    // Anchoring
+    anchoredManifestId: int("anchoredManifestId").references(
+      () => evidenceManifests.id
+    ),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    credentialIdIdx: unique("vc_credential_id_unique").on(table.credentialId),
+    issuerIdx: index("vc_issuer_idx").on(table.issuerDid),
+    subjectIdx: index("vc_subject_idx").on(table.subjectDid),
+    typeIdx: index("vc_type_idx").on(table.credentialType),
+    statusIdx: index("vc_status_idx").on(table.status),
+  })
+);
+
+export type VerifiableCredential = typeof verifiableCredentials.$inferSelect;
+export type InsertVerifiableCredential = typeof verifiableCredentials.$inferInsert;
+
+// ============================================================================
+// ABFI v3.1 - MCP CONNECTORS
+// ============================================================================
+
+/**
+ * MCP Connections - External system integrations
+ */
+export const mcpConnections = mysqlTable(
+  "mcp_connections",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Owner
+    ownerType: mysqlEnum("ownerType", ["supplier", "buyer", "facility"]).notNull(),
+    ownerId: int("ownerId").notNull(),
+
+    // Connector type
+    connectorType: mysqlEnum("connectorType", [
+      "xero",
+      "myob",
+      "google_drive",
+      "gmail",
+      "microsoft_365",
+      "sharepoint",
+      "quickbooks",
+    ]).notNull(),
+
+    // OAuth tokens (encrypted in practice)
+    accessToken: text("accessToken"),
+    refreshToken: text("refreshToken"),
+    tokenExpiresAt: timestamp("tokenExpiresAt"),
+
+    // Connection status
+    status: mysqlEnum("status", [
+      "pending",
+      "connected",
+      "expired",
+      "revoked",
+      "error",
+    ])
+      .default("pending")
+      .notNull(),
+    lastSyncAt: timestamp("lastSyncAt"),
+    lastError: text("lastError"),
+
+    // Scope/permissions
+    grantedScopes: json("grantedScopes").$type<string[]>(),
+
+    // Metadata
+    externalAccountId: varchar("externalAccountId", { length: 255 }),
+    externalAccountName: varchar("externalAccountName", { length: 255 }),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    ownerIdx: index("mcp_owner_idx").on(table.ownerType, table.ownerId),
+    connectorIdx: index("mcp_connector_idx").on(table.connectorType),
+    statusIdx: index("mcp_status_idx").on(table.status),
+  })
+);
+
+export type McpConnection = typeof mcpConnections.$inferSelect;
+export type InsertMcpConnection = typeof mcpConnections.$inferInsert;
+
+/**
+ * MCP Sync Logs - Track data synchronization
+ */
+export const mcpSyncLogs = mysqlTable(
+  "mcp_sync_logs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    connectionId: int("connectionId")
+      .notNull()
+      .references(() => mcpConnections.id),
+
+    syncType: mysqlEnum("syncType", [
+      "full",
+      "incremental",
+      "manual",
+      "webhook",
+    ]).notNull(),
+    syncDirection: mysqlEnum("syncDirection", ["inbound", "outbound"]).notNull(),
+
+    // Results
+    status: mysqlEnum("status", ["started", "completed", "failed", "partial"])
+      .default("started")
+      .notNull(),
+    recordsProcessed: int("recordsProcessed").default(0),
+    recordsFailed: int("recordsFailed").default(0),
+    errorDetails: json("errorDetails").$type<Array<{ record: string; error: string }>>(),
+
+    startedAt: timestamp("startedAt").defaultNow().notNull(),
+    completedAt: timestamp("completedAt"),
+  },
+  table => ({
+    connectionIdx: index("sync_connection_idx").on(table.connectionId),
+    statusIdx: index("sync_status_idx").on(table.status),
+    startedAtIdx: index("sync_started_idx").on(table.startedAt),
+  })
+);
+
+export type McpSyncLog = typeof mcpSyncLogs.$inferSelect;
+export type InsertMcpSyncLog = typeof mcpSyncLogs.$inferInsert;
+
+// ============================================================================
+// ABFI v3.1 - GO SCHEME & AUDIT PACKS
+// ============================================================================
+
+/**
+ * GO Certificates - Guarantee of Origin tracking
+ */
+export const goCertificates = mysqlTable(
+  "go_certificates",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Certificate ID
+    goId: varchar("goId", { length: 64 }).notNull().unique(),
+    goScheme: mysqlEnum("goScheme", ["REGO", "PGO", "GO_AU", "ISCC_PLUS", "RSB"])
+      .default("GO_AU")
+      .notNull(),
+
+    // Attributes (REGO/PGO aligned)
+    energySource: varchar("energySource", { length: 100 }).notNull(),
+    productionPeriodStart: date("productionPeriodStart").notNull(),
+    productionPeriodEnd: date("productionPeriodEnd").notNull(),
+    productionFacilityId: varchar("productionFacilityId", { length: 64 }),
+    productionCountry: varchar("productionCountry", { length: 2 }).default("AU"),
+
+    // Volume
+    energyMwh: decimal("energyMwh", { precision: 12, scale: 3 }),
+    volumeTonnes: decimal("volumeTonnes", { precision: 12, scale: 3 }),
+    volumeUnit: varchar("volumeUnit", { length: 32 }),
+
+    // Carbon attributes
+    ghgEmissionsKgCo2e: decimal("ghgEmissionsKgCo2e", { precision: 16, scale: 4 }),
+    carbonIntensity: decimal("carbonIntensity", { precision: 10, scale: 4 }),
+    carbonIntensityUnit: varchar("carbonIntensityUnit", { length: 32 }).default(
+      "gCO2e/MJ"
+    ),
+
+    // Ownership chain
+    currentHolderId: int("currentHolderId"),
+    originalIssuerId: int("originalIssuerId"),
+
+    // Status
+    status: mysqlEnum("status", [
+      "issued",
+      "transferred",
+      "cancelled",
+      "retired",
+      "expired",
+    ])
+      .default("issued")
+      .notNull(),
+    retiredFor: text("retiredFor"), // Claim purpose
+
+    // Registry link
+    externalRegistryId: varchar("externalRegistryId", { length: 128 }),
+    externalRegistryUrl: varchar("externalRegistryUrl", { length: 512 }),
+
+    // Anchoring
+    anchoredManifestId: int("anchoredManifestId").references(
+      () => evidenceManifests.id
+    ),
+
+    issuedAt: timestamp("issuedAt").notNull(),
+    expiresAt: timestamp("expiresAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    goIdIdx: unique("go_id_unique").on(table.goId),
+    schemeIdx: index("go_scheme_idx").on(table.goScheme),
+    statusIdx: index("go_status_idx").on(table.status),
+    holderIdx: index("go_holder_idx").on(table.currentHolderId),
+  })
+);
+
+export type GoCertificate = typeof goCertificates.$inferSelect;
+export type InsertGoCertificate = typeof goCertificates.$inferInsert;
+
+/**
+ * Audit Packs - Generated assurance documentation
+ */
+export const auditPacks = mysqlTable(
+  "audit_packs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Pack identifier
+    packId: varchar("packId", { length: 64 }).notNull().unique(),
+    packType: mysqlEnum("packType", [
+      "lender_assurance",
+      "go_application",
+      "sustainability_audit",
+      "compliance_review",
+      "annual_report",
+    ]).notNull(),
+
+    // Entity scope
+    entityType: mysqlEnum("entityType", [
+      "project",
+      "supplier",
+      "consignment",
+      "product_batch",
+    ]).notNull(),
+    entityId: int("entityId").notNull(),
+
+    // Period covered
+    periodStart: date("periodStart").notNull(),
+    periodEnd: date("periodEnd").notNull(),
+
+    // Generated content
+    packUri: varchar("packUri", { length: 512 }).notNull(), // PDF/ZIP location
+    packHash: varchar("packHash", { length: 64 }).notNull(),
+    packSizeBytes: int("packSizeBytes").notNull(),
+
+    // Contents manifest
+    includedEvidenceIds: json("includedEvidenceIds").$type<number[]>(),
+    includedCalculationIds: json("includedCalculationIds").$type<number[]>(),
+    includedCredentialIds: json("includedCredentialIds").$type<number[]>(),
+
+    // Status
+    status: mysqlEnum("status", ["draft", "generated", "reviewed", "finalized"])
+      .default("draft")
+      .notNull(),
+
+    // Review
+    reviewedBy: int("reviewedBy").references(() => users.id),
+    reviewedAt: timestamp("reviewedAt"),
+    reviewNotes: text("reviewNotes"),
+
+    // Anchoring
+    anchoredManifestId: int("anchoredManifestId").references(
+      () => evidenceManifests.id
+    ),
+
+    generatedBy: int("generatedBy")
+      .notNull()
+      .references(() => users.id),
+    generatedAt: timestamp("generatedAt").defaultNow().notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    packIdIdx: unique("pack_id_unique").on(table.packId),
+    entityIdx: index("pack_entity_idx").on(table.entityType, table.entityId),
+    typeIdx: index("pack_type_idx").on(table.packType),
+    statusIdx: index("pack_status_idx").on(table.status),
+  })
+);
+
+export type AuditPack = typeof auditPacks.$inferSelect;
+export type InsertAuditPack = typeof auditPacks.$inferInsert;

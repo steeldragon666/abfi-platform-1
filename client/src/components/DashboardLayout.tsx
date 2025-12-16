@@ -35,6 +35,11 @@ import {
   Search,
   BookOpen,
   Database,
+  ShieldCheck,
+  Truck,
+  BarChart3,
+  BadgeCheck,
+  Award,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -47,6 +52,15 @@ const menuItems = [
   { icon: Users, label: "Projects", path: "/bankability" },
   { icon: Leaf, label: "Futures", path: "/futures" },
   { icon: BookOpen, label: "Explainers", path: "/explainers" },
+];
+
+// V3.1 Platform menu items
+const platformMenuItems = [
+  { icon: ShieldCheck, label: "Evidence Vault", path: "/evidence-vault" },
+  { icon: Truck, label: "Supply Chain", path: "/supply-chain" },
+  { icon: BarChart3, label: "Emissions", path: "/emissions" },
+  { icon: BadgeCheck, label: "Credentials", path: "/credentials" },
+  { icon: Award, label: "GO Certificates", path: "/go-scheme" },
 ];
 
 const supplierMenuItems = [
@@ -226,6 +240,35 @@ function DashboardLayoutContent({
             <SidebarMenu className="px-2 py-1">
               {menuItems.map(item => {
                 const isActive = location === item.path;
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      onClick={() => setLocation(item.path)}
+                      tooltip={item.label}
+                      className={`h-10 transition-all font-normal`}
+                    >
+                      <item.icon
+                        className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
+                      />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+
+            {/* Platform Menu (V3.1) */}
+            <div className="px-4 py-2 mt-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                {!isCollapsed ? "Platform" : ""}
+              </p>
+            </div>
+            <SidebarMenu className="px-2 py-1">
+              {platformMenuItems.map(item => {
+                const isActive =
+                  location === item.path ||
+                  location.startsWith(item.path + "/");
                 return (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
