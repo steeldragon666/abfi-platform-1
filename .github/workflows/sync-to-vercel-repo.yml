@@ -1,0 +1,20 @@
+name: Sync to Vercel Repository
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to steeldragon666/abfi-platform2
+        run: |
+          git remote add vercel https://x-access-token:${{ secrets.VERCEL_REPO_TOKEN }}@github.com/steeldragon666/abfi-platform2.git
+          git push vercel main --force
