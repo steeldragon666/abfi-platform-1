@@ -3,7 +3,6 @@
  * Phase 5: Buyer Procurement & Scenario Tools
  */
 import { useState } from "react";
-import { useAuth } from "@/_core/hooks/useAuth";
 import {
   Card,
   CardContent,
@@ -77,7 +76,6 @@ interface ScenarioResult {
 }
 
 export default function ProcurementScenarios() {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("volume-security");
   
   // Volume security scenario parameters
