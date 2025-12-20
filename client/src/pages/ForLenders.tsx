@@ -573,6 +573,99 @@ export default function ForLenders() {
         </div>
       </section>
 
+      {/* Intelligence Suite */}
+      <section className="py-20 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 text-white">
+        <div className="container mx-auto px-4">
+          <FadeInUp className="text-center mb-16">
+            <Badge
+              variant="outline"
+              className="border-white/20 text-white/90 bg-white/5 mb-4"
+            >
+              <LineChart className="h-3 w-3 mr-1.5" />
+              AI-Powered Intelligence
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
+              Intelligence Suite for Financiers
+            </h2>
+            <p className="text-lg text-indigo-200 max-w-2xl mx-auto">
+              Real-time market intelligence, sentiment analysis, and policy tracking
+              powered by AI. Make data-driven financing decisions.
+            </p>
+          </FadeInUp>
+
+          <StaggerContainer className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <StaggerItem>
+              <Link href="/lending-sentiment">
+                <Card className="h-full bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group">
+                  <CardHeader>
+                    <div className="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <TrendingUp className="h-6 w-6 text-blue-400" />
+                    </div>
+                    <CardTitle className="text-white">Lending Sentiment</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-indigo-200 mb-4">
+                      Track lender sentiment across institutions. Fear component analysis,
+                      document sentiment scoring, and market mood indicators.
+                    </p>
+                    <div className="flex items-center text-blue-300 text-sm font-medium">
+                      View Dashboard
+                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </StaggerItem>
+
+            <StaggerItem>
+              <Link href="/feedstock-prices">
+                <Card className="h-full bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group">
+                  <CardHeader>
+                    <div className="h-12 w-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <BarChart3 className="h-6 w-6 text-green-400" />
+                    </div>
+                    <CardTitle className="text-white">Feedstock Prices</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-indigo-200 mb-4">
+                      OHLC price charts, forward curves, regional heatmaps, and
+                      technical indicators for UCO, Tallow, Canola, and Palm Oil.
+                    </p>
+                    <div className="flex items-center text-green-300 text-sm font-medium">
+                      View Dashboard
+                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </StaggerItem>
+
+            <StaggerItem>
+              <Link href="/policy-carbon">
+                <Card className="h-full bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group">
+                  <CardHeader>
+                    <div className="h-12 w-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <FileText className="h-6 w-6 text-amber-400" />
+                    </div>
+                    <CardTitle className="text-white">Policy & Carbon</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-indigo-200 mb-4">
+                      Policy timeline tracker, carbon revenue calculator, mandate
+                      scenarios, and ACCU price monitoring across jurisdictions.
+                    </p>
+                    <div className="flex items-center text-amber-300 text-sm font-medium">
+                      View Dashboard
+                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </StaggerItem>
+          </StaggerContainer>
+        </div>
+      </section>
+
       {/* Stats */}
       <section className="py-16 bg-blue-500 text-white">
         <div className="container mx-auto px-4">
