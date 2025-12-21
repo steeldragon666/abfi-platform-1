@@ -16,6 +16,6 @@
     },
     "baseUrl": "."
   },
-  "include": ["./**/*.ts"],
+  "include": ["./_handler.ts"],
   "exclude": ["../server", "../drizzle"]
 }
