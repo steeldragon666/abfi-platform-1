@@ -629,23 +629,14 @@ export class NSWPlanningConnector extends BaseConnector {
 
   private determineSignalType(app: NSWPlanningApplication): RawSignal["signalType"] {
     const description = (app.description || "").toLowerCase();
-    const devType = (app.developmentType || "").toLowerCase();
 
-    if (
-      description.includes("fuel") ||
-      description.includes("biofuel") ||
-      description.includes("diesel") ||
-      description.includes("saf") ||
-      devType.includes("fuel")
-    ) {
-      return "permit_fuel_production";
-    }
-
+    // Environmental approvals
     if (description.includes("environment") || app.status?.toLowerCase().includes("exhibition")) {
       return "environmental_approval";
     }
 
-    return "permit_industrial";
+    // All planning applications (fuel-related or industrial) are planning_application type
+    return "planning_application";
   }
 
   private calculateWeight(app: NSWPlanningApplication): number {

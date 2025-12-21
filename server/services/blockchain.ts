@@ -120,7 +120,7 @@ export class BlockchainService {
       );
 
       // Add 20% buffer to gas estimate
-      const gasLimit = (gasEstimate * 120n) / 100n;
+      const gasLimit = (gasEstimate * BigInt(120)) / BigInt(100);
 
       // Submit transaction
       const tx: ContractTransactionResponse = await this.contract.anchorMerkleRoot(

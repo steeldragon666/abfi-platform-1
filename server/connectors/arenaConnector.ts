@@ -566,7 +566,7 @@ export class ArenaConnector extends BaseConnector {
       sourceUrl: project.url,
       detectedAt: project.announcedDate ? new Date(project.announcedDate) : new Date(),
       entityName: project.leadOrganisation,
-      signalType: "grant_awarded",
+      signalType: "grant_announcement",
       signalWeight: weight,
       confidence: 0.95, // Very high confidence from official government source
       rawData: {

@@ -13,7 +13,7 @@ import {
   stealthIngestionJobs,
 } from "../drizzle/schema";
 import { eq, desc, gte, like, sql, and, or } from "drizzle-orm";
-import { runAllConnectors, runConnector, CONNECTOR_CONFIGS } from "./connectors";
+import { runAllConnectors, runConnector, CONNECTOR_CONFIGS, ConnectorResult } from "./connectors";
 import { processSignals } from "./services/entityResolution";
 import {
   updateEntityScore,
@@ -394,7 +394,7 @@ export const stealthRouter = router({
 
           for (const [connectorName, connectorResult] of Object.entries(
             result.results
-          )) {
+          ) as [string, ConnectorResult][]) {
             const processed = await processSignals(
               connectorResult.signals,
               connectorName

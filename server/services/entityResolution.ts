@@ -58,8 +58,8 @@ function calculateSimilarity(str1: string, str2: string): number {
   const tokens1 = new Set(s1.split(" "));
   const tokens2 = new Set(s2.split(" "));
 
-  const intersection = new Set([...tokens1].filter((x) => tokens2.has(x)));
-  const union = new Set([...tokens1, ...tokens2]);
+  const intersection = new Set(Array.from(tokens1).filter((x) => tokens2.has(x)));
+  const union = new Set([...Array.from(tokens1), ...Array.from(tokens2)]);
 
   // Jaccard similarity
   return intersection.size / union.size;
@@ -214,18 +214,20 @@ export async function processSignals(
         entitiesUpdated++;
       }
 
-      // Store signal
+      // Store signal (sourceId/sourceUrl stored in rawData since not in schema)
       await db.insert(stealthSignals).values({
         entityId: entity.id,
         signalType: signal.signalType,
         signalWeight: String(signal.signalWeight),
         confidence: String(signal.confidence),
         source,
-        sourceId: signal.sourceId,
-        sourceUrl: signal.sourceUrl || null,
         title: signal.title,
         description: signal.description || null,
-        rawData: signal.rawData,
+        rawData: {
+          ...signal.rawData,
+          sourceId: signal.sourceId,
+          sourceUrl: signal.sourceUrl,
+        },
         detectedAt: signal.detectedAt,
       });
 
@@ -286,7 +288,7 @@ export async function mergeEntities(
   // Merge names
   const primaryNames = primary.allNames as string[];
   const duplicateNames = duplicate.allNames as string[];
-  const mergedNames = [...new Set([...primaryNames, ...duplicateNames])];
+  const mergedNames = Array.from(new Set([...primaryNames, ...duplicateNames]));
 
   // Merge identifiers
   const mergedIdentifiers = {

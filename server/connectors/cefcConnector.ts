@@ -510,7 +510,7 @@ export class CEFCConnector extends BaseConnector {
         ? new Date(investment.announcedDate)
         : new Date(),
       entityName: investment.organisation,
-      signalType: "grant_awarded", // CEFC investments are similar to grants in significance
+      signalType: "investment_disclosure", // CEFC investments are investment disclosures
       signalWeight: weight,
       confidence: 0.98, // Highest confidence from government financial institution
       rawData: {

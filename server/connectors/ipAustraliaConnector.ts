@@ -512,8 +512,8 @@ export class IPAustraliaConnector extends BaseConnector {
       return "patent_biofuel_tech";
     }
 
-    // Related technology patents
-    return "patent_related_tech";
+    // General patent filings
+    return "patent_filing";
   }
 
   private calculateWeight(patent: PatentSearchResult): number {

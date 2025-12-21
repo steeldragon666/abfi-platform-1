@@ -52,18 +52,16 @@ async function testConnectors() {
   try {
     const allResults = await runAllConnectors();
 
-    let totalSignals = 0;
     let successCount = 0;
 
-    for (const [name, result] of Object.entries(allResults)) {
+    for (const [name, result] of Object.entries(allResults.results)) {
       if (result.success) successCount++;
-      totalSignals += result.signalsDiscovered;
     }
 
     console.log(`\nSummary:`);
-    console.log(`  Total connectors: ${Object.keys(allResults).length}`);
+    console.log(`  Total connectors: ${Object.keys(allResults.results).length}`);
     console.log(`  Successful: ${successCount}`);
-    console.log(`  Total signals discovered: ${totalSignals}`);
+    console.log(`  Total signals discovered: ${allResults.totalSignals}`);
   } catch (error) {
     console.log(`Failed to run all connectors: ${error instanceof Error ? error.message : "Unknown error"}`);
   }

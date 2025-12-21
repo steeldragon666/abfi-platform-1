@@ -140,7 +140,7 @@ export const appRouter = router({
           action: z.string(),
           entityType: z.string(),
           entityId: z.number(),
-          changes: z.record(z.any()).optional(),
+          changes: z.record(z.string(), z.any()).optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {

@@ -23,18 +23,18 @@ export interface RawSignal {
   metadata?: Record<string, unknown>;
 }
 
+// Signal types must match the MySQL enum in drizzle/schema.ts
 export type SignalType =
-  | "patent_biofuel_tech"
-  | "patent_related_tech"
-  | "permit_fuel_production"
-  | "permit_industrial"
+  | "planning_application"
+  | "grant_announcement"
+  | "investment_disclosure"
   | "environmental_approval"
-  | "grant_awarded"
-  | "new_company_biofuel"
-  | "company_industry_code"
-  | "company_name_match"
-  | "location_cluster"
-  | "keyword_match";
+  | "patent_filing"
+  | "patent_biofuel_tech"
+  | "job_posting"
+  | "news_mention"
+  | "regulatory_filing"
+  | "partnership_announcement";
 
 export interface ConnectorConfig {
   name: string;

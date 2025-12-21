@@ -130,6 +130,7 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
+// Use 'any' to avoid mysql2 Pool type conflicts between promise and sync versions
 let _db: ReturnType<typeof drizzle> | null = null;
 let _pool: mysql.Pool | null = null;
 
@@ -142,7 +143,8 @@ export async function getDb() {
         connectionLimit: 10,
         queueLimit: 0,
       });
-      _db = drizzle(_pool, { mode: "default" });
+      // Cast to any to resolve type mismatch between mysql2/promise and mysql2 Pool types
+      _db = drizzle(_pool as any, { mode: "default" });
       console.log("[Database] Connected to MySQL");
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);

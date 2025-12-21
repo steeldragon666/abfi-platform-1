@@ -72,7 +72,7 @@ async function runIngestion() {
     console.log("-".repeat(60));
 
     const scoreResult = await recalculateAllScores();
-    console.log(`  Updated scores for ${scoreResult.entitiesUpdated} entities`);
+    console.log(`  Updated scores for ${scoreResult.updated} entities`);
 
     // Summary
     console.log("\n" + "=".repeat(60));
@@ -81,7 +81,7 @@ async function runIngestion() {
     console.log(`  Total signals discovered: ${totalSignals}`);
     console.log(`  Entities created: ${totalEntitiesCreated}`);
     console.log(`  Entities updated: ${totalEntitiesUpdated}`);
-    console.log(`  Scores recalculated: ${scoreResult.entitiesUpdated}`);
+    console.log(`  Scores recalculated: ${scoreResult.updated}`);
 
   } catch (error) {
     console.error("\nIngestion failed:", error);

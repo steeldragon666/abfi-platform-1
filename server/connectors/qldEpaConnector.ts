@@ -210,9 +210,9 @@ export class QldEpaConnector extends BaseConnector {
         description,
       };
     })
-    .filter((app): app is ERAApplication =>
+    .filter((app): app is NonNullable<typeof app> =>
       app !== null && !!app.applicationNumber && !!app.applicantName
-    );
+    ) as ERAApplication[];
   }
 
   private async getResourceDownloadUrl(): Promise<string | null> {
