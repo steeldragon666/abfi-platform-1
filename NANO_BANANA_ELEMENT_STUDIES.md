@@ -764,6 +764,323 @@ Do not assemble until element decisions are final.
 
 ---
 
+---
+
+## 10. Bankability Score Presentation Elements
+
+### 10A. Bankability Score — Text-First Block
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+No gradients, no illustrations, no marketing visuals.
+No new components beyond a predefined system.
+All states must be clearly labelled with text.
+
+Generate an atomic UI element showing a Bankability Score in a text-first format.
+
+Component:
+- Title: "Bankability"
+- Score band (Excellent / Good / Medium / Risk)
+- One-line plain-English meaning
+- Optional numerical score shown secondary
+- Confidence level shown as text
+
+Constraints:
+- No circular gauges or dials
+- No charts
+- No colour reliance without labels
+- Must be understandable printed in black and white
+
+Testing:
+- Cognitive clarity
+- Legal safety
+- Whether numbers add value or distract
+```
+
+**Filename:** `Element_BankabilityScore_textFirst_v1.png`
+
+---
+
+### 10B. Bankability Score — Table-Aligned Variant
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+No gradients, no illustrations, no marketing visuals.
+All states must be clearly labelled with text.
+
+Generate an atomic UI element showing Bankability Score aligned to a table-style layout.
+
+Component:
+- Left column: Label
+- Right column: Value
+- Rows:
+  - Assessment
+  - Confidence
+  - Monitoring enabled (Yes/No)
+
+Constraints:
+- Designed to visually sit inside a document or export
+- Minimal chrome
+- No decorative styling
+
+Testing:
+- Export compatibility
+- Credit-memo familiarity
+```
+
+**Filename:** `Element_BankabilityScore_tableAligned_v1.png`
+
+---
+
+## 11. Confidence Indicator Elements
+
+### 11A. Confidence Indicator — Text-Only
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+All states must be clearly labelled with text.
+
+Generate an atomic UI element representing Confidence Level.
+
+Component:
+- Label: "Confidence"
+- Value: High / Medium / Low
+- One-line explanation of what confidence represents
+
+Constraints:
+- No icons
+- No colour dependence
+- Explanation must be plain English, non-promotional
+```
+
+**Filename:** `Element_ConfidenceIndicator_textOnly_v1.png`
+
+---
+
+### 11B. Confidence Indicator — Inline Chip
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+All states must be clearly labelled with text.
+
+Generate an atomic inline UI element showing Confidence as a chip or tag.
+
+Component:
+- Text-only chip with label "Confidence: Medium"
+- Must work inline within tables or cards
+
+Constraints:
+- Must remain legible in grayscale
+- No pill gloss, no shadow
+```
+
+**Filename:** `Element_ConfidenceIndicator_inlineChip_v1.png`
+
+---
+
+## 12. Bankability Drivers Elements
+
+### 12A. Positive / Risk Drivers List
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+All states must be clearly labelled with text.
+
+Generate an atomic UI element listing Bankability drivers.
+
+Component:
+- Section title: "Key drivers"
+- Two subsections:
+  - Positive drivers (max 3)
+  - Risk drivers (max 3)
+- Each driver is a single short line
+
+Constraints:
+- No scoring or weighting shown
+- No icons beyond simple text markers
+- Explicit labels for positive vs risk
+
+Testing:
+- Whether drivers clarify or overwhelm
+- How many is too many
+```
+
+**Filename:** `Element_BankabilityDrivers_list_v1.png`
+
+---
+
+### 12B. Collapsed Drivers Summary
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+All states must be clearly labelled with text.
+
+Generate an atomic UI element summarising Bankability drivers in a collapsed form.
+
+Component:
+- One line summary:
+  - "3 positive drivers, 2 risks identified"
+- Expand affordance shown textually (e.g. "View details")
+
+Constraints:
+- No hidden interaction beyond text cue
+- Must not imply severity beyond presence
+```
+
+**Filename:** `Element_BankabilityDrivers_collapsed_v1.png`
+
+---
+
+## 13. Monitoring Status Elements
+
+### 13A. Monitoring Enabled Status
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+All states must be clearly labelled with text.
+
+Generate an atomic UI element indicating whether monitoring is enabled.
+
+Component:
+- Label: "Monitoring"
+- Value: Enabled / Not enabled
+- One-line explanation of what monitoring covers
+
+Constraints:
+- Must not imply guarantees
+- Must be neutral in tone
+```
+
+**Filename:** `Element_MonitoringStatus_enabled_v1.png`
+
+---
+
+### 13B. Monitoring Change Flag
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+All states must be clearly labelled with text.
+
+Generate an atomic UI element indicating a change detected in monitoring.
+
+Component:
+- Label: "Monitoring update"
+- Status: No change / Change detected
+- Short explanation line
+
+Constraints:
+- Conservative wording
+- No urgency language unless explicitly labelled
+```
+
+**Filename:** `Element_MonitoringStatus_changeFlag_v1.png`
+
+---
+
+## 14. Bankability Export Elements
+
+### 14A. Export-Ready Bankability Block
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+All states must be clearly labelled with text.
+
+Generate an atomic UI element designed for PDF export showing Bankability assessment.
+
+Component:
+- Section header
+- Assessment line
+- Confidence line
+- Driver summary
+
+Constraints:
+- Designed for A4 portrait
+- Black & white compatible
+- No reliance on UI affordances
+```
+
+**Filename:** `Element_BankabilityExport_pdfReady_v1.png`
+
+---
+
+### 14B. Government Variant Bankability Block
+
+```
+You are generating reference UI element studies for an institutional infrastructure platform.
+These are atomic components, not full screens.
+Design must be conservative, audit-safe, print-safe, and grayscale-safe.
+All states must be clearly labelled with text.
+
+Generate an atomic UI element showing Bankability reframed for government reporting.
+
+Component:
+- Replace "Bankability" with "Supply assurance level"
+- No numerical score
+- Plain-English assessment only
+
+Constraints:
+- No commercial language
+- No predictive statements
+```
+
+**Filename:** `Element_BankabilityExport_governmentVariant_v1.png`
+
+---
+
+## Element Retention Criteria
+
+### Output Evaluation (Apply Strictly)
+
+For every generated element, ask:
+
+1. **Could this appear unchanged in:**
+   - A credit memo?
+   - An ARENA appendix?
+
+2. **Does it add understanding without implying certainty?**
+
+3. **Is it clearly atomic — could it be dropped into multiple contexts?**
+
+4. **Does it introduce zero new UI patterns?**
+
+**If any answer is "no" → discard immediately.**
+
+---
+
+## Target Retention (Keep Only These)
+
+After generating all elements, retain only:
+
+| Category | Keep | Discard Rest |
+|----------|------|--------------|
+| Bankability score presentation | 1 | All others |
+| Confidence indicator | 1 | All others |
+| Driver list treatment | 1 | All others |
+| Monitoring status treatment | 1 | All others |
+| Export-ready variant | 1 | All others |
+
+**Anything more becomes noise.**
+
+---
+
 ## Warning: Polish Creep
 
 Reject any element that includes:
@@ -775,3 +1092,16 @@ Reject any element that includes:
 - "Nice" but not "inevitable" styling
 
 Institutional design should feel obvious, not impressive.
+
+---
+
+## Final Principle
+
+If you find yourself wanting to:
+- Make it "feel nicer"
+- Add visual emphasis
+- Add interaction affordances
+
+**Stop.**
+
+That instinct is correct for products — and wrong for infrastructure.
