@@ -13,7 +13,7 @@
 | Backend | Node.js + Express + tRPC |
 | Database | MySQL + Drizzle ORM |
 | Auth | Custom session-based (migrating from Supabase) |
-| Maps | Google Maps JS API |
+| Maps | Leaflet + OpenStreetMap (open-source) |
 
 ## Key File Locations
 
@@ -74,6 +74,10 @@ export const items = mysqlTable("items", {
 |------|-------|--------|-------|
 | RSIE v2.1 Database Schema | Claude Code | Complete | 15 new tables added |
 | RSIE tRPC Routers | Claude Code | Pending | Next priority |
+| Unified Sidebar Navigation | Claude Code | Complete | AppLayout wraps all pages |
+| Bankability Rating Framework v3.0 | Claude Code | Complete | 16 projects, AAA-CCC taxonomy |
+| Map Integration (Leaflet) | Claude Code | Complete | 16 biofuel projects, 50km catchments |
+| Stealth Discovery Backend | Claude Code | Complete | tRPC router + 5 data connectors |
 | Explainer Graphics | Manus | In Progress | 7 sets of 6-panel graphics |
 | Landing Page Mockups | Manus | Complete | 3 design alternatives |
 | Data Source Research | Manus | Running | FIRMS, Tomorrow.io, Open-Meteo |
@@ -109,25 +113,51 @@ Webhook ID: `DNwWhJF2F7SMJ6Ka3Zr2hJ`
 
 ## Handoff Notes
 
-### From Claude Code (Latest Session - v2.1 Upgrade)
-- Added 15 RSIE foundation tables to `drizzle/schema.ts`:
-  - `dataSources`, `ingestionRuns` - Data provenance
-  - `rsieScoringMethods` - Versioned scoring rubrics
-  - `riskEvents` - Risk events with GeoJSON + bbox prefiltering
-  - `supplierSites`, `supplierRiskExposure`, `contractRiskExposure` - Exposure tracking
-  - `weatherGridDaily`, `forecastGridHourly` - Weather data
-  - `userFeedback` - Survey responses
-  - `abbaBaselineCells`, `biomassQualityProfiles` - ABBA/CSIRO data
-  - `spatialLayers`, `intelligenceItems` - Spatial/news data
-- Created Manus project and 7 tasks for graphics/research
-- TypeScript compiles successfully
-- Database migration requires DATABASE_URL (cloud DB credentials)
+### From Claude Code (Latest Session - 2025-12-22)
+
+#### Major Implementations Completed:
+
+**1. Unified Sidebar Navigation**
+- Created `AppLayout.tsx` component with persistent sidebar
+- Wrapped entire app in `App.tsx` with AppLayout
+- Works for both authenticated and anonymous users
+- Shows "Sign In" for guests, user dropdown for authenticated
+
+**2. Bankability Rating Framework v3.0**
+- Created 4 comprehensive pages:
+  - `/ratings` - BankabilityRatings.tsx (AAA-CCC taxonomy, GC1-GC4, TR1-TR4, CI-A to CI-D)
+  - `/ratings/projects` - ProjectRatingsMatrix.tsx (16 projects)
+  - `/ratings/project/:id` - ProjectRatingDetail.tsx (individual assessment)
+  - `/ratings/carbon-intensity` - CarbonIntensityAnalysis.tsx
+- All 16 Australian biofuel projects with lending signals
+
+**3. Leaflet Map Integration (replaced Google Maps)**
+- Installed: leaflet, react-leaflet, @types/leaflet
+- Created `BiomassMap.tsx` component with:
+  - 16 biofuel project markers
+  - 50km biomass catchment circles
+  - Status-based color coding
+  - Layer controls for WMS overlays
+- Created `MAPPING_INTEGRATION.md` documentation
+- Data sources: Digital Atlas of Australia, ABBA Project
+
+**4. Stealth Discovery Backend**
+- Schema: `stealthEntities`, `stealthSignals`, `stealthIngestionJobs` tables
+- Router: `stealthRouter.ts` with full tRPC API
+- 5 Data Connectors:
+  - nswPlanningConnector.ts
+  - arenaConnector.ts
+  - cefcConnector.ts
+  - qldEpaConnector.ts
+  - ipAustraliaConnector.ts
+- Services: entityResolution.ts, signalScoring.ts
+- Frontend uses real tRPC queries (no mock data)
 
 ### For Next Agent
 - Run `npm run db:push` when DATABASE_URL is configured
+- RSIE tRPC routers still pending
 - Check Manus task outputs for completed graphics
-- Download graphics from Manus CDN to `client/public/images/explainers/`
-- Implement RSIE tRPC routers following patterns in `server/futuresRouter.ts`
+- Server runs on http://localhost:3004/ (port 3000 often busy)
 
 ---
 
@@ -152,4 +182,4 @@ npx drizzle-kit generate:mysql
 
 ---
 
-*Last updated: 2025-12-16 by Claude Code*
+*Last updated: 2025-12-22 by Claude Code*
