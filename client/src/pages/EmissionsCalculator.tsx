@@ -626,7 +626,29 @@ export default function EmissionsCalculator() {
   }
 
   if (!isAuthenticated) {
-    return <Redirect to="/" />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+              <Calculator className="h-8 w-8 text-emerald-600" />
+            </div>
+            <CardTitle className="text-2xl">Emissions Calculator</CardTitle>
+            <CardDescription>
+              ISO 14083, ISO 14064-1, and CORSIA compliant emissions calculations for your biofuel supply chain
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Sign in to access the full emissions calculator with transport mode analysis, lifecycle assessment, and compliance reporting.
+            </p>
+            <Button asChild className="w-full">
+              <a href="/api/login">Sign In to Continue</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

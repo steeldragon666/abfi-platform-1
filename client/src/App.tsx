@@ -124,6 +124,12 @@ const FeedstockPriceDashboard = lazy(() => import("./pages/FeedstockPriceDashboa
 const PolicyCarbonDashboard = lazy(() => import("./pages/PolicyCarbonDashboard"));
 const StealthDiscovery = lazy(() => import("./pages/StealthDiscovery"));
 
+// Bankability Rating Framework v3.0
+const BankabilityRatings = lazy(() => import("./pages/BankabilityRatings"));
+const ProjectRatingsMatrix = lazy(() => import("./pages/ProjectRatingsMatrix"));
+const ProjectRatingDetail = lazy(() => import("./pages/ProjectRatingDetail"));
+const CarbonIntensityAnalysis = lazy(() => import("./pages/CarbonIntensityAnalysis"));
+
 // New navigation architecture
 const Landing = lazy(() => import("./pages/Landing"));
 const Explore = lazy(() => import("./pages/Explore"));
@@ -227,6 +233,13 @@ function Router() {
         <Route path="/feedstock-prices" component={FeedstockPriceDashboard} />
         <Route path="/policy-carbon" component={PolicyCarbonDashboard} />
         <Route path="/stealth-discovery" component={StealthDiscovery} />
+
+        {/* Bankability Rating Framework v3.0 */}
+        <Route path="/ratings" component={BankabilityRatings} />
+        <Route path="/ratings/projects" component={ProjectRatingsMatrix} />
+        <Route path="/ratings/project/:id" component={ProjectRatingDetail} />
+        <Route path="/ratings/carbon-intensity" component={CarbonIntensityAnalysis} />
+
         <Route path="/compliance-dashboard" component={ComplianceDashboard} />
         <Route path="/admin/evidence" component={EvidenceManagement} />
         <Route path="/evidence-vault" component={EvidenceVaultDashboard} />

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
   Card,
   CardContent,
@@ -37,26 +39,40 @@ import {
   Zap,
   TreeDeciduous,
   Building2,
+  MapPin,
+  Factory,
 } from "lucide-react";
 import { analyzeRadius, type AnalysisResults } from "@/lib/radiusAnalysis";
 import { exportAsGeoJSON, exportAsCSV } from "@/lib/mapExport";
 import { trpc } from "@/lib/trpc";
 import { Textarea } from "@/components/ui/textarea";
-import { useProxyMapLoader } from "@/hooks/useProxyMapLoader";
-import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Link } from "wouter";
+import {
+  BIOFUEL_PROJECTS,
+  WMS_LAYERS,
+  STATUS_COLORS,
+  RATING_COLORS,
+  type BiofuelProject,
+} from "@/components/maps";
+
+// Fix Leaflet default marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
 
 // Australia center
-const defaultCenter = {
-  lat: -25.2744,
-  lng: 133.7751,
-};
+const defaultCenter: L.LatLngTuple = [-25.2744, 133.7751];
 
 interface LayerConfig {
   id: string;
   name: string;
-  type: "marker" | "polygon";
-  source: string;
+  type: "marker" | "polygon" | "wms";
+  source?: string;
+  wmsUrl?: string;
+  wmsLayers?: string;
   color: string;
   visible: boolean;
 }
@@ -76,15 +92,13 @@ interface GeoJSONData {
 }
 
 export default function FeedstockMap() {
-  // Load Google Maps via Forge proxy
-  const { isLoaded, loadError } = useProxyMapLoader();
-
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
-  const polygonsRef = useRef<google.maps.Polygon[]>([]);
-  const clustererRef = useRef<MarkerClusterer | null>(null);
-  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
+  const polygonsRef = useRef<L.Polygon[]>([]);
+  const circlesRef = useRef<L.Circle[]>([]);
+  const wmsLayersRef = useRef<Record<string, L.TileLayer.WMS>>({});
+  const geoJsonLayersRef = useRef<L.GeoJSON[]>([]);
 
   const [selectedStates, setSelectedStates] = useState<string[]>([
     "QLD",
@@ -107,10 +121,11 @@ export default function FeedstockMap() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [savedAnalysisName, setSavedAnalysisName] = useState("");
   const [savedAnalysisDescription, setSavedAnalysisDescription] = useState("");
-  const [radiusCircle, setRadiusCircle] = useState<google.maps.Circle | null>(
-    null
-  );
+  const [radiusCircle, setRadiusCircle] = useState<L.Circle | null>(null);
   const [mapInitialized, setMapInitialized] = useState(false);
+  const [showProjects, setShowProjects] = useState(true);
+  const [showCatchments, setShowCatchments] = useState(true);
+  const [selectedProject, setSelectedProject] = useState<BiofuelProject | null>(null);
 
   // GeoJSON data storage
   const [layerData, setLayerData] = useState<Record<string, GeoJSONData>>({});
@@ -126,12 +141,37 @@ export default function FeedstockMap() {
 
   const [layers, setLayers] = useState<LayerConfig[]>([
     {
+      id: "biofuel-projects",
+      name: "Biofuel Projects",
+      type: "marker",
+      color: "#3b82f6",
+      visible: true,
+    },
+    {
+      id: "land-use",
+      name: "Land Use (CLUM)",
+      type: "wms",
+      wmsUrl: WMS_LAYERS.landUse.url,
+      wmsLayers: WMS_LAYERS.landUse.layers,
+      color: "#22c55e",
+      visible: false,
+    },
+    {
+      id: "electricity",
+      name: "Electricity Grid",
+      type: "wms",
+      wmsUrl: WMS_LAYERS.electricity.url,
+      wmsLayers: WMS_LAYERS.electricity.layers,
+      color: "#f59e0b",
+      visible: false,
+    },
+    {
       id: "sugar-mills",
       name: "Sugar Mills",
       type: "marker",
       source: "/geojson/sugar_mills.json",
       color: "#8B4513",
-      visible: true,
+      visible: false,
     },
     {
       id: "grain-regions",
@@ -139,7 +179,7 @@ export default function FeedstockMap() {
       type: "polygon",
       source: "/geojson/grain_regions.json",
       color: "#DAA520",
-      visible: true,
+      visible: false,
     },
     {
       id: "forestry-regions",
@@ -149,97 +189,123 @@ export default function FeedstockMap() {
       color: "#228B22",
       visible: false,
     },
+    // ABBA (Australian Biomass for Bioenergy Assessment) Layers
+    // Queensland CKAN API: https://www.data.qld.gov.au/api/3/action/
+    // Dataset: australian-biomass-for-bioenergy-assessment
+    // License: CC BY 4.0
     {
-      id: "biogas-facilities",
-      name: "Biogas Facilities",
-      type: "marker",
-      source: "/geojson/biogas_facilities.json",
-      color: "#FF6347",
+      id: "abba-bagasse",
+      name: "🌾 Sugarcane Bagasse (ABBA)",
+      type: "wms",
+      wmsUrl: WMS_LAYERS.bagasse?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: WMS_LAYERS.bagasse?.layers || "abba:sugarcane_bagasse",
+      color: "#8B4513",
       visible: false,
     },
     {
-      id: "biofuel-plants",
-      name: "Biofuel Plants",
-      type: "marker",
-      source: "/geojson/biofuel_plants.json",
-      color: "#4169E1",
+      id: "abba-grain-stubble",
+      name: "🌾 Grain Stubble (ABBA)",
+      type: "wms",
+      wmsUrl: WMS_LAYERS.grainStubble?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: WMS_LAYERS.grainStubble?.layers || "abba:grain_stubble",
+      color: "#DAA520",
       visible: false,
     },
     {
-      id: "transport-ports",
-      name: "Ports & Transport",
-      type: "marker",
-      source: "/geojson/transport_infrastructure.json",
-      color: "#9370DB",
+      id: "abba-forestry",
+      name: "🌲 Forestry Residues (ABBA)",
+      type: "wms",
+      wmsUrl: WMS_LAYERS.forestryResidues?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: WMS_LAYERS.forestryResidues?.layers || "abba:forestry_residues",
+      color: "#228B22",
+      visible: false,
+    },
+    {
+      id: "abba-cotton",
+      name: "🌿 Cotton Gin Trash (ABBA)",
+      type: "wms",
+      wmsUrl: WMS_LAYERS.cottonGinTrash?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: WMS_LAYERS.cottonGinTrash?.layers || "abba:cotton_gin_trash",
+      color: "#F5F5DC",
+      visible: false,
+    },
+    {
+      id: "abba-urban-waste",
+      name: "🏙️ Urban Organic Waste (ABBA)",
+      type: "wms",
+      wmsUrl: WMS_LAYERS.urbanOrganicWaste?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: WMS_LAYERS.urbanOrganicWaste?.layers || "abba:urban_organic_waste",
+      color: "#4A4A4A",
       visible: false,
     },
   ]);
 
   const [layerOpacity, setLayerOpacity] = useState<Record<string, number>>({
+    "biofuel-projects": 100,
+    "land-use": 50,
+    "electricity": 70,
     "sugar-mills": 100,
     "grain-regions": 30,
     "forestry-regions": 30,
-    "biogas-facilities": 100,
-    "biofuel-plants": 100,
-    "transport-ports": 100,
+    "abba-bagasse": 60,
+    "abba-grain-stubble": 60,
+    "abba-forestry": 60,
+    "abba-cotton": 60,
+    "abba-urban-waste": 60,
   });
 
-  // Capacity filters
-  const [sugarMillCapacity, setSugarMillCapacity] = useState<[number, number]>([
-    0, 4000000,
-  ]);
-  const [biogasCapacity, setBiogasCapacity] = useState<[number, number]>([
-    0, 50,
-  ]);
-  const [biofuelCapacity, setBiofuelCapacity] = useState<[number, number]>([
-    0, 500,
-  ]);
-  const [portThroughput, setPortThroughput] = useState<[number, number]>([
-    0, 200,
-  ]);
-
-  // Initialize map when script is loaded
+  // Initialize Leaflet map
   useEffect(() => {
-    if (!isLoaded || !mapContainerRef.current || mapInitialized) return;
+    if (!mapContainerRef.current) return;
 
-    const map = new google.maps.Map(mapContainerRef.current, {
+    // Clean up any existing map instance
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
+
+    const map = L.map(mapContainerRef.current, {
       center: defaultCenter,
       zoom: 4,
-      mapTypeControl: true,
-      streetViewControl: false,
-      fullscreenControl: true,
-      styles: [
-        { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-        { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-        {
-          featureType: "water",
-          elementType: "geometry",
-          stylers: [{ color: "#c9eafc" }],
-        },
-        {
-          featureType: "landscape.natural",
-          elementType: "geometry",
-          stylers: [{ color: "#e8f5e9" }],
-        },
-      ],
+      zoomControl: true,
+      scrollWheelZoom: true,
     });
 
+    // Add OpenStreetMap base layer
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Data: Digital Atlas of Australia, ABBA Project',
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Add scale control
+    L.control.scale({ imperial: false, metric: true }).addTo(map);
+
     mapRef.current = map;
-    infoWindowRef.current = new google.maps.InfoWindow();
     setMapInitialized(true);
-  }, [isLoaded, mapInitialized]);
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      setMapInitialized(false);
+    };
+  }, []); // Empty dependency - only run once on mount
 
   // Load GeoJSON data on mount
   useEffect(() => {
     const loadData = async () => {
       const data: Record<string, GeoJSONData> = {};
       for (const layer of layers) {
-        try {
-          const response = await fetch(layer.source);
-          const geojson = await response.json();
-          data[layer.id] = geojson;
-        } catch (error) {
-          console.error(`Failed to load ${layer.id}:`, error);
+        if (layer.source) {
+          try {
+            const response = await fetch(layer.source);
+            const geojson = await response.json();
+            data[layer.id] = geojson;
+          } catch (error) {
+            console.error(`Failed to load ${layer.id}:`, error);
+          }
         }
       }
       setLayerData(data);
@@ -247,222 +313,282 @@ export default function FeedstockMap() {
     loadData();
   }, []);
 
-  // Filter features by state
-  const filterByState = useCallback(
-    (feature: GeoJSONFeature): boolean => {
-      const state = feature.properties?.state || feature.properties?.STATE;
-      if (!state) return true;
-      return selectedStates.includes(state);
-    },
-    [selectedStates]
-  );
-
-  // Create popup content
-  const createPopupContent = (
-    layerId: string,
-    properties: Record<string, any>
-  ): string => {
-    const baseStyle = `font-family: system-ui, -apple-system, sans-serif; font-size: 13px;`;
-    switch (layerId) {
-      case "sugar-mills":
-        return `
-          <div style="${baseStyle} padding: 12px; max-width: 280px;">
-            <h3 style="margin: 0 0 8px; font-weight: 600; font-size: 15px; color: #1a1a1a;">${properties.name || "Sugar Mill"}</h3>
-            <div style="display: grid; gap: 6px;">
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Owner:</span><span style="font-weight: 500;">${properties.owner || "N/A"}</span></div>
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Capacity:</span><span style="font-weight: 500;">${(properties.crushing_capacity_tonnes || 0).toLocaleString()} t</span></div>
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Bagasse:</span><span style="font-weight: 500; color: #059669;">${(properties.bagasse_tonnes_available || 0).toLocaleString()} t</span></div>
-            </div>
-          </div>
-        `;
-      case "biogas-facilities":
-        return `
-          <div style="${baseStyle} padding: 12px; max-width: 280px;">
-            <h3 style="margin: 0 0 8px; font-weight: 600; font-size: 15px; color: #1a1a1a;">${properties.name || "Biogas Facility"}</h3>
-            <div style="display: grid; gap: 6px;">
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Capacity:</span><span style="font-weight: 500;">${properties.capacity_mw || "N/A"} MW</span></div>
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Feedstock:</span><span style="font-weight: 500;">${properties.feedstock_type || "N/A"}</span></div>
-            </div>
-          </div>
-        `;
-      case "biofuel-plants":
-        return `
-          <div style="${baseStyle} padding: 12px; max-width: 280px;">
-            <h3 style="margin: 0 0 8px; font-weight: 600; font-size: 15px; color: #1a1a1a;">${properties.name || "Biofuel Plant"}</h3>
-            <div style="display: grid; gap: 6px;">
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Type:</span><span style="font-weight: 500;">${properties.fuel_type || "N/A"}</span></div>
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Capacity:</span><span style="font-weight: 500;">${properties.capacity_ml_year || "N/A"} ML/yr</span></div>
-            </div>
-          </div>
-        `;
-      case "transport-ports":
-        return `
-          <div style="${baseStyle} padding: 12px; max-width: 280px;">
-            <h3 style="margin: 0 0 8px; font-weight: 600; font-size: 15px; color: #1a1a1a;">${properties.name || "Port"}</h3>
-            <div style="display: grid; gap: 6px;">
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Type:</span><span style="font-weight: 500;">${properties.type || "N/A"}</span></div>
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Throughput:</span><span style="font-weight: 500;">${properties.throughput_mt || "N/A"} MT/yr</span></div>
-            </div>
-          </div>
-        `;
-      case "grain-regions":
-      case "forestry-regions":
-        return `
-          <div style="${baseStyle} padding: 12px; max-width: 280px;">
-            <h3 style="margin: 0 0 8px; font-weight: 600; font-size: 15px; color: #1a1a1a;">${properties.name || properties.REGION_NAME || "Region"}</h3>
-            <div style="display: grid; gap: 6px;">
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">State:</span><span style="font-weight: 500;">${properties.state || properties.STATE || "N/A"}</span></div>
-              <div style="display: flex; justify-content: space-between;"><span style="color: #666;">Area:</span><span style="font-weight: 500;">${(properties.area_ha || properties.AREA_HA || 0).toLocaleString()} ha</span></div>
-            </div>
-          </div>
-        `;
-      default:
-        return `<div style="padding: 8px;">${JSON.stringify(properties, null, 2)}</div>`;
-    }
-  };
-
-  // Update map layers when data or visibility changes
+  // Render biofuel project markers
   useEffect(() => {
-    if (
-      !mapRef.current ||
-      !mapInitialized ||
-      Object.keys(layerData).length === 0
-    )
-      return;
+    if (!mapRef.current || !mapInitialized) return;
 
-    // Clear existing markers and polygons
-    markersRef.current.forEach(marker => marker.setMap(null));
+    // Clear existing project markers and catchment circles
+    markersRef.current.forEach((marker) => marker.remove());
+    circlesRef.current.forEach((circle) => circle.remove());
     markersRef.current = [];
-    polygonsRef.current.forEach(polygon => polygon.setMap(null));
-    polygonsRef.current = [];
-    if (clustererRef.current) {
-      clustererRef.current.clearMarkers();
-      clustererRef.current = null;
-    }
+    circlesRef.current = [];
 
-    const newMarkers: google.maps.Marker[] = [];
+    const projectLayer = layers.find((l) => l.id === "biofuel-projects");
+    if (!projectLayer?.visible || !showProjects) return;
+
     const map = mapRef.current;
-    const infoWindow = infoWindowRef.current;
 
-    // Render marker layers
+    BIOFUEL_PROJECTS.forEach((project) => {
+      // Filter by state if needed
+      const projectState = project.location.split(", ").pop()?.trim();
+      if (projectState && !selectedStates.includes(projectState)) return;
+
+      // Create custom icon
+      const icon = L.divIcon({
+        className: "custom-project-marker",
+        html: `
+          <div style="
+            width: 28px;
+            height: 28px;
+            background-color: ${STATUS_COLORS[project.status]};
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+        `,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+
+      // Create marker
+      const marker = L.marker([project.lat, project.lng], { icon });
+
+      // Helper function to get rating color
+      const getRatingColor = (rating: string): string => {
+        return RATING_COLORS[rating] || "#9ca3af";
+      };
+
+      // Add popup with bankability ratings
+      const popupContent = `
+        <div style="font-family: system-ui, -apple-system, sans-serif; min-width: 280px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <h3 style="margin: 0; font-weight: 600; font-size: 14px; color: #1a1a1a; flex: 1;">
+              ${project.name}
+            </h3>
+            <span style="
+              background-color: ${getRatingColor(project.bankability)};
+              color: white;
+              padding: 2px 8px;
+              border-radius: 4px;
+              font-weight: 600;
+              font-size: 12px;
+              margin-left: 8px;
+            ">${project.bankability}</span>
+          </div>
+          <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+            ${project.company}
+          </div>
+
+          <!-- Lending Signal Badge -->
+          <div style="
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background-color: ${getRatingColor(project.signal)}20;
+            border: 1px solid ${getRatingColor(project.signal)}40;
+            color: ${getRatingColor(project.signal)};
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 8px;
+          ">
+            ${project.signal}
+          </div>
+
+          <!-- Rating Grid -->
+          <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap;">
+            <span style="background: ${getRatingColor(project.growerContract)}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 500;">${project.growerContract}</span>
+            <span style="background: ${getRatingColor(project.techReadiness)}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 500;">${project.techReadiness}</span>
+            <span style="background: ${getRatingColor(project.carbonIntensity)}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 500;">${project.carbonIntensity}</span>
+            <span style="background: #6b7280; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 500;">CI: ${project.ciValue}</span>
+          </div>
+
+          <div style="display: grid; gap: 3px; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #666;">Location:</span>
+              <span style="font-weight: 500;">${project.location}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #666;">Feedstock:</span>
+              <span style="font-weight: 500;">${project.feedstock}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #666;">Technology:</span>
+              <span style="font-weight: 500;">${project.technology}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #666;">Capacity:</span>
+              <span style="font-weight: 500;">${project.capacity}</span>
+            </div>
+            ${project.biomass50km > 0 ? `
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: #666;">50km Biomass:</span>
+                <span style="font-weight: 600; color: #059669;">
+                  ${project.biomass50km.toLocaleString()} t/yr
+                </span>
+              </div>
+            ` : ""}
+          </div>
+
+          <!-- Assessment Notes -->
+          ${project.notes ? `
+            <div style="
+              margin-top: 8px;
+              padding-top: 8px;
+              border-top: 1px solid #e5e7eb;
+              font-size: 11px;
+              color: #4b5563;
+              font-style: italic;
+            ">
+              ${project.notes}
+            </div>
+          ` : ""}
+
+          <!-- View Details Link -->
+          <div style="margin-top: 8px; text-align: center;">
+            <a href="/ratings/project/${project.id}" style="
+              display: inline-block;
+              padding: 4px 12px;
+              background: #3b82f6;
+              color: white;
+              border-radius: 4px;
+              font-size: 11px;
+              font-weight: 500;
+              text-decoration: none;
+            ">View Full Assessment</a>
+          </div>
+        </div>
+      `;
+
+      marker.bindPopup(popupContent, {
+        maxWidth: 320,
+        className: "biomass-map-popup",
+      });
+
+      marker.on("click", () => {
+        setSelectedProject(project);
+      });
+
+      marker.addTo(map);
+      markersRef.current.push(marker);
+
+      // Add catchment circle if enabled
+      if (showCatchments && project.biomass50km > 0) {
+        const circle = L.circle([project.lat, project.lng], {
+          radius: radiusKm * 1000, // Convert km to meters
+          color: STATUS_COLORS[project.status],
+          fillColor: STATUS_COLORS[project.status],
+          fillOpacity: 0.08,
+          weight: 2,
+          dashArray: "6, 4",
+        });
+
+        circle.addTo(map);
+        circlesRef.current.push(circle);
+      }
+    });
+  }, [mapInitialized, layers, showProjects, showCatchments, radiusKm, selectedStates]);
+
+  // Handle WMS layers
+  useEffect(() => {
+    if (!mapRef.current || !mapInitialized) return;
+
+    const map = mapRef.current;
+
     layers
-      .filter(l => l.visible && l.type === "marker")
-      .forEach(layer => {
+      .filter((l) => l.type === "wms")
+      .forEach((layer) => {
+        const existingLayer = wmsLayersRef.current[layer.id];
+
+        if (layer.visible && !existingLayer && layer.wmsUrl) {
+          const wmsLayer = L.tileLayer.wms(layer.wmsUrl, {
+            layers: layer.wmsLayers || "",
+            format: "image/png",
+            transparent: true,
+            opacity: (layerOpacity[layer.id] || 100) / 100,
+            attribution: "© Digital Atlas of Australia",
+          });
+
+          wmsLayer.addTo(map);
+          wmsLayersRef.current[layer.id] = wmsLayer;
+        } else if (!layer.visible && existingLayer) {
+          existingLayer.remove();
+          delete wmsLayersRef.current[layer.id];
+        } else if (layer.visible && existingLayer) {
+          existingLayer.setOpacity((layerOpacity[layer.id] || 100) / 100);
+        }
+      });
+  }, [mapInitialized, layers, layerOpacity]);
+
+  // Handle GeoJSON layers
+  useEffect(() => {
+    if (!mapRef.current || !mapInitialized || Object.keys(layerData).length === 0) return;
+
+    // Clear existing GeoJSON layers
+    geoJsonLayersRef.current.forEach((layer) => layer.remove());
+    geoJsonLayersRef.current = [];
+
+    const map = mapRef.current;
+
+    layers
+      .filter((l) => l.visible && l.source && layerData[l.id])
+      .forEach((layer) => {
         const data = layerData[layer.id];
         if (!data) return;
 
-        data.features
-          .filter(filterByState)
-          .filter(feature => feature.geometry.type === "Point")
-          .forEach(feature => {
-            const coords = feature.geometry.coordinates as number[];
-            const marker = new google.maps.Marker({
-              position: { lat: coords[1], lng: coords[0] },
-              icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                fillColor: layer.color,
-                fillOpacity: (layerOpacity[layer.id] || 100) / 100,
-                strokeColor: "#ffffff",
-                strokeWeight: 2,
-                scale: 8,
-              },
+        const geoJsonLayer = L.geoJSON(data as any, {
+          style: (feature) => ({
+            fillColor: layer.color,
+            fillOpacity: ((layerOpacity[layer.id] || 100) / 100) * 0.3,
+            color: layer.color,
+            weight: 2,
+            opacity: 0.8,
+          }),
+          pointToLayer: (feature, latlng) => {
+            return L.circleMarker(latlng, {
+              radius: 8,
+              fillColor: layer.color,
+              fillOpacity: (layerOpacity[layer.id] || 100) / 100,
+              color: "#fff",
+              weight: 2,
             });
+          },
+          onEachFeature: (feature, featureLayer) => {
+            const props = feature.properties;
+            const popupContent = `
+              <div style="font-family: system-ui; font-size: 13px; padding: 4px;">
+                <strong>${props.name || props.NAME || "Feature"}</strong>
+                ${props.state || props.STATE ? `<br><span style="color: #666;">State: ${props.state || props.STATE}</span>` : ""}
+                ${props.capacity || props.crushing_capacity_tonnes ? `<br><span style="color: #666;">Capacity: ${(props.capacity || props.crushing_capacity_tonnes || 0).toLocaleString()}</span>` : ""}
+              </div>
+            `;
+            featureLayer.bindPopup(popupContent);
+          },
+          filter: (feature) => {
+            const state = feature.properties?.state || feature.properties?.STATE;
+            if (!state) return true;
+            return selectedStates.includes(state);
+          },
+        });
 
-            marker.addListener("click", () => {
-              if (infoWindow) {
-                infoWindow.setContent(
-                  createPopupContent(layer.id, feature.properties)
-                );
-                infoWindow.setPosition({ lat: coords[1], lng: coords[0] });
-                infoWindow.open(map);
-              }
-            });
-
-            newMarkers.push(marker);
-          });
+        geoJsonLayer.addTo(map);
+        geoJsonLayersRef.current.push(geoJsonLayer);
       });
-
-    // Create clusterer for markers
-    if (newMarkers.length > 0) {
-      clustererRef.current = new MarkerClusterer({
-        map,
-        markers: newMarkers,
-      });
-    }
-    markersRef.current = newMarkers;
-
-    // Render polygon layers
-    layers
-      .filter(l => l.visible && l.type === "polygon")
-      .forEach(layer => {
-        const data = layerData[layer.id];
-        if (!data) return;
-
-        data.features
-          .filter(filterByState)
-          .filter(
-            feature =>
-              feature.geometry.type === "Polygon" ||
-              feature.geometry.type === "MultiPolygon"
-          )
-          .forEach(feature => {
-            let paths: google.maps.LatLngLiteral[][] = [];
-
-            if (feature.geometry.type === "Polygon") {
-              const coords = feature.geometry.coordinates as number[][][];
-              paths = coords.map(ring =>
-                ring.map(coord => ({ lat: coord[1], lng: coord[0] }))
-              );
-            } else if (feature.geometry.type === "MultiPolygon") {
-              const coords = feature.geometry
-                .coordinates as unknown as number[][][][];
-              coords.forEach(polygon => {
-                polygon.forEach(ring => {
-                  paths.push(
-                    ring.map(coord => ({ lat: coord[1], lng: coord[0] }))
-                  );
-                });
-              });
-            }
-
-            paths.forEach(path => {
-              const polygon = new google.maps.Polygon({
-                paths: path,
-                fillColor: layer.color,
-                fillOpacity: ((layerOpacity[layer.id] || 100) / 100) * 0.3,
-                strokeColor: layer.color,
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                map,
-              });
-
-              polygon.addListener("click", (e: google.maps.MapMouseEvent) => {
-                if (infoWindow && e.latLng) {
-                  infoWindow.setContent(
-                    createPopupContent(layer.id, feature.properties)
-                  );
-                  infoWindow.setPosition(e.latLng);
-                  infoWindow.open(map);
-                }
-              });
-
-              polygonsRef.current.push(polygon);
-            });
-          });
-      });
-  }, [
-    mapInitialized,
-    layerData,
-    layers,
-    layerOpacity,
-    selectedStates,
-    filterByState,
-  ]);
+  }, [mapInitialized, layers, layerData, layerOpacity, selectedStates]);
 
   // Toggle layer visibility
   const toggleLayer = (layerId: string) => {
     setLayers(
-      layers.map(l => (l.id === layerId ? { ...l, visible: !l.visible } : l))
+      layers.map((l) => (l.id === layerId ? { ...l, visible: !l.visible } : l))
     );
   };
 
@@ -476,38 +602,30 @@ export default function FeedstockMap() {
     if (!mapRef.current) return;
 
     const center = mapRef.current.getCenter();
-    if (!center) return;
-
-    const centerPos = { lat: center.lat(), lng: center.lng() };
+    const centerPos = { lat: center.lat, lng: center.lng };
     setRadiusCenter(centerPos);
     setIsAnalyzing(true);
 
     // Remove existing circle
     if (radiusCircle) {
-      radiusCircle.setMap(null);
+      radiusCircle.remove();
     }
 
     // Create new circle
-    const circle = new google.maps.Circle({
-      strokeColor: "#14b8a6",
-      strokeOpacity: 0.9,
-      strokeWeight: 3,
+    const circle = L.circle([centerPos.lat, centerPos.lng], {
+      radius: radiusKm * 1000,
+      color: "#14b8a6",
       fillColor: "#14b8a6",
       fillOpacity: 0.15,
-      map: mapRef.current,
-      center: centerPos,
-      radius: radiusKm * 1000,
+      weight: 3,
     });
 
+    circle.addTo(mapRef.current);
     setRadiusCircle(circle);
 
     // Run analysis
     try {
-      const results = await analyzeRadius(
-        centerPos.lat,
-        centerPos.lng,
-        radiusKm
-      );
+      const results = await analyzeRadius(centerPos.lat, centerPos.lng, radiusKm);
       setAnalysisResults(results);
     } catch (error) {
       console.error("Analysis failed:", error);
@@ -519,7 +637,7 @@ export default function FeedstockMap() {
   // Clear radius
   const clearRadius = () => {
     if (radiusCircle) {
-      radiusCircle.setMap(null);
+      radiusCircle.remove();
       setRadiusCircle(null);
     }
     setRadiusCenter(null);
@@ -530,30 +648,13 @@ export default function FeedstockMap() {
   const handleExportGeoJSON = async () => {
     setIsExporting(true);
     try {
-      const visibleLayers = layers.filter(l => l.visible).map(l => l.id);
+      const visibleLayers = layers.filter((l) => l.visible).map((l) => l.id);
       const count = await exportAsGeoJSON({
         layers: visibleLayers,
         stateFilter: selectedStates,
-        capacityRanges: {
-          "sugar-mills": {
-            min: sugarMillCapacity[0],
-            max: sugarMillCapacity[1],
-          },
-          "biogas-facilities": {
-            min: biogasCapacity[0],
-            max: biogasCapacity[1],
-          },
-          "biofuel-plants": {
-            min: biofuelCapacity[0],
-            max: biofuelCapacity[1],
-          },
-          "transport-infrastructure": {
-            min: portThroughput[0],
-            max: portThroughput[1],
-          },
-        },
+        capacityRanges: {},
       });
-      alert(`Exported ${count} facilities as GeoJSON`);
+      alert(`Exported ${count} features as GeoJSON`);
     } catch (error) {
       console.error("Export failed:", error);
       alert("Export failed. Please try again.");
@@ -565,30 +666,13 @@ export default function FeedstockMap() {
   const handleExportCSV = async () => {
     setIsExporting(true);
     try {
-      const visibleLayers = layers.filter(l => l.visible).map(l => l.id);
+      const visibleLayers = layers.filter((l) => l.visible).map((l) => l.id);
       const count = await exportAsCSV({
         layers: visibleLayers,
         stateFilter: selectedStates,
-        capacityRanges: {
-          "sugar-mills": {
-            min: sugarMillCapacity[0],
-            max: sugarMillCapacity[1],
-          },
-          "biogas-facilities": {
-            min: biogasCapacity[0],
-            max: biogasCapacity[1],
-          },
-          "biofuel-plants": {
-            min: biofuelCapacity[0],
-            max: biofuelCapacity[1],
-          },
-          "transport-infrastructure": {
-            min: portThroughput[0],
-            max: portThroughput[1],
-          },
-        },
+        capacityRanges: {},
       });
-      alert(`Exported ${count} facilities as CSV`);
+      alert(`Exported ${count} features as CSV`);
     } catch (error) {
       console.error("Export failed:", error);
       alert("Export failed. Please try again.");
@@ -606,7 +690,7 @@ export default function FeedstockMap() {
       setSavedAnalysisDescription("");
       refetchSavedAnalyses();
     },
-    onError: error => {
+    onError: (error) => {
       alert(`Failed to save analysis: ${error.message}`);
     },
   });
@@ -632,25 +716,8 @@ export default function FeedstockMap() {
       results: analysisResults,
       filterState: {
         selectedStates,
-        visibleLayers: layers.filter(l => l.visible).map(l => l.id),
-        capacityRanges: {
-          "sugar-mills": {
-            min: sugarMillCapacity[0],
-            max: sugarMillCapacity[1],
-          },
-          "biogas-facilities": {
-            min: biogasCapacity[0],
-            max: biogasCapacity[1],
-          },
-          "biofuel-plants": {
-            min: biofuelCapacity[0],
-            max: biofuelCapacity[1],
-          },
-          "transport-infrastructure": {
-            min: portThroughput[0],
-            max: portThroughput[1],
-          },
-        } as Record<string, { min: number; max: number }>,
+        visibleLayers: layers.filter((l) => l.visible).map((l) => l.id),
+        capacityRanges: {},
       },
     });
   };
@@ -668,95 +735,34 @@ export default function FeedstockMap() {
 
     if (analysis.filterState) {
       setSelectedStates(analysis.filterState.selectedStates);
-      setLayers(prev =>
-        prev.map(layer => ({
+      setLayers((prev) =>
+        prev.map((layer) => ({
           ...layer,
           visible: analysis.filterState.visibleLayers.includes(layer.id),
         }))
       );
-
-      const ranges = analysis.filterState.capacityRanges;
-      if (ranges["sugar-mills"])
-        setSugarMillCapacity([
-          ranges["sugar-mills"].min,
-          ranges["sugar-mills"].max,
-        ]);
-      if (ranges["biogas-facilities"])
-        setBiogasCapacity([
-          ranges["biogas-facilities"].min,
-          ranges["biogas-facilities"].max,
-        ]);
-      if (ranges["biofuel-plants"])
-        setBiofuelCapacity([
-          ranges["biofuel-plants"].min,
-          ranges["biofuel-plants"].max,
-        ]);
-      if (ranges["transport-infrastructure"])
-        setPortThroughput([
-          ranges["transport-infrastructure"].min,
-          ranges["transport-infrastructure"].max,
-        ]);
     }
 
     // Pan to analysis location
     if (mapRef.current) {
-      mapRef.current.panTo({ lat: centerLat, lng: centerLng });
-      mapRef.current.setZoom(9);
+      mapRef.current.setView([centerLat, centerLng], 9);
 
       // Draw circle
       setTimeout(() => {
         if (mapRef.current) {
-          const circle = new google.maps.Circle({
-            strokeColor: "#14b8a6",
-            strokeOpacity: 0.9,
-            strokeWeight: 3,
+          const circle = L.circle([centerLat, centerLng], {
+            radius: analysis.radiusKm * 1000,
+            color: "#14b8a6",
             fillColor: "#14b8a6",
             fillOpacity: 0.15,
-            map: mapRef.current,
-            center: { lat: centerLat, lng: centerLng },
-            radius: analysis.radiusKm * 1000,
+            weight: 3,
           });
+          circle.addTo(mapRef.current);
           setRadiusCircle(circle);
         }
-      }, 500);
+      }, 300);
     }
   };
-
-  if (loadError) {
-    return (
-      <PageLayout>
-        <PageContainer>
-          <Card>
-            <CardContent className="py-16 text-center">
-              <Map className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Failed to Load Map</h3>
-              <p className="text-muted-foreground">
-                Please check your API key configuration and try again.
-              </p>
-            </CardContent>
-          </Card>
-        </PageContainer>
-      </PageLayout>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <PageLayout>
-        <PageContainer>
-          <Card>
-            <CardContent className="py-16 text-center">
-              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-              <h3 className="text-lg font-semibold mb-2">Loading Map</h3>
-              <p className="text-muted-foreground">
-                Initializing geospatial visualization...
-              </p>
-            </CardContent>
-          </Card>
-        </PageContainer>
-      </PageLayout>
-    );
-  }
 
   return (
     <PageLayout showFooter={false}>
@@ -773,13 +779,18 @@ export default function FeedstockMap() {
                   <Globe className="h-3 w-3 mr-1" />
                   Interactive GIS
                 </Badge>
+                <Badge
+                  variant="outline"
+                  className="border-green-400/50 text-green-300 bg-green-500/10"
+                >
+                  OpenStreetMap + Digital Atlas
+                </Badge>
               </div>
               <h1 className="text-2xl lg:text-3xl font-display font-bold">
                 Feedstock Supply Map
               </h1>
               <p className="text-slate-300 text-sm mt-1">
-                Visualize biomass resources, facilities, and infrastructure
-                across Australia
+                Visualize Australian biofuel projects, biomass resources, and infrastructure
               </p>
             </div>
             <div className="flex gap-2">
@@ -800,7 +811,7 @@ export default function FeedstockMap() {
                 className="border-white/20 text-white hover:bg-white/10"
                 asChild
               >
-                <Link href="/bankability">
+                <Link href="/ratings">
                   <Building2 className="h-4 w-4 mr-1" />
                   Bankability
                 </Link>
@@ -823,11 +834,11 @@ export default function FeedstockMap() {
             <div className="bg-background border-t p-3 flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-[200px]">
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  Radius:
+                  Catchment:
                 </span>
                 <Slider
                   value={[radiusKm]}
-                  onValueChange={value => setRadiusKm(value[0])}
+                  onValueChange={(value) => setRadiusKm(value[0])}
                   min={10}
                   max={200}
                   step={5}
@@ -854,6 +865,46 @@ export default function FeedstockMap() {
           {/* Sidebar */}
           <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l bg-background overflow-y-auto max-h-[50vh] lg:max-h-none">
             <div className="p-4 space-y-4">
+              {/* Project Legend */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Factory className="h-4 w-4" />
+                    Project Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={showProjects}
+                      onCheckedChange={(c) => setShowProjects(!!c)}
+                    />
+                    <Label className="text-sm">Show Projects</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={showCatchments}
+                      onCheckedChange={(c) => setShowCatchments(!!c)}
+                    />
+                    <Label className="text-sm">Show Catchments</Label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                    {Object.entries(STATUS_COLORS).map(([status, color]) => (
+                      <div key={status} className="flex items-center gap-1.5">
+                        <div
+                          className="w-3 h-3 rounded-full border-2 border-white"
+                          style={{ backgroundColor: color, boxShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
+                        />
+                        <span className="capitalize">{status}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-2">
+                    {BIOFUEL_PROJECTS.length} projects mapped
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Analysis Results */}
               {analysisResults && (
                 <Card className="border-primary/20 bg-primary/5">
@@ -985,17 +1036,17 @@ export default function FeedstockMap() {
                   <div className="space-y-2">
                     <Label className="text-sm">States</Label>
                     <div className="grid grid-cols-3 gap-2">
-                      {["QLD", "NSW", "VIC", "SA", "WA", "TAS"].map(state => (
+                      {["QLD", "NSW", "VIC", "SA", "WA", "TAS"].map((state) => (
                         <div key={state} className="flex items-center gap-1.5">
                           <Checkbox
                             id={`state-${state}`}
                             checked={selectedStates.includes(state)}
-                            onCheckedChange={checked => {
+                            onCheckedChange={(checked) => {
                               if (checked) {
                                 setSelectedStates([...selectedStates, state]);
                               } else {
                                 setSelectedStates(
-                                  selectedStates.filter(s => s !== state)
+                                  selectedStates.filter((s) => s !== state)
                                 );
                               }
                             }}
@@ -1089,11 +1140,11 @@ export default function FeedstockMap() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Layers className="h-4 w-4" />
-                    Layers
+                    Data Layers
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {layers.map(layer => (
+                  {layers.map((layer) => (
                     <div key={layer.id} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -1179,7 +1230,7 @@ export default function FeedstockMap() {
                 id="analysis-name"
                 placeholder="e.g., Brisbane North Assessment"
                 value={savedAnalysisName}
-                onChange={e => setSavedAnalysisName(e.target.value)}
+                onChange={(e) => setSavedAnalysisName(e.target.value)}
                 className="mt-1"
               />
             </div>
@@ -1189,7 +1240,7 @@ export default function FeedstockMap() {
                 id="analysis-description"
                 placeholder="Add notes..."
                 value={savedAnalysisDescription}
-                onChange={e => setSavedAnalysisDescription(e.target.value)}
+                onChange={(e) => setSavedAnalysisDescription(e.target.value)}
                 className="mt-1"
                 rows={3}
               />

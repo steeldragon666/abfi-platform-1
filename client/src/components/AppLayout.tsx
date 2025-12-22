@@ -49,6 +49,7 @@ import {
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "./ui/button";
+import RoleHeader from "./RoleHeader";
 
 // Menu structure
 const mainMenuItems = [
@@ -69,6 +70,7 @@ const marketplaceMenuItems = [
 ];
 
 const intelligenceMenuItems = [
+  { icon: Shield, label: "Bankability Ratings", path: "/ratings" },
   { icon: Eye, label: "Stealth Discovery", path: "/stealth-discovery" },
   { icon: TrendingUp, label: "Lending Sentiment", path: "/lending-sentiment" },
   { icon: BarChart3, label: "Feedstock Prices", path: "/feedstock-prices" },
@@ -343,6 +345,9 @@ function AppLayoutContent({ children, setSidebarWidth }: AppLayoutContentProps) 
       </div>
 
       <SidebarInset>
+        {/* Desktop Role Header */}
+        {!isMobile && <RoleHeader />}
+
         {/* Mobile Header with Hamburger Menu */}
         {isMobile && (
           <header className="flex border-b h-14 items-center justify-between bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40 shadow-sm">
