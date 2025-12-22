@@ -507,7 +507,29 @@ export default function SupplyChainDashboard() {
   }
 
   if (!isAuthenticated) {
-    return <Redirect to="/" />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+              <Truck className="h-8 w-8 text-blue-600" />
+            </div>
+            <CardTitle className="text-2xl">Supply Chain Dashboard</CardTitle>
+            <CardDescription>
+              Track consignments, freight legs, and chain of custody evidence across your biofuel supply chain
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Sign in to access real-time tracking, consignment management, and compliance documentation.
+            </p>
+            <Button asChild className="w-full">
+              <a href="/api/login">Sign In to Continue</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
