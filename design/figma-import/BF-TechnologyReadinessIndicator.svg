@@ -1,0 +1,10 @@
+<svg width="160" height="72" viewBox="0 0 160 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- BF/TechnologyReadinessIndicator - TR2 variant, export context (white bg) -->
+  <rect x="0.5" y="0.5" width="159" height="71" rx="1.5" fill="white" stroke="#000000"/>
+  <!-- Label -->
+  <text x="12" y="24" font-family="Inter, sans-serif" font-size="10" font-weight="500" fill="#666666">Technology readiness</text>
+  <!-- Level -->
+  <text x="12" y="44" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1A1A1A">TR2 — Demonstrated</text>
+  <!-- Supporting text -->
+  <text x="12" y="60" font-family="Inter, sans-serif" font-size="11" font-weight="400" fill="#333333">Pilot scale, bankable</text>
+</svg>

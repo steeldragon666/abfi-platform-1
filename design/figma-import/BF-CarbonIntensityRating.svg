@@ -1,0 +1,10 @@
+<svg width="140" height="64" viewBox="0 0 140 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- BF/CarbonIntensityRating - CI-B variant -->
+  <rect x="0.5" y="0.5" width="139" height="63" rx="1.5" fill="white" stroke="#E0E0E0"/>
+  <!-- Label -->
+  <text x="12" y="22" font-family="Inter, sans-serif" font-size="10" font-weight="500" fill="#666666">Carbon intensity</text>
+  <!-- Rating -->
+  <text x="12" y="42" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1A1A1A">CI-B — Low intensity</text>
+  <!-- Range hint -->
+  <text x="12" y="56" font-family="Inter, sans-serif" font-size="10" font-weight="400" fill="#666666">20-40 gCO2e/MJ</text>
+</svg>

@@ -1,0 +1,20 @@
+<svg width="360" height="100" viewBox="0 0 360 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- BF/ListingSummaryCard - standard density -->
+  <rect x="0.5" y="0.5" width="359" height="99" rx="1.5" fill="white" stroke="#E0E0E0"/>
+
+  <!-- Project name -->
+  <text x="16" y="28" font-family="Inter, sans-serif" font-size="16" font-weight="600" fill="#1A1A1A">Mackay Bagasse Biorefinery</text>
+
+  <!-- Rating badge (top right) -->
+  <rect x="304" y="12" width="44" height="24" rx="1.5" fill="white" stroke="#C0C0C0"/>
+  <text x="326" y="29" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#1A1A1A" text-anchor="middle">A</text>
+
+  <!-- Location -->
+  <text x="16" y="50" font-family="Inter, sans-serif" font-size="13" font-weight="400" fill="#666666">Mackay, QLD</text>
+
+  <!-- Feedstock -->
+  <text x="16" y="68" font-family="Inter, sans-serif" font-size="13" font-weight="400" fill="#666666">Sugarcane bagasse · 50 ML/year</text>
+
+  <!-- Status -->
+  <text x="16" y="88" font-family="Inter, sans-serif" font-size="12" font-weight="500" fill="#333333">Active due diligence</text>
+</svg>

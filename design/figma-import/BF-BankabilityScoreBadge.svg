@@ -1,0 +1,10 @@
+<svg width="200" height="88" viewBox="0 0 200 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- BF/BankabilityScoreBadge - md size, good variant -->
+  <rect x="0.5" y="0.5" width="199" height="87" rx="1.5" fill="white" stroke="#E0E0E0"/>
+  <!-- Label -->
+  <text x="16" y="32" font-family="Inter, sans-serif" font-size="12" font-weight="500" fill="#666666">Bankability</text>
+  <!-- Grade -->
+  <text x="16" y="54" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#1A1A1A">Good</text>
+  <!-- Descriptor -->
+  <text x="16" y="74" font-family="Inter, sans-serif" font-size="14" font-weight="400" fill="#333333">Positive bankability with minor gaps</text>
+</svg>

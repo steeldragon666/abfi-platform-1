@@ -1,0 +1,21 @@
+<svg width="520" height="100" viewBox="0 0 520 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- BF/KPITile - 3-tile row layout -->
+
+  <!-- Tile 1 -->
+  <rect x="0.5" y="0.5" width="159" height="99" rx="1.5" fill="white" stroke="#E0E0E0"/>
+  <text x="16" y="48" font-family="Inter, sans-serif" font-size="24" font-weight="600" fill="#1A1A1A">16</text>
+  <text x="16" y="70" font-family="Inter, sans-serif" font-size="14" font-weight="500" fill="#333333">Projects Assessed</text>
+  <text x="16" y="88" font-family="Inter, sans-serif" font-size="12" font-weight="400" fill="#666666">Total in portfolio</text>
+
+  <!-- Tile 2 -->
+  <rect x="176.5" y="0.5" width="159" height="99" rx="1.5" fill="white" stroke="#E0E0E0"/>
+  <text x="192" y="48" font-family="Inter, sans-serif" font-size="24" font-weight="600" fill="#1A1A1A">7</text>
+  <text x="192" y="70" font-family="Inter, sans-serif" font-size="14" font-weight="500" fill="#333333">Rated A or Above</text>
+  <text x="192" y="88" font-family="Inter, sans-serif" font-size="12" font-weight="400" fill="#666666">High bankability</text>
+
+  <!-- Tile 3 -->
+  <rect x="352.5" y="0.5" width="159" height="99" rx="1.5" fill="white" stroke="#E0E0E0"/>
+  <text x="368" y="48" font-family="Inter, sans-serif" font-size="24" font-weight="600" fill="#1A1A1A">2.4 GL</text>
+  <text x="368" y="70" font-family="Inter, sans-serif" font-size="14" font-weight="500" fill="#333333">Verified Capacity</text>
+  <text x="368" y="88" font-family="Inter, sans-serif" font-size="12" font-weight="400" fill="#666666">Annual production</text>
+</svg>

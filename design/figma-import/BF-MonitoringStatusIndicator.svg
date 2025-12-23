@@ -1,0 +1,10 @@
+<svg width="200" height="72" viewBox="0 0 200 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- BF/MonitoringStatusIndicator - active status -->
+  <rect x="0.5" y="0.5" width="199" height="71" rx="1.5" fill="white" stroke="#E0E0E0"/>
+  <!-- Label -->
+  <text x="12" y="24" font-family="Inter, sans-serif" font-size="12" font-weight="500" fill="#666666">Monitoring</text>
+  <!-- Status -->
+  <text x="12" y="44" font-family="Inter, sans-serif" font-size="16" font-weight="600" fill="#1A1A1A">Active</text>
+  <!-- Summary -->
+  <text x="12" y="62" font-family="Inter, sans-serif" font-size="14" font-weight="400" fill="#333333">No issues detected</text>
+</svg>
