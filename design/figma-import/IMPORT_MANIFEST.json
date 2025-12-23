@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "figmaFileKey": "Z3htI9lFecgDFrEb4S6Qn2",
+  "targetFileName": "ABFI — Bankability Framework Components",
+  "pages": [
+    { "name": "00 — Element Studies (Reference Only)", "order": 0 },
+    { "name": "01 — Tokens & Variables", "order": 1 },
+    { "name": "02 — UI Components", "order": 2 },
+    { "name": "03 — Domain Components", "order": 3 },
+    { "name": "99 — Design Authority Locked", "order": 4 }
+  ],
+  "components": [
+    {
+      "id": "bf-bankability-score-badge",
+      "name": "BF/BankabilityScoreBadge",
+      "svg": "BF-BankabilityScoreBadge.svg",
+      "page": "03 — Domain Components",
+      "taskId": "m9Q86N72eYggNfWch4qnNL",
+      "auditFile": "../references/elements/AUDIT_BankabilityScoreBadge.md",
+      "variants": {
+        "grade": ["excellent", "good", "medium", "risk"],
+        "size": ["sm", "md"],
+        "context": ["grower", "developer", "lender", "export"]
+      },
+      "properties": {
+        "label": { "type": "text", "default": "Bankability" },
+        "gradeText": { "type": "text", "default": "Good" },
+        "descriptor": { "type": "text", "default": "Positive bankability with minor gaps" },
+        "showDescriptor": { "type": "boolean", "default": true }
+      }
+    },
+    {
+      "id": "bf-contract-security-badge",
+      "name": "BF/ContractSecurityBadge",
+      "svg": "BF-ContractSecurityBadge.svg",
+      "page": "03 — Domain Components",
+      "taskId": "j8g7mwavRqCpNdHeLWCZZP",
+      "auditFile": "../references/elements/AUDIT_ContractSecurityBadge.md",
+      "variants": {
+        "grade": ["GC1", "GC2", "GC3", "GC4"],
+        "layout": ["inline", "stacked"],
+        "context": ["grower", "developer", "lender", "export"]
+      }
+    },
+    {
+      "id": "bf-technology-readiness-indicator",
+      "name": "BF/TechnologyReadinessIndicator",
+      "svg": "BF-TechnologyReadinessIndicator.svg",
+      "page": "03 — Domain Components",
+      "taskId": "cZvvyVmDs9HYFBKGiVjUWp",
+      "auditFile": "../references/elements/AUDIT_TechnologyReadinessIndicator.md",
+      "variants": {
+        "level": ["TR1", "TR2", "TR3", "TR4"],
+        "presentation": ["badge", "row"],
+        "context": ["grower", "developer", "lender", "export"]
+      }
+    },
+    {
+      "id": "bf-carbon-intensity-rating",
+      "name": "BF/CarbonIntensityRating",
+      "svg": "BF-CarbonIntensityRating.svg",
+      "page": "03 — Domain Components",
+      "taskId": "79VgD7s9uzo2fEQ2Qhv8qV",
+      "auditFile": "../references/elements/AUDIT_CarbonIntensityRating.md",
+      "variants": {
+        "rating": ["CI-A", "CI-B", "CI-C", "CI-D"],
+        "showExplanation": ["true", "false"],
+        "context": ["grower", "developer", "lender", "export"]
+      }
+    },
+    {
+      "id": "bf-confidence-indicator-block",
+      "name": "BF/ConfidenceIndicator",
+      "svg": "BF-ConfidenceIndicator-block.svg",
+      "page": "03 — Domain Components",
+      "taskId": "KCQDhSKcpq6jqwJ5mhTKUT",
+      "auditFile": "../references/elements/AUDIT_ConfidenceIndicator.md",
+      "variants": {
+        "level": ["high", "medium", "low"],
+        "display": ["chip", "inline", "block"],
+        "context": ["grower", "developer", "lender", "export"]
+      }
+    },
+    {
+      "id": "bf-confidence-indicator-chip",
+      "name": "BF/ConfidenceIndicator",
+      "svg": "BF-ConfidenceIndicator-chip.svg",
+      "page": "03 — Domain Components",
+      "variants": {
+        "display": ["chip"]
+      }
+    },
+    {
+      "id": "bf-bankability-drivers-list",
+      "name": "BF/BankabilityDriversList",
+      "svg": "BF-BankabilityDriversList.svg",
+      "page": "03 — Domain Components",
+      "taskId": "ZfgBNhq4zVtiEpReW55EG9",
+      "auditFile": "../references/elements/AUDIT_BankabilityDriversList.md",
+      "variants": {
+        "driverCount": ["1", "2", "3"],
+        "context": ["grower", "developer", "lender", "export"]
+      }
+    },
+    {
+      "id": "bf-monitoring-status-indicator",
+      "name": "BF/MonitoringStatusIndicator",
+      "svg": "BF-MonitoringStatusIndicator.svg",
+      "page": "03 — Domain Components",
+      "taskId": "n7YYdWQggxSLwemUyB5ZTw",
+      "auditFile": "../references/elements/AUDIT_MonitoringStatusIndicator.md",
+      "variants": {
+        "status": ["active", "attention", "issue"],
+        "context": ["grower", "developer", "lender", "export"]
+      }
+    },
+    {
+      "id": "bf-listing-summary-card",
+      "name": "BF/ListingSummaryCard",
+      "svg": "BF-ListingSummaryCard.svg",
+      "page": "03 — Domain Components",
+      "taskId": "25frGGhFLau9VqpXCaRZjf",
+      "auditFile": "../references/elements/AUDIT_ListingSummaryCard.md",
+      "variants": {
+        "density": ["comfortable", "compact"],
+        "context": ["grower", "developer", "lender", "export"]
+      }
+    },
+    {
+      "id": "export-bankability-summary-block",
+      "name": "Export/BankabilitySummaryBlock",
+      "svg": "Export-BankabilitySummaryBlock.svg",
+      "page": "03 — Domain Components",
+      "taskId": "NfNsPS3gaDA6E5Mt5Xh7SR",
+      "auditFile": "../references/elements/AUDIT_ExportBankabilityBlock.md",
+      "variants": {
+        "assessment": ["excellent", "good", "medium", "risk"],
+        "confidence": ["high", "medium", "low"],
+        "variant": ["standard", "government"]
+      }
+    },
+    {
+      "id": "bf-kpi-tile",
+      "name": "BF/KPITile",
+      "svg": "BF-KPITile.svg",
+      "page": "03 — Domain Components",
+      "taskId": "GDh2ph4HVUoSD4SeVyRK2b",
+      "auditFile": "../references/elements/AUDIT_KPITile.md",
+      "variants": {
+        "tone": ["neutral", "warning", "risk"],
+        "size": ["md"],
+        "context": ["grower", "developer", "lender", "export"]
+      }
+    },
+    {
+      "id": "bf-kpi-tile-3up",
+      "name": "BF/KPITile-3up",
+      "svg": "BF-KPITile-3up.svg",
+      "page": "03 — Domain Components",
+      "description": "3-up layout for KPI tiles"
+    }
+  ],
+  "tokens": {
+    "colors": {
+      "neutral.0": "#FFFFFF",
+      "neutral.50": "#F9F9F9",
+      "neutral.100": "#F0F0F0",
+      "neutral.200": "#E0E0E0",
+      "neutral.300": "#D0D0D0",
+      "neutral.400": "#A0A0A0",
+      "neutral.500": "#666666",
+      "neutral.600": "#333333",
+      "neutral.900": "#1A1A1A",
+      "status.success": "#22C55E",
+      "status.warning": "#F59E0B",
+      "status.risk": "#EF4444",
+      "status.info": "#3B82F6"
+    },
+    "typography": {
+      "fontFamily": "Inter, sans-serif",
+      "label": { "size": "12px", "weight": "500", "color": "neutral.500" },
+      "grade": { "size": "18px", "weight": "600", "color": "neutral.900" },
+      "descriptor": { "size": "14px", "weight": "400", "color": "neutral.600" }
+    },
+    "spacing": [4, 8, 12, 16, 24, 32, 40],
+    "radius": [8, 12, 16]
+  },
+  "designAuthority": {
+    "version": "1.0",
+    "commitHash": "93d78e7",
+    "date": "2025-12-23",
+    "implementsSchema": "FIGMA_BANKABILITY_AUTHORITY_SCHEMA.md"
+  }
+}
