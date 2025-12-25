@@ -3,19 +3,29 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "path";
-import { defineConfig } from "vite";
-import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import { defineConfig, type PluginOption } from "vite";
 
-export default defineConfig(({ command }) => {
+export default defineConfig(async ({ command }) => {
   // Only include Manus runtime in serve mode (development), not in build mode (production)
   const isServe = command === 'serve';
 
-  const plugins = [
+  // Conditionally load Manus plugin only in development
+  let manusPlugin: PluginOption | undefined;
+  if (isServe) {
+    try {
+      const { vitePluginManusRuntime } = await import("vite-plugin-manus-runtime");
+      manusPlugin = vitePluginManusRuntime();
+    } catch (e) {
+      // Plugin not available, skip
+    }
+  }
+
+  const plugins: PluginOption[] = [
     react(),
     tailwindcss(),
     jsxLocPlugin(),
     // Only include Manus runtime in development to avoid routing interference in production
-    ...(isServe ? [vitePluginManusRuntime()] : []),
+    ...(manusPlugin ? [manusPlugin] : []),
   ];
 
   return {
