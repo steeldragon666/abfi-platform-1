@@ -185,7 +185,7 @@ function AppLayoutContent({ children, setSidebarWidth }: AppLayoutContentProps) 
     <>
       {showTitle && (
         <div className="px-4 pt-5 pb-2">
-          <p className="text-[10px] font-bold text-sidebar-foreground/50 uppercase tracking-[0.15em]">
+          <p className="text-xs md:text-[10px] font-bold text-sidebar-foreground/50 uppercase tracking-[0.15em]">
             {!isCollapsed ? title : ""}
           </p>
         </div>
@@ -200,16 +200,16 @@ function AppLayoutContent({ children, setSidebarWidth }: AppLayoutContentProps) 
                 isActive={isActive}
                 onClick={() => setLocation(item.path)}
                 tooltip={item.label}
-                className={`h-9 transition-all font-medium rounded-lg ${
+                className={`h-11 md:h-9 transition-all font-medium rounded-lg ${
                   isActive
                     ? "bg-sidebar-primary/15 text-sidebar-primary border-l-2 border-sidebar-primary"
                     : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                 }`}
               >
                 <item.icon
-                  className={`h-4 w-4 ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"}`}
+                  className={`h-5 w-5 md:h-4 md:w-4 ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"}`}
                 />
-                <span className="text-sm">{item.label}</span>
+                <span className="text-base md:text-sm">{item.label}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           );
@@ -268,16 +268,16 @@ function AppLayoutContent({ children, setSidebarWidth }: AppLayoutContentProps) 
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className={`h-9 transition-all font-medium rounded-lg ${
+                      className={`h-11 md:h-9 transition-all font-medium rounded-lg ${
                         isActive
                           ? "bg-sidebar-primary/15 text-sidebar-primary border-l-2 border-sidebar-primary"
                           : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                       }`}
                     >
                       <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"}`}
+                        className={`h-5 w-5 md:h-4 md:w-4 ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/60"}`}
                       />
-                      <span className="text-sm">{item.label}</span>
+                      <span className="text-base md:text-sm">{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
