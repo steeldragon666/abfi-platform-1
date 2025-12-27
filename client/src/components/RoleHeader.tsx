@@ -37,9 +37,9 @@ interface RoleHeaderProps {
  */
 const StatusChip: React.FC<StatusChipProps> = ({ status }) => {
   let colorClasses = 'bg-gray-200 text-black'; // Default for 'pending'
-  let label = status?.charAt(0)?.toUpperCase() || "" + status.slice(1);
+  let label = status ? status.charAt(0).toUpperCase() + status.slice(1) : '';
 
-  switch (status.toLowerCase()) {
+  switch (status?.toLowerCase() || '') {
     case 'verified':
       // Gold (#D4AF37) background, Black (#000000) text
       colorClasses = 'bg-[#D4AF37] text-black';

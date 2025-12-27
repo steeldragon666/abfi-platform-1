@@ -443,7 +443,7 @@ export default function PlatformHealth() {
                                   : "bg-purple-100 text-purple-800"
                             )}
                           >
-                            {badge.status.charAt(0).toUpperCase() + badge.status.slice(1)}
+                            {badge.status ? badge.status.charAt(0).toUpperCase() + badge.status.slice(1) : ""}
                           </Badge>
                           {badge.validUntil && (
                             <div className="text-xs text-gray-600 mt-2">

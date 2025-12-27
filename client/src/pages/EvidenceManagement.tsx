@@ -282,7 +282,7 @@ function EvidenceItem({
   const getTypeLabel = (t: string) => {
     return t
       .split("_")
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : "")
       .join(" ");
   };
 

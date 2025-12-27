@@ -124,7 +124,7 @@ export default function SupplyAgreements() {
   const formatPricingMechanism = (mechanism: string) => {
     return mechanism
       .split("_")
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : "")
       .join(" ");
   };
 
