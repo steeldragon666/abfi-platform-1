@@ -4,95 +4,136 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================
-   ABFI REDESIGN - Pure Black/White/Gold
-   Grower-First Design System
+   ABFI DESIGN SYSTEM - Implementation Guide v3.4
+   Professional Government/Finance Ready
    ============================================ */
 
 @theme inline {
   /* ============================================
-     COLOR SYSTEM - Black/White/Gold Only
+     COLOR SYSTEM - Professional Palette
+     Primary: Blue (Government/Finance trust)
+     Secondary: Green (Sustainability/Agriculture)
+     Accent: Amber (Warnings, highlights)
      ============================================ */
-  
-  /* Pure Black - Primary text, icons, borders */
-  --color-black: #000000;
-  
-  /* Pure White - Backgrounds, cards */
-  --color-white: #FFFFFF;
-  
-  /* Gold - #D4AF37 - Strategic accents only */
-  --color-gold: #D4AF37;
-  --color-gold-light: #E5C158;
-  --color-gold-dark: #B8941F;
-  
-  /* Grays for subtle elements (derived from black) */
-  --color-gray-50: #FAFAFA;
-  --color-gray-100: #F5F5F5;
-  --color-gray-200: #E5E5E5;
-  --color-gray-300: #D4D4D4;
-  --color-gray-400: #A3A3A3;
-  --color-gray-500: #737373;
-  --color-gray-600: #525252;
-  --color-gray-700: #404040;
-  --color-gray-800: #262626;
-  --color-gray-900: #171717;
+
+  /* Primary - Professional Blue */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  /* Secondary - Green (Sustainability) */
+  --color-secondary-50: #f0fdf4;
+  --color-secondary-100: #dcfce7;
+  --color-secondary-200: #bbf7d0;
+  --color-secondary-300: #86efac;
+  --color-secondary-400: #4ade80;
+  --color-secondary-500: #22c55e;
+  --color-secondary-600: #16a34a;
+  --color-secondary-700: #15803d;
+  --color-secondary-800: #166534;
+  --color-secondary-900: #14532d;
+  --color-secondary-950: #052e16;
+
+  /* Accent - Amber */
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+  --color-accent-800: #92400e;
+  --color-accent-900: #78350f;
+
+  /* Neutrals */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f4f4f5;
+  --color-neutral-200: #e4e4e7;
+  --color-neutral-300: #d4d4d8;
+  --color-neutral-400: #a1a1aa;
+  --color-neutral-500: #71717a;
+  --color-neutral-600: #52525b;
+  --color-neutral-700: #3f3f46;
+  --color-neutral-800: #27272a;
+  --color-neutral-900: #18181b;
+  --color-neutral-950: #09090b;
+
+  /* Semantic Colors */
+  --color-success: #22c55e;
+  --color-success-light: #dcfce7;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-error: #ef4444;
+  --color-error-light: #fee2e2;
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
 
   /* ============================================
-     RADIUS SYSTEM - 8px, 12px, 16px
+     RADIUS SYSTEM
      ============================================ */
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-2xl: 24px;
+  --radius: 0.5rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
   --radius-full: 9999px;
 
   /* ============================================
-     SPACING SYSTEM - 4/8/12/16/24/32/40px
+     SPACING SYSTEM - 4px base
      ============================================ */
-  --spacing-0: 0;
-  --spacing-1: 4px;
-  --spacing-2: 8px;
-  --spacing-3: 12px;
-  --spacing-4: 16px;
-  --spacing-5: 20px;
-  --spacing-6: 24px;
-  --spacing-8: 32px;
-  --spacing-10: 40px;
-  --spacing-12: 48px;
-  --spacing-16: 64px;
-  --spacing-20: 80px;
-  --spacing-24: 96px;
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
 
   /* ============================================
-     TYPOGRAPHY - Grower-Friendly (18px base)
+     TYPOGRAPHY
      ============================================ */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: "Plus Jakarta Sans", var(--font-sans);
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Type scale - larger for readability */
-  --text-xs: 14px;
-  --text-sm: 16px;
-  --text-base: 18px; /* Grower-friendly base */
-  --text-lg: 20px;
-  --text-xl: 24px;
-  --text-2xl: 30px;
-  --text-3xl: 36px;
-  --text-4xl: 48px;
-  --text-5xl: 60px;
+  /* Fluid Type Scale */
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --text-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.6vw, 1.25rem);
+  --text-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
+  --text-3xl: clamp(1.875rem, 1.5rem + 1.875vw, 2.5rem);
+  --text-4xl: clamp(2.25rem, 1.75rem + 2.5vw, 3rem);
+  --text-5xl: clamp(3rem, 2.5rem + 2.5vw, 4rem);
 
   /* ============================================
-     SHADOWS - Subtle elevation
+     SHADOWS
      ============================================ */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-  --shadow-gold: 0 0 20px rgba(212, 175, 55, 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 
   /* ============================================
-     ANIMATIONS - Smooth micro-interactions
+     ANIMATIONS
      ============================================ */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -101,113 +142,113 @@
   --duration-slow: 300ms;
 }
 
+/* ============================================
+   CSS CUSTOM PROPERTIES - Light Mode
+   ============================================ */
+
 :root {
-  /* ============================================
-     SHADCN COLOR MAPPINGS
-     ============================================ */
-  
-  /* Base colors */
-  --background: 0 0% 100%; /* White */
-  --foreground: 0 0% 0%; /* Black */
-  
-  /* Card */
-  --card: 0 0% 100%; /* White */
-  --card-foreground: 0 0% 0%; /* Black */
-  
-  /* Popover */
-  --popover: 0 0% 100%; /* White */
-  --popover-foreground: 0 0% 0%; /* Black */
-  
-  /* Primary - Gold */
-  --primary: 43 74% 53%; /* #D4AF37 */
-  --primary-foreground: 0 0% 0%; /* Black text on gold */
-  
-  /* Secondary - Light gray */
-  --secondary: 0 0% 96%; /* Gray-100 */
-  --secondary-foreground: 0 0% 0%; /* Black */
-  
-  /* Muted - Medium gray */
-  --muted: 0 0% 96%; /* Gray-100 */
-  --muted-foreground: 0 0% 45%; /* Gray-500 */
-  
-  /* Accent - Gold (same as primary) */
-  --accent: 43 74% 53%; /* #D4AF37 */
-  --accent-foreground: 0 0% 0%; /* Black */
-  
-  /* Destructive - Keep red for errors */
+  /* Surfaces */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 4%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 4%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 4%;
+
+  /* Primary - Blue */
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary - Green */
+  --secondary: 142 76% 36%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* Muted */
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 4% 46%;
+
+  /* Accent - Amber */
+  --accent: 38 92% 50%;
+  --accent-foreground: 0 0% 0%;
+
+  /* Destructive */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  
-  /* Border */
-  --border: 0 0% 90%; /* Gray-200 */
-  --input: 0 0% 90%; /* Gray-200 */
-  --ring: 43 74% 53%; /* Gold */
-  
-  /* Success - Keep green */
+
+  /* Borders & Inputs */
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 221 83% 53%;
+
+  /* Semantic */
   --success: 142 76% 36%;
   --success-foreground: 0 0% 100%;
-  
-  /* Warning - Keep amber */
   --warning: 38 92% 50%;
   --warning-foreground: 0 0% 0%;
-  
-  /* Info - Keep blue */
   --info: 221 83% 53%;
   --info-foreground: 0 0% 100%;
-  
-  /* Chart colors - Gold variations */
-  --chart-1: 43 74% 53%;
-  --chart-2: 43 74% 43%;
-  --chart-3: 43 74% 63%;
-  --chart-4: 0 0% 20%;
-  --chart-5: 0 0% 40%;
-  
+
+  /* Charts */
+  --chart-1: 221 83% 53%;
+  --chart-2: 142 76% 36%;
+  --chart-3: 38 92% 50%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+
   /* Sidebar */
-  --sidebar: 0 0% 100%; /* White */
-  --sidebar-foreground: 0 0% 0%; /* Black */
-  --sidebar-primary: 43 74% 53%; /* Gold */
-  --sidebar-primary-foreground: 0 0% 0%; /* Black */
-  --sidebar-accent: 0 0% 96%; /* Gray-100 */
-  --sidebar-accent-foreground: 0 0% 0%; /* Black */
-  --sidebar-border: 0 0% 90%; /* Gray-200 */
-  --sidebar-ring: 43 74% 53%; /* Gold */
+  --sidebar: 0 0% 98%;
+  --sidebar-foreground: 240 10% 4%;
+  --sidebar-primary: 221 83% 53%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 5% 96%;
+  --sidebar-accent-foreground: 240 10% 4%;
+  --sidebar-border: 240 6% 90%;
+  --sidebar-ring: 221 83% 53%;
 }
 
+/* ============================================
+   DARK MODE
+   ============================================ */
+
 .dark {
-  /* Dark mode: Invert to white text on black background */
-  --background: 0 0% 0%; /* Black */
-  --foreground: 0 0% 100%; /* White */
-  
-  --card: 0 0% 5%; /* Near black */
-  --card-foreground: 0 0% 100%; /* White */
-  
-  --popover: 0 0% 5%; /* Near black */
-  --popover-foreground: 0 0% 100%; /* White */
-  
-  --primary: 43 74% 53%; /* Gold stays same */
-  --primary-foreground: 0 0% 0%; /* Black text on gold */
-  
-  --secondary: 0 0% 10%; /* Dark gray */
-  --secondary-foreground: 0 0% 100%; /* White */
-  
-  --muted: 0 0% 10%; /* Dark gray */
-  --muted-foreground: 0 0% 65%; /* Light gray */
-  
-  --accent: 43 74% 53%; /* Gold */
-  --accent-foreground: 0 0% 0%; /* Black */
-  
-  --border: 0 0% 15%; /* Dark gray */
-  --input: 0 0% 15%; /* Dark gray */
-  --ring: 43 74% 53%; /* Gold */
-  
-  --sidebar: 0 0% 0%; /* Black */
-  --sidebar-foreground: 0 0% 100%; /* White */
-  --sidebar-primary: 43 74% 53%; /* Gold */
-  --sidebar-primary-foreground: 0 0% 0%; /* Black */
-  --sidebar-accent: 0 0% 10%; /* Dark gray */
-  --sidebar-accent-foreground: 0 0% 100%; /* White */
-  --sidebar-border: 0 0% 15%; /* Dark gray */
-  --sidebar-ring: 43 74% 53%; /* Gold */
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
+
+  --card: 240 10% 6%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 240 10% 6%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 142 71% 45%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+
+  --accent: 38 92% 50%;
+  --accent-foreground: 0 0% 0%;
+
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 240 4% 16%;
+  --input: 240 4% 16%;
+  --ring: 217 91% 60%;
+
+  --sidebar: 240 10% 4%;
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-primary: 217 91% 60%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 4% 16%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 240 4% 16%;
+  --sidebar-ring: 217 91% 60%;
 }
 
 /* ============================================
@@ -218,18 +259,45 @@
   border-color: hsl(var(--border));
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  @apply bg-white text-black font-sans antialiased;
-  font-size: 18px; /* Grower-friendly base */
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
   line-height: 1.6;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings use Plus Jakarta Sans */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* Financial data - tabular numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Code blocks */
+code, pre {
+  font-family: var(--font-mono);
 }
 
 /* ============================================
-   FOCUS INDICATOR STYLES - WCAG 2.2 AA
-   High contrast focus rings for keyboard navigation
+   WCAG 2.2 AA - FOCUS INDICATORS
+   Minimum touch target: 44x44px
+   Focus ring: 2px offset with primary color
    ============================================ */
 
-/* Skip to main content link for keyboard users */
 .skip-to-main {
   position: fixed;
   top: -100%;
@@ -238,9 +306,9 @@ body {
   background-color: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius);
   font-weight: 600;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  box-shadow: var(--shadow-lg);
   transition: top 200ms ease-out;
 }
 
@@ -249,12 +317,10 @@ body {
   outline: none;
 }
 
-/* Global focus-visible base */
 :focus-visible {
   outline: none;
 }
 
-/* Default focus ring for buttons, links, and interactive elements */
 button:focus-visible,
 [role="button"]:focus-visible,
 a:focus-visible,
@@ -266,50 +332,20 @@ select:focus-visible,
   box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
 }
 
-/* Checkbox and radio focus - outer ring */
 input[type="checkbox"]:focus-visible,
 input[type="radio"]:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
 }
 
-/* Enhanced focus for links - underline + ring */
-a:focus-visible:not(.no-underline) {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-/* Card/container focus (for clickable cards) */
-[data-clickable]:focus-visible,
-.clickable-card:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
-  border-radius: 0.5rem;
-}
-
-/* Menu items and list items focus */
 [role="menuitem"]:focus-visible,
 [role="option"]:focus-visible,
-[role="listitem"]:focus-visible,
-[role="treeitem"]:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px hsl(var(--ring));
-  background-color: hsl(var(--accent) / 0.5);
-}
-
-/* Tab focus indicator */
 [role="tab"]:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+  box-shadow: inset 0 0 0 2px hsl(var(--ring));
 }
 
-/* Slider/range focus */
-input[type="range"]:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
-}
-
-/* High contrast mode support */
+/* High contrast mode */
 @media (prefers-contrast: high) {
   :focus-visible {
     outline: 3px solid currentColor !important;
@@ -317,10 +353,12 @@ input[type="range"]:focus-visible {
   }
 }
 
-/* Reduced motion - instant focus transitions */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  :focus-visible {
-    transition: none !important;
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -329,174 +367,225 @@ input[type="range"]:focus-visible {
    ============================================ */
 
 .text-display {
-  @apply text-4xl font-bold tracking-tight;
+  font-family: var(--font-heading);
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .text-heading-1 {
-  @apply text-3xl font-bold tracking-tight;
+  font-family: var(--font-heading);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .text-heading-2 {
-  @apply text-2xl font-semibold tracking-tight;
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .text-heading-3 {
-  @apply text-xl font-semibold;
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 600;
 }
 
 .text-body-large {
-  @apply text-lg;
+  font-size: var(--text-lg);
 }
 
 .text-body {
-  @apply text-base; /* 18px */
+  font-size: var(--text-base);
 }
 
 .text-body-small {
-  @apply text-sm;
+  font-size: var(--text-sm);
 }
 
 .text-label {
-  @apply text-sm font-medium;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.text-caption {
+  font-size: var(--text-xs);
+  color: hsl(var(--muted-foreground));
 }
 
 /* ============================================
-   GOLD ACCENT UTILITIES
+   COLOR UTILITIES
    ============================================ */
 
-.gold-accent {
-  @apply text-[#D4AF37];
-}
+/* Primary Blue */
+.text-primary { color: hsl(var(--primary)); }
+.bg-primary { background-color: hsl(var(--primary)); }
+.border-primary { border-color: hsl(var(--primary)); }
 
-.gold-bg {
-  @apply bg-[#D4AF37];
-}
+/* Secondary Green */
+.text-secondary { color: hsl(var(--secondary)); }
+.bg-secondary { background-color: hsl(var(--secondary)); }
+.border-secondary { border-color: hsl(var(--secondary)); }
 
-.gold-border {
-  @apply border-[#D4AF37];
-}
+/* Accent Amber */
+.text-accent { color: hsl(var(--accent)); }
+.bg-accent { background-color: hsl(var(--accent)); }
+.border-accent { border-color: hsl(var(--accent)); }
 
-.gold-ring {
-  @apply ring-[#D4AF37];
-}
+/* Success */
+.text-success { color: hsl(var(--success)); }
+.bg-success { background-color: hsl(var(--success)); }
 
-.gold-shadow {
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-}
+/* Warning */
+.text-warning { color: hsl(var(--warning)); }
+.bg-warning { background-color: hsl(var(--warning)); }
+
+/* Error */
+.text-error { color: hsl(var(--destructive)); }
+.bg-error { background-color: hsl(var(--destructive)); }
 
 /* ============================================
-   BUTTON STYLES - Gold Primary
+   BUTTON STYLES
    ============================================ */
 
 .btn-primary {
-  @apply bg-[#D4AF37] text-black font-semibold px-6 py-3 rounded-lg;
-  @apply hover:bg-[#E5C158] active:bg-[#B8941F];
+  @apply inline-flex items-center justify-center gap-2;
+  @apply px-6 py-3 font-semibold rounded-lg;
+  @apply bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))];
+  @apply hover:opacity-90 active:opacity-80;
   @apply transition-all duration-200;
   @apply shadow-md hover:shadow-lg;
+  min-height: 44px; /* WCAG touch target */
 }
 
 .btn-secondary {
-  @apply bg-white text-black font-semibold px-6 py-3 rounded-lg;
-  @apply border-2 border-black;
-  @apply hover:bg-gray-50 active:bg-gray-100;
+  @apply inline-flex items-center justify-center gap-2;
+  @apply px-6 py-3 font-semibold rounded-lg;
+  @apply bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))];
+  @apply hover:opacity-90 active:opacity-80;
   @apply transition-all duration-200;
+  min-height: 44px;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2;
+  @apply px-6 py-3 font-semibold rounded-lg;
+  @apply bg-transparent border-2 border-[hsl(var(--primary))] text-[hsl(var(--primary))];
+  @apply hover:bg-[hsl(var(--primary))] hover:text-[hsl(var(--primary-foreground))];
+  @apply transition-all duration-200;
+  min-height: 44px;
 }
 
 .btn-ghost {
-  @apply bg-transparent text-black font-semibold px-6 py-3 rounded-lg;
-  @apply hover:bg-gray-100 active:bg-gray-200;
+  @apply inline-flex items-center justify-center gap-2;
+  @apply px-6 py-3 font-semibold rounded-lg;
+  @apply bg-transparent text-[hsl(var(--foreground))];
+  @apply hover:bg-[hsl(var(--muted))];
   @apply transition-all duration-200;
+  min-height: 44px;
 }
 
 /* ============================================
-   CARD STYLES - Clean white cards
+   CARD STYLES
    ============================================ */
 
-.card-clean {
-  @apply bg-white border border-gray-200 rounded-lg p-6;
-  @apply shadow-sm hover:shadow-md transition-shadow duration-200;
+.card {
+  @apply bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))];
+  @apply border border-[hsl(var(--border))] rounded-lg;
+  @apply shadow-sm;
 }
 
-.card-gold-accent {
-  @apply bg-white border-2 border-[#D4AF37] rounded-lg p-6;
-  @apply shadow-md;
+.card-elevated {
+  @apply bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))];
+  @apply border border-[hsl(var(--border))] rounded-lg;
+  @apply shadow-md hover:shadow-lg transition-shadow duration-200;
+}
+
+.card-interactive {
+  @apply bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))];
+  @apply border border-[hsl(var(--border))] rounded-lg;
+  @apply shadow-md hover:shadow-lg transition-shadow duration-200;
+  @apply cursor-pointer hover:border-[hsl(var(--primary))];
 }
 
 /* ============================================
    STATUS BADGES
    ============================================ */
 
-.badge-verified {
-  @apply inline-flex items-center gap-2 px-3 py-1 rounded-full;
-  @apply bg-[#D4AF37] text-black font-semibold text-sm;
+.badge {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full;
+  @apply text-xs font-semibold;
 }
 
-.badge-pending {
-  @apply inline-flex items-center gap-2 px-3 py-1 rounded-full;
-  @apply bg-gray-200 text-black font-semibold text-sm;
+.badge-primary {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full;
+  @apply text-xs font-semibold;
+  @apply bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))];
 }
 
-.badge-attention {
-  @apply inline-flex items-center gap-2 px-3 py-1 rounded-full;
-  @apply bg-amber-100 text-amber-900 font-semibold text-sm;
+.badge-secondary {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full;
+  @apply text-xs font-semibold;
+  @apply bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))];
 }
 
-/* ============================================
-   GROWER-FIRST UX PRINCIPLES
-   ============================================ */
-
-/* Max 3 metrics visible at once */
-.metrics-grid {
-  @apply grid grid-cols-1 md:grid-cols-3 gap-6;
+.badge-success {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full;
+  @apply text-xs font-semibold;
+  @apply bg-green-100 text-green-800;
 }
 
-/* One primary CTA per screen */
-.primary-cta-container {
-  @apply flex justify-center mt-8;
+.badge-warning {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full;
+  @apply text-xs font-semibold;
+  @apply bg-amber-100 text-amber-800;
 }
 
-/* Large touch targets for mobile */
-.touch-target {
-  @apply min-h-[48px] min-w-[48px];
+.badge-error {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full;
+  @apply text-xs font-semibold;
+  @apply bg-red-100 text-red-800;
 }
 
-/* Cards-first design over tables */
-.card-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+.badge-info {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full;
+  @apply text-xs font-semibold;
+  @apply bg-blue-100 text-blue-800;
 }
 
-/* ============================================
-   ICON STYLES - Gold accents
-   ============================================ */
-
-.icon-gold {
-  @apply text-[#D4AF37];
-}
-
-.icon-black {
-  @apply text-black;
-}
-
-.icon-container {
-  @apply w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center;
-}
-
-.icon-container-gold {
-  @apply w-12 h-12 rounded-full bg-[#D4AF37] flex items-center justify-center;
+.badge-outline {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full;
+  @apply text-xs font-semibold;
+  @apply bg-transparent border border-current;
 }
 
 /* ============================================
    FORM STYLES
    ============================================ */
 
-.input-clean {
-  @apply w-full px-4 py-3 text-base border border-gray-200 rounded-lg;
-  @apply focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent;
+.form-input {
+  @apply w-full px-4 py-3 rounded-lg;
+  @apply border border-[hsl(var(--input))] bg-[hsl(var(--background))];
+  @apply text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))];
+  @apply focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:border-transparent;
   @apply transition-all duration-200;
+  min-height: 44px;
 }
 
-.label-clean {
-  @apply block text-sm font-medium text-black mb-2;
+.form-label {
+  @apply block text-sm font-medium text-[hsl(var(--foreground))] mb-2;
+}
+
+.form-error {
+  @apply text-sm text-[hsl(var(--destructive))] mt-1;
+}
+
+.form-hint {
+  @apply text-sm text-[hsl(var(--muted-foreground))] mt-1;
 }
 
 /* ============================================
@@ -504,28 +593,45 @@ input[type="range"]:focus-visible {
    ============================================ */
 
 .nav-link {
-  @apply text-black hover:text-[#D4AF37] font-medium;
+  @apply text-[hsl(var(--foreground))] font-medium;
+  @apply hover:text-[hsl(var(--primary))];
   @apply transition-colors duration-200;
 }
 
 .nav-link-active {
-  @apply text-[#D4AF37] font-semibold;
+  @apply text-[hsl(var(--primary))] font-semibold;
 }
 
 /* ============================================
-   UTILITIES
+   LAYOUT UTILITIES
    ============================================ */
 
-.container-clean {
+.container-narrow {
+  @apply max-w-4xl mx-auto px-4 sm:px-6;
+}
+
+.container-default {
   @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.container-wide {
+  @apply max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8;
 }
 
 .section-spacing {
   @apply py-12 md:py-16 lg:py-20;
 }
 
-.divider {
-  @apply border-t border-gray-200 my-8;
+/* ============================================
+   GRID PATTERNS
+   ============================================ */
+
+.metrics-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
+}
+
+.card-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
 }
 
 /* ============================================
@@ -533,35 +639,43 @@ input[type="range"]:focus-visible {
    ============================================ */
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 300ms ease-out;
+  animation: fadeIn var(--duration-normal) var(--ease-out);
+}
+
+.animate-slide-in {
+  animation: slideIn var(--duration-normal) var(--ease-out);
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--duration-fast) var(--ease-out);
 }
 
 /* ============================================
    RESPONSIVE UTILITIES
    ============================================ */
 
-@media (max-width: 768px) {
-  body {
-    font-size: 16px; /* Slightly smaller on mobile */
-  }
-  
+@media (max-width: 640px) {
   .text-display {
-    @apply text-3xl;
+    font-size: var(--text-3xl);
   }
-  
+
   .text-heading-1 {
-    @apply text-2xl;
+    font-size: var(--text-2xl);
   }
 }
 
@@ -571,10 +685,16 @@ input[type="range"]:focus-visible {
 
 @media print {
   body {
-    @apply bg-white text-black;
+    background: white;
+    color: black;
   }
-  
+
   .no-print {
     display: none !important;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
   }
 }
