@@ -16,6 +16,7 @@ import { aiChatRouter } from "../aiChatRouter";
 import { australianDataRouter } from "../apis/australianDataRouter";
 import { securityHeaders, rateLimit, rateLimitConfigs } from "./security";
 import { createSSERouter } from "./sse";
+import { createDevAuthRouter } from "./devAuth";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -120,6 +121,9 @@ async function startServer() {
 
   // Server-Sent Events for real-time notifications
   app.use("/api/sse", createSSERouter());
+
+  // Development authentication (only active in development mode)
+  app.use("/api/dev-auth", createDevAuthRouter());
 
   // tRPC API
   app.use(

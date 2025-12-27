@@ -53,6 +53,7 @@ const CredentialsDashboard = lazy(() => import("./pages/CredentialsDashboard"));
 const GOSchemeDashboard = lazy(() => import("./pages/GOSchemeDashboard"));
 const FeedstockMap = lazy(() => import("./pages/FeedstockMap"));
 const AustralianDataExplorer = lazy(() => import("./pages/AustralianDataExplorer"));
+const DevLogin = lazy(() => import("./pages/DevLogin"));
 const ProducerRegistration = lazy(() => import("./pages/ProducerRegistration"));
 const ProducerAccountSetup = lazy(() => import("./pages/ProducerAccountSetup"));
 const ProducerPropertyMap = lazy(() => import("./pages/ProducerPropertyMap"));
@@ -296,6 +297,8 @@ function Router() {
         <Route path="/map" component={MapView} />
         <Route path="/feedstock-map" component={FeedstockMap} />
         <Route path="/australian-data" component={AustralianDataExplorer} />
+        <Route path="/login" component={DevLogin} />
+        <Route path="/dev-login" component={DevLogin} />
         <Route path="/producer-registration" component={ProducerRegistration} />
         <Route
           path="/producer-registration/account-setup"
