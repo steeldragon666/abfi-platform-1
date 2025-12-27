@@ -24,7 +24,8 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "bg-muted text-gray-600 inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]",
+        // WCAG 2.2 AA: 44px minimum touch target (h-11 = 44px)
+        "bg-muted text-gray-600 inline-flex h-11 w-fit items-center justify-center rounded-lg p-[3px]",
         className
       )}
       {...props}

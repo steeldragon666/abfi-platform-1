@@ -17,11 +17,14 @@ function isSecureRequest(req: any): boolean {
 }
 
 export function getSessionCookieOptions(req: any): SessionCookieOptions {
+  const isSecure = isSecureRequest(req);
   return {
     domain: undefined,
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req),
+    // Use "lax" for CSRF protection while allowing top-level navigation
+    // "none" requires secure context, "lax" is the secure default
+    sameSite: isSecure ? "lax" : "lax",
+    secure: isSecure,
   };
 }

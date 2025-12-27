@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useFormAutoSave, AutoSaveIndicator } from "@/hooks/useFormAutoSave";
 
 import { Check, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,22 @@ export default function ProjectRegistrationFlow() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Auto-save form data to localStorage
+  const { savedData, saveStatus, lastSavedAt, clearSavedData } = useFormAutoSave({
+    key: "project-registration",
+    data: { formData, currentStep },
+    version: 1,
+    debounceMs: 1500,
+  });
+
+  // Restore saved data on mount
+  useEffect(() => {
+    if (savedData) {
+      setFormData(savedData.formData);
+      setCurrentStep(savedData.currentStep);
+    }
+  }, []); // Only run on mount
+
   const handleNext = () => {
     if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
@@ -101,6 +118,8 @@ export default function ProjectRegistrationFlow() {
 
   const registerProjectMutation = trpc.bankability.registerProject.useMutation({
     onSuccess: () => {
+      // Clear auto-saved draft on successful submission
+      clearSavedData();
       alert(
         "Project registered successfully! Your application has been submitted for review."
       );
@@ -166,9 +185,17 @@ export default function ProjectRegistrationFlow() {
           <h1 className="font-serif text-3xl mb-2">
             {STEPS[currentStep - 1].title}
           </h1>
-          <p className="text-gray-400 text-sm">
-            Step {currentStep} of {STEPS.length}
-          </p>
+          <div className="flex items-center justify-center gap-3">
+            <p className="text-gray-400 text-sm">
+              Step {currentStep} of {STEPS.length}
+            </p>
+            <span className="text-gray-600">|</span>
+            <AutoSaveIndicator
+              status={saveStatus}
+              lastSavedAt={lastSavedAt}
+              className="text-gray-400"
+            />
+          </div>
         </div>
 
         {/* Progress Indicator */}

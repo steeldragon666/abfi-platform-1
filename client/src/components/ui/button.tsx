@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
+  // WCAG 2.2 AA: All interactive elements must have 44px minimum touch target
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
   {
     variants: {
@@ -28,12 +29,13 @@ const buttonVariants = cva(
         cta: "btn-cta text-black font-semibold hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-8 rounded-md gap-1.5 px-3 text-xs",
+        // All sizes now meet WCAG 2.2 AA 44px minimum touch target
+        default: "h-11 px-4 py-2.5",
+        sm: "h-11 rounded-md gap-1.5 px-3 text-xs",
         lg: "h-12 rounded-lg px-6 text-base",
         xl: "h-14 rounded-xl px-8 text-lg",
-        icon: "size-10",
-        "icon-sm": "size-8",
+        icon: "size-11",
+        "icon-sm": "size-11",
         "icon-lg": "size-12",
       },
     },

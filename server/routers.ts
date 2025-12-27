@@ -1428,6 +1428,49 @@ export const appRouter = router({
   }),
 
   // ============================================================================
+  // FEEDBACK (Helpdesk Integration)
+  // ============================================================================
+
+  feedback: router({
+    submit: publicProcedure
+      .input(
+        z.object({
+          type: z.enum(["bug", "feature", "question", "general"]),
+          subject: z.string().max(100).optional(),
+          message: z.string().min(1).max(2000),
+          pageUrl: z.string().optional(),
+          userAgent: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const feedbackId = await db.createUserFeedback({
+          userId: ctx.user?.id ?? null,
+          otherFeedback: `[${input.type.toUpperCase()}] ${input.subject ? input.subject + ": " : ""}${input.message}\n\nPage: ${input.pageUrl || "N/A"}\nUser Agent: ${input.userAgent || "N/A"}`,
+          featureRequests: input.type === "feature" ? input.message : null,
+        });
+        return { success: true, feedbackId };
+      }),
+
+    list: adminProcedure
+      .input(
+        z.object({
+          limit: z.number().min(1).max(100).optional(),
+          offset: z.number().min(0).optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        return await db.listUserFeedback({
+          limit: input.limit,
+          offset: input.offset,
+        });
+      }),
+
+    stats: adminProcedure.query(async () => {
+      return await db.getFeedbackStats();
+    }),
+  }),
+
+  // ============================================================================
   // SAVED SEARCHES
   // ============================================================================
 

@@ -25,7 +25,10 @@ function RadioGroupItem({
     <RadioGroupPrimitive.Item
       data-slot="radio-group-item"
       className={cn(
-        "border-input text-[#D4AF37] focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        // WCAG 2.2 AA: Radio has 44px touch target via ::before pseudo-element
+        "relative border-input text-[#D4AF37] focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-5 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        // Touch target expansion: 44px minimum
+        "before:absolute before:inset-0 before:-m-3 before:content-['']",
         className
       )}
       {...props}

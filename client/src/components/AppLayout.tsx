@@ -32,6 +32,7 @@ import {
   Eye,
   BarChart3,
   Clock,
+  Map,
   ShieldCheck,
   Truck,
   Calculator,
@@ -75,6 +76,7 @@ const intelligenceMenuItems = [
   { icon: TrendingUp, label: "Lending Sentiment", path: "/lending-sentiment" },
   { icon: BarChart3, label: "Feedstock Prices", path: "/feedstock-prices" },
   { icon: Clock, label: "Policy & Carbon", path: "/policy-carbon" },
+  { icon: Map, label: "Australian Data", path: "/australian-data" },
 ];
 
 const platformMenuItems = [
@@ -220,6 +222,10 @@ function AppLayoutContent({ children, setSidebarWidth }: AppLayoutContentProps) 
 
   return (
     <>
+      {/* Skip to main content link for keyboard accessibility */}
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
@@ -397,7 +403,7 @@ function AppLayoutContent({ children, setSidebarWidth }: AppLayoutContentProps) 
             </div>
           </header>
         )}
-        <main className="flex-1">{children}</main>
+        <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
       </SidebarInset>
     </>
   );

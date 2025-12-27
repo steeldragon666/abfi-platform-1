@@ -13,6 +13,9 @@ import { handleManusWebhook } from "../manus";
 import { certificateVerificationRouter } from "../certificateVerificationApi";
 import { didResolutionRouter } from "../didResolutionApi";
 import { aiChatRouter } from "../aiChatRouter";
+import { australianDataRouter } from "../apis/australianDataRouter";
+import { securityHeaders, rateLimit, rateLimitConfigs } from "./security";
+import { createSSERouter } from "./sse";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -36,9 +39,31 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  // Hide Express server identifier for security
+  app.disable("x-powered-by");
+
+  // === Security Headers Middleware ===
+  // Implements Essential Eight security controls (HSTS, CSP, X-Frame-Options, etc.)
+  app.use(securityHeaders({
+    // Additional trusted sources can be configured here
+    trustedScriptSources: [],
+    trustedConnectSources: [],
+  }));
+
+  // === Rate Limiting for Authentication ===
+  // Strict limits: 5 attempts per 15 minutes
+  app.use("/api/oauth", rateLimit(rateLimitConfigs.auth));
+  app.use("/auth", rateLimit(rateLimitConfigs.auth));
+
+  // === Rate Limiting for General API ===
+  // Standard limits: 100 requests per hour
+  app.use("/api/trpc", rateLimit(rateLimitConfigs.api));
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 
@@ -89,6 +114,12 @@ async function startServer() {
 
   // AI Chat API for HeyGen Avatar Assistant
   app.use("/api/ai-chat", aiChatRouter);
+
+  // Australian Data APIs (climate, soil, carbon credits)
+  app.use("/api/australian-data", australianDataRouter);
+
+  // Server-Sent Events for real-time notifications
+  app.use("/api/sse", createSSERouter());
 
   // tRPC API
   app.use(

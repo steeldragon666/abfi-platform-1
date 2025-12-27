@@ -10,6 +10,8 @@ import { Analytics } from "@vercel/analytics/react";
 import AppLayout from "./components/AppLayout";
 import { HeyGenTour } from "./components/Onboarding/HeyGenTour";
 import { AvatarAssistant } from "./components/AIHelper/AvatarAssistant";
+import { NotificationProvider } from "./components/NotificationProvider";
+import { HelpWidget } from "./components/HelpDesk/HelpWidget";
 
 // Lazy load all pages for code splitting
 const Home = lazy(() => import("./pages/Home"));
@@ -50,6 +52,7 @@ const EmissionsCalculator = lazy(() => import("./pages/EmissionsCalculator"));
 const CredentialsDashboard = lazy(() => import("./pages/CredentialsDashboard"));
 const GOSchemeDashboard = lazy(() => import("./pages/GOSchemeDashboard"));
 const FeedstockMap = lazy(() => import("./pages/FeedstockMap"));
+const AustralianDataExplorer = lazy(() => import("./pages/AustralianDataExplorer"));
 const ProducerRegistration = lazy(() => import("./pages/ProducerRegistration"));
 const ProducerAccountSetup = lazy(() => import("./pages/ProducerAccountSetup"));
 const ProducerPropertyMap = lazy(() => import("./pages/ProducerPropertyMap"));
@@ -144,6 +147,7 @@ const FinanceDashboard = lazy(() => import("./pages/FinanceDashboard"));
 const PriceDashboard = lazy(() => import("./pages/PriceDashboard"));
 const SupplierDirectory = lazy(() => import("./pages/SupplierDirectory"));
 const QuoteRequest = lazy(() => import("./pages/QuoteRequest"));
+const Changelog = lazy(() => import("./pages/Changelog"));
 
 // Loading fallback component
 function PageLoader() {
@@ -178,6 +182,7 @@ function Router() {
         <Route path="/price-dashboard" component={PriceDashboard} />
         <Route path="/supplier-directory" component={SupplierDirectory} />
         <Route path="/quote-request" component={QuoteRequest} />
+        <Route path="/changelog" component={Changelog} />
 
         {/* Legacy home route */}
         <Route path="/home" component={Home} />
@@ -290,6 +295,7 @@ function Router() {
         <Route path="/platform-features" component={PlatformFeatures} />
         <Route path="/map" component={MapView} />
         <Route path="/feedstock-map" component={FeedstockMap} />
+        <Route path="/australian-data" component={AustralianDataExplorer} />
         <Route path="/producer-registration" component={ProducerRegistration} />
         <Route
           path="/producer-registration/account-setup"
@@ -340,9 +346,11 @@ function App() {
         <UserRoleProvider>
           <TooltipProvider>
             <Toaster />
+            <NotificationProvider />
             <Router />
             <HeyGenTour />
             <AvatarAssistant />
+            <HelpWidget />
             <Analytics />
           </TooltipProvider>
         </UserRoleProvider>

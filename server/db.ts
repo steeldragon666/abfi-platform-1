@@ -129,6 +129,7 @@ import {
   InsertAuditPack,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { sendNotificationToUser } from "./_core/sse";
 
 // Use 'any' to avoid mysql2 Pool type conflicts between promise and sync versions
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -633,7 +634,25 @@ export async function createNotification(notification: InsertNotification) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(notifications).values(notification);
-  return Number((result as any).insertId);
+  const notificationId = Number((result as any).insertId);
+
+  // Send real-time SSE notification to connected clients
+  try {
+    sendNotificationToUser(notification.userId, {
+      id: notificationId,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      relatedEntityType: notification.relatedEntityType ?? null,
+      relatedEntityId: notification.relatedEntityId ?? null,
+      createdAt: new Date(),
+    });
+  } catch (error) {
+    // SSE failure should not block notification creation
+    console.warn("[Notification] SSE delivery failed:", error);
+  }
+
+  return notificationId;
 }
 
 export async function getNotificationsByUserId(
