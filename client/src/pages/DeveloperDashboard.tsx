@@ -52,6 +52,7 @@ import {
   Truck,
   Calendar,
   DollarSign,
+  Zap,
 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
@@ -393,6 +394,12 @@ export default function DeveloperDashboard() {
                     <Button variant="outline" size="sm" className="w-full justify-start">
                       <Clock className="h-4 w-4 mr-2" />
                       Policy Timeline
+                    </Button>
+                  </Link>
+                  <Link href="/stress-testing">
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <Zap className="h-4 w-4 mr-2" />
+                      Stress Testing
                     </Button>
                   </Link>
                 </div>

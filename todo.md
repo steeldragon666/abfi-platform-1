@@ -88,7 +88,7 @@
 - [x] Bankability assessment wizard
 - [x] Supply agreement management
 - [x] Concentration analysis (HHI)
-- [ ] Stress testing scenarios
+- [x] Stress testing scenarios
 
 ### Lender Portal
 - [x] Read-only monitoring dashboard
