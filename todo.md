@@ -108,7 +108,7 @@
 - [x] Assessor workflow
 - [x] Monitoring jobs scheduler
 - [x] System analytics
-- [ ] User management interface
+- [x] User management interface
 - [x] Audit log viewer
 
 ---
