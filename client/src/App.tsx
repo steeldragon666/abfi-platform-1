@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { UserRoleProvider } from "./contexts/UserRoleContext";
 import { Analytics } from "@vercel/analytics/react";
 import AppLayout from "./components/AppLayout";
 
@@ -137,6 +138,11 @@ const GrowerDashboard = lazy(() => import("./pages/GrowerDashboard"));
 const DeveloperDashboard = lazy(() => import("./pages/DeveloperDashboard"));
 const FinanceDashboard = lazy(() => import("./pages/FinanceDashboard"));
 
+// Phase 2 Features
+const PriceDashboard = lazy(() => import("./pages/PriceDashboard"));
+const SupplierDirectory = lazy(() => import("./pages/SupplierDirectory"));
+const QuoteRequest = lazy(() => import("./pages/QuoteRequest"));
+
 // Loading fallback component
 function PageLoader() {
   return (
@@ -165,6 +171,11 @@ function Router() {
         <Route path="/grower/dashboard" component={GrowerDashboard} />
         <Route path="/developer/dashboard" component={DeveloperDashboard} />
         <Route path="/finance/dashboard" component={FinanceDashboard} />
+
+        {/* Phase 2 Features */}
+        <Route path="/price-dashboard" component={PriceDashboard} />
+        <Route path="/supplier-directory" component={SupplierDirectory} />
+        <Route path="/quote-request" component={QuoteRequest} />
 
         {/* Legacy home route */}
         <Route path="/home" component={Home} />
@@ -324,11 +335,13 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-          <Analytics />
-        </TooltipProvider>
+        <UserRoleProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+            <Analytics />
+          </TooltipProvider>
+        </UserRoleProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
