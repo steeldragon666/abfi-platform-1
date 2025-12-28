@@ -68,6 +68,14 @@ L.Icon.Default.mergeOptions({
 // Australia center
 const defaultCenter: L.LatLngTuple = [-25.2744, 133.7751];
 
+// Layer filter functions (defined outside component to avoid state serialization issues)
+const LAYER_FILTERS: Record<string, (f: any) => boolean> = {
+  "beema-bamboo-zones": (f) => f.properties?.type === "beema_bamboo",
+  "sugarcane-zones": (f) => f.properties?.type === "sugarcane_bagasse",
+  "grain-zones": (f) => f.properties?.type === "grain_stubble",
+  "forestry-zones": (f) => f.properties?.type === "forestry_residues",
+};
+
 interface LayerConfig {
   id: string;
   name: string;
@@ -77,7 +85,6 @@ interface LayerConfig {
   wmsLayers?: string;
   color: string;
   visible: boolean;
-  filter?: (feature: any) => boolean;
 }
 
 interface GeoJSONFeature {
@@ -163,8 +170,8 @@ export default function FeedstockMap() {
       id: "land-use",
       name: "Land Use (CLUM)",
       type: "wms",
-      wmsUrl: WMS_LAYERS.landUse.url,
-      wmsLayers: WMS_LAYERS.landUse.layers,
+      wmsUrl: WMS_LAYERS.landHealthySoils?.url || "https://gis.environment.gov.au/gispubmap/rest/services/land/healthy_soils_fund/MapServer/WMSServer",
+      wmsLayers: WMS_LAYERS.landHealthySoils?.layers || "0",
       color: "#22c55e",
       visible: false,
     },
@@ -192,7 +199,6 @@ export default function FeedstockMap() {
       source: "/geojson/feedstock_growth_zones.json",
       color: "#10b981",
       visible: true,
-      filter: (f: any) => f.properties?.type === "beema_bamboo",
     },
     {
       id: "sugarcane-zones",
@@ -201,7 +207,6 @@ export default function FeedstockMap() {
       source: "/geojson/feedstock_growth_zones.json",
       color: "#84cc16",
       visible: false,
-      filter: (f: any) => f.properties?.type === "sugarcane_bagasse",
     },
     {
       id: "grain-zones",
@@ -210,7 +215,6 @@ export default function FeedstockMap() {
       source: "/geojson/feedstock_growth_zones.json",
       color: "#eab308",
       visible: false,
-      filter: (f: any) => f.properties?.type === "grain_stubble",
     },
     {
       id: "forestry-zones",
@@ -219,7 +223,6 @@ export default function FeedstockMap() {
       source: "/geojson/feedstock_growth_zones.json",
       color: "#166534",
       visible: false,
-      filter: (f: any) => f.properties?.type === "forestry_residues",
     },
     {
       id: "grain-regions",
@@ -238,51 +241,51 @@ export default function FeedstockMap() {
       visible: false,
     },
     // ABBA (Australian Biomass for Bioenergy Assessment) Layers
-    // Queensland CKAN API: https://www.data.qld.gov.au/api/3/action/
-    // Dataset: australian-biomass-for-bioenergy-assessment
+    // Note: ABBA WMS endpoints may not be available; these are placeholder configs
+    // Real-time bioenergy data available via AREMI CSV endpoints
     // License: CC BY 4.0
     {
       id: "abba-bagasse",
-      name: "🌾 Sugarcane Bagasse (ABBA)",
+      name: "Sugarcane Bagasse (ABBA)",
       type: "wms",
-      wmsUrl: WMS_LAYERS.bagasse?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
-      wmsLayers: WMS_LAYERS.bagasse?.layers || "abba:sugarcane_bagasse",
+      wmsUrl: "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: "abba:sugarcane_bagasse",
       color: "#8B4513",
       visible: false,
     },
     {
       id: "abba-grain-stubble",
-      name: "🌾 Grain Stubble (ABBA)",
+      name: "Grain Stubble (ABBA)",
       type: "wms",
-      wmsUrl: WMS_LAYERS.grainStubble?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
-      wmsLayers: WMS_LAYERS.grainStubble?.layers || "abba:grain_stubble",
+      wmsUrl: "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: "abba:grain_stubble",
       color: "#DAA520",
       visible: false,
     },
     {
       id: "abba-forestry",
-      name: "🌲 Forestry Residues (ABBA)",
+      name: "Forestry Residues (ABBA)",
       type: "wms",
-      wmsUrl: WMS_LAYERS.forestryResidues?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
-      wmsLayers: WMS_LAYERS.forestryResidues?.layers || "abba:forestry_residues",
+      wmsUrl: "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: "abba:forestry_residues",
       color: "#228B22",
       visible: false,
     },
     {
       id: "abba-cotton",
-      name: "🌿 Cotton Gin Trash (ABBA)",
+      name: "Cotton Gin Trash (ABBA)",
       type: "wms",
-      wmsUrl: WMS_LAYERS.cottonGinTrash?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
-      wmsLayers: WMS_LAYERS.cottonGinTrash?.layers || "abba:cotton_gin_trash",
+      wmsUrl: "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: "abba:cotton_gin_trash",
       color: "#F5F5DC",
       visible: false,
     },
     {
       id: "abba-urban-waste",
-      name: "🏙️ Urban Organic Waste (ABBA)",
+      name: "Urban Organic Waste (ABBA)",
       type: "wms",
-      wmsUrl: WMS_LAYERS.urbanOrganicWaste?.url || "https://terria-catalog-services.data.gov.au/geoserver/wms",
-      wmsLayers: WMS_LAYERS.urbanOrganicWaste?.layers || "abba:urban_organic_waste",
+      wmsUrl: "https://terria-catalog-services.data.gov.au/geoserver/wms",
+      wmsLayers: "abba:urban_organic_waste",
       color: "#4A4A4A",
       visible: false,
     },
@@ -772,14 +775,15 @@ export default function FeedstockMap() {
         const data = layerData[layer.id];
         if (!data) return;
 
-        // Apply layer-specific filter if defined
-        const filteredData = layer.filter
-          ? { ...data, features: data.features.filter(layer.filter) }
+        // Apply layer-specific filter if defined in LAYER_FILTERS
+        const layerFilter = LAYER_FILTERS[layer.id];
+        const filteredData = layerFilter
+          ? { ...data, features: data.features.filter(layerFilter) }
           : data;
 
         const geoJsonLayer = L.geoJSON(filteredData as any, {
           style: (feature) => {
-            const props = feature.properties;
+            const props = feature?.properties;
             const isBeema = props?.type === "beema_bamboo";
             return {
               fillColor: props?.color || layer.color,
