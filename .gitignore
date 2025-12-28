@@ -111,3 +111,6 @@ playwright-report/
 test-results/
 .vercel
 .env*.local
+
+# Bundle analysis reports
+report/

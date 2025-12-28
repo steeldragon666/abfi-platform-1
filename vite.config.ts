@@ -4,8 +4,10 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
 import { defineConfig, type PluginOption } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isAnalyze = process.env.ANALYZE === "true";
 
 export default defineConfig(async ({ command }) => {
   // Only include Manus runtime in serve mode (development), not in build mode (production)
@@ -28,6 +30,14 @@ export default defineConfig(async ({ command }) => {
     jsxLocPlugin(),
     // Only include Manus runtime in development to avoid routing interference in production
     ...(manusPlugin ? [manusPlugin] : []),
+    // Bundle analyzer - generates HTML report when ANALYZE=true
+    ...(isAnalyze ? [visualizer({
+      filename: "report/bundle-stats.html",
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+      template: "treemap", // treemap, sunburst, or network
+    }) as PluginOption] : []),
   ];
 
   return {
