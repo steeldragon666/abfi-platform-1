@@ -135,7 +135,57 @@ Webhook ID: `DNwWhJF2F7SMJ6Ka3Zr2hJ`
 
 ## Handoff Notes
 
-### From Claude Code (Latest Session - 2025-12-25 Evening)
+### From Claude Code (Latest Session - 2025-12-28)
+
+#### Session Summary: Vercel tRPC Endpoint Debugging
+
+**1. tRPC Router Context Fix**
+- Issue: All tRPC endpoints returning FUNCTION_INVOCATION_FAILED
+- Root cause: Context type mismatch between server tRPC (Express) and API tRPC (Fetch)
+- Solution: Created `createServerRouterHandler` in `api/_lib/middleware.ts`
+- Updated all 15 router files in `api/trpc/routers/` to use server's tRPC instance
+
+**2. SDK Authentication Fix**
+- Issue: `sdk.authenticateRequest` expected Express-style request
+- Fix: Created Express-compatible request wrapper in middleware
+- Updated both `api/_lib/middleware.ts` and `api/trpc/[trpc].ts`
+
+**3. Current Status**
+- `/api/health` - WORKING
+- `/api/trpc/test` - Returns proper tRPC "procedure not found" error (tRPC is loading)
+- `/api/trpc/system.health` - Still returning FUNCTION_INVOCATION_FAILED
+
+**4. Debugging Findings**
+- The `[trpc].ts` catch-all handler IS loading successfully for some paths
+- When procedure path is invalid (like "test"), returns proper tRPC error
+- When procedure path is valid (like "system.health"), crashes
+- This suggests the appRouter imports work, but specific router modules crash
+
+**5. Likely Root Cause (needs Vercel logs)**
+- Some module in `server/routers.ts` import tree crashes in serverless
+- Possibly database connection issue or missing env var
+- Need Vercel function logs to identify specific error
+
+**6. Files Modified**
+- `api/_lib/middleware.ts` - Added createServerRouterHandler
+- `api/trpc/[trpc].ts` - Fixed SDK auth
+- All files in `api/trpc/routers/*.ts` - Updated to use server tRPC
+
+**7. Commits**
+- `621fae3` - fix: use server tRPC instance for all API routers
+- `54a9749` - fix: update system.ts to use server tRPC instance
+- `ff70b31` - fix: pass Express-compatible request to sdk.authenticateRequest
+- `d149f54` - fix: authentication and router structure for tRPC endpoints
+- `430e556` - debug: super minimal test endpoint
+
+#### Next Steps
+1. Check Vercel function logs for actual error message
+2. Check if DATABASE_URL and other env vars are set in Vercel
+3. Consider lazy-loading router modules to isolate crashes
+
+---
+
+### From Claude Code (Previous Session - 2025-12-25 Evening)
 
 #### Session Summary: Navy + Gold Design + DNS Issue Discovery
 
@@ -333,4 +383,4 @@ npx drizzle-kit generate:mysql
 
 ---
 
-*Last updated: 2025-12-25 by Claude Code (Opus 4.5)*
+*Last updated: 2025-12-28 by Claude Code (Opus 4.5)*
