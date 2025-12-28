@@ -1,16 +1,12 @@
 /**
- * Verifiable Credentials Router - VC operations
- * Bundle size: ~40KB
+ * VC Router - Verifiable Credentials operations
  */
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createTrpcHandler, router, vercelConfig } from "../../_lib/trpc";
 import { vcRouter } from "../../../server/vcRouter";
+import { router } from "../../../server/_core/trpc";
+import { createServerRouterHandler, vercelConfig } from "../../_lib/middleware";
 
 export const config = vercelConfig;
 
-// Create router with just the vc namespace
-const vcOnlyRouter = router({
-  vc: vcRouter,
-});
+const vcOnlyRouter = router({ vc: vcRouter });
 
-export default createTrpcHandler(vcOnlyRouter, "/api/trpc/routers/vc");
+export default createServerRouterHandler(vcOnlyRouter, "/api/trpc/routers/vc");

@@ -1,16 +1,12 @@
 /**
  * Sentiment Router - Market sentiment analysis
- * Bundle size: ~25KB
  */
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createTrpcHandler, router, vercelConfig } from "../../_lib/trpc";
 import { sentimentRouter } from "../../../server/sentimentRouter";
+import { router } from "../../../server/_core/trpc";
+import { createServerRouterHandler, vercelConfig } from "../../_lib/middleware";
 
 export const config = vercelConfig;
 
-// Create router with just the sentiment namespace
-const sentimentOnlyRouter = router({
-  sentiment: sentimentRouter,
-});
+const sentimentOnlyRouter = router({ sentiment: sentimentRouter });
 
-export default createTrpcHandler(sentimentOnlyRouter, "/api/trpc/routers/sentiment");
+export default createServerRouterHandler(sentimentOnlyRouter, "/api/trpc/routers/sentiment");

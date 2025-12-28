@@ -1,16 +1,12 @@
 /**
  * Evidence Vault Router - Blockchain evidence operations
- * Bundle size: ~60KB
  */
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createTrpcHandler, router, vercelConfig } from "../../_lib/trpc";
 import { evidenceVaultRouter } from "../../../server/evidenceVaultRouter";
+import { router } from "../../../server/_core/trpc";
+import { createServerRouterHandler, vercelConfig } from "../../_lib/middleware";
 
 export const config = vercelConfig;
 
-// Create router with just the evidenceVault namespace
-const evidenceVaultOnlyRouter = router({
-  evidenceVault: evidenceVaultRouter,
-});
+const evidenceVaultOnlyRouter = router({ evidenceVault: evidenceVaultRouter });
 
-export default createTrpcHandler(evidenceVaultOnlyRouter, "/api/trpc/routers/evidenceVault");
+export default createServerRouterHandler(evidenceVaultOnlyRouter, "/api/trpc/routers/evidenceVault");

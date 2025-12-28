@@ -1,17 +1,13 @@
 /**
  * Core Router - Auth, Utils, Audit, Suppliers, Buyers
  * Handles inline routers from the main routers.ts file
- * Bundle size: ~150KB (largest individual function)
  */
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createTrpcHandler, router, publicProcedure, protectedProcedure, adminProcedure, vercelConfig } from "../../_lib/trpc";
+import { router, publicProcedure, protectedProcedure, adminProcedure } from "../../../server/_core/trpc";
+import { createServerRouterHandler, vercelConfig } from "../../_lib/middleware";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "../../../server/db";
 import { lookupABN } from "../../../server/abnValidation";
-import { validateABN } from "../../../server/utils";
-import { COOKIE_NAME } from "@shared/const";
-import { getSessionCookieOptions } from "../../../server/_core/cookies";
 
 export const config = vercelConfig;
 
@@ -157,4 +153,4 @@ const coreRouter = router({
   }),
 });
 
-export default createTrpcHandler(coreRouter, "/api/trpc/routers/core");
+export default createServerRouterHandler(coreRouter, "/api/trpc/routers/core");

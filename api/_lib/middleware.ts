@@ -122,3 +122,81 @@ export function withMiddleware(handler: Handler): Handler {
     }
   };
 }
+
+// =============================================================================
+// Vercel Config Export
+// =============================================================================
+
+export const vercelConfig = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
+  },
+};
+
+// =============================================================================
+// tRPC Handler Factory (uses server's tRPC instance)
+// =============================================================================
+
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { sdk } from "../../server/_core/sdk";
+import type { User } from "../../drizzle/schema";
+
+/**
+ * Create a Vercel handler for a server tRPC router
+ * Uses the server's tRPC instance with a compatible context
+ */
+export function createServerRouterHandler<TRouter>(
+  routerInstance: TRouter,
+  endpoint: string
+) {
+  return async function handler(req: VercelRequest, res: VercelResponse) {
+    const startTime = Date.now();
+
+    try {
+      setSecurityHeaders(res);
+      if (setCorsHeaders(req, res)) return;
+
+      // Convert Vercel request to Fetch Request
+      const url = new URL(req.url || "/", `https://${req.headers.host}`);
+      const headers = new Headers();
+      for (const [key, value] of Object.entries(req.headers)) {
+        if (value) headers.set(key, Array.isArray(value) ? value.join(", ") : value);
+      }
+
+      let body: string | undefined;
+      if (req.method === "POST" || req.method === "PUT") {
+        body = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+      }
+
+      const request = new Request(url, { method: req.method, headers, body });
+
+      // Create context compatible with server routers
+      const createContext = async () => {
+        let user: User | null = null;
+        try {
+          user = await sdk.authenticateRequest(request);
+        } catch {
+          user = null;
+        }
+        return { req: request as any, res: res as any, user };
+      };
+
+      const response = await fetchRequestHandler({
+        endpoint,
+        req: request,
+        router: routerInstance as any,
+        createContext,
+      });
+
+      response.headers.forEach((value, key) => res.setHeader(key, value));
+      res.status(response.status);
+      res.send(await response.text());
+    } catch (error) {
+      handleError(res, error);
+    } finally {
+      logRequest(req, startTime);
+    }
+  };
+}
