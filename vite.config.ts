@@ -1,7 +1,6 @@
 import { jsxLocPlugin } from "@builder.io/vite-plugin-jsx-loc";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import fs from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { defineConfig, type PluginOption } from "vite";
@@ -46,52 +45,117 @@ export default defineConfig(async ({ command }) => {
     build: {
       outDir: path.resolve(__dirname, "dist/public"),
       emptyOutDir: true,
+      // Temporarily raised while optimizing chunk sizes
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
-          manualChunks: {
-            // Core React libraries
-            "vendor-react": ["react", "react-dom", "wouter"],
-            // UI component library
-            "vendor-ui": [
-              "@radix-ui/react-accordion",
-              "@radix-ui/react-alert-dialog",
-              "@radix-ui/react-aspect-ratio",
-              "@radix-ui/react-avatar",
-              "@radix-ui/react-checkbox",
-              "@radix-ui/react-collapsible",
-              "@radix-ui/react-context-menu",
-              "@radix-ui/react-dialog",
-              "@radix-ui/react-dropdown-menu",
-              "@radix-ui/react-hover-card",
-              "@radix-ui/react-label",
-              "@radix-ui/react-menubar",
-              "@radix-ui/react-navigation-menu",
-              "@radix-ui/react-popover",
-              "@radix-ui/react-progress",
-              "@radix-ui/react-radio-group",
-              "@radix-ui/react-scroll-area",
-              "@radix-ui/react-select",
-              "@radix-ui/react-separator",
-              "@radix-ui/react-slider",
-              "@radix-ui/react-slot",
-              "@radix-ui/react-switch",
-              "@radix-ui/react-tabs",
-              "@radix-ui/react-toggle",
-              "@radix-ui/react-toggle-group",
-              "@radix-ui/react-tooltip",
-            ],
-            // Icons library
-            "vendor-icons": ["lucide-react"],
-            // Charts and visualization
-            "vendor-charts": ["recharts"],
-            // Form handling
-            "vendor-forms": ["react-hook-form", "@hookform/resolvers", "zod"],
-            // Data fetching
-            "vendor-query": ["@tanstack/react-query", "@trpc/client", "@trpc/react-query"],
+          manualChunks(id) {
+            // Core React - loaded on every page
+            if (id.includes("node_modules/react/") ||
+                id.includes("node_modules/react-dom/") ||
+                id.includes("node_modules/wouter/") ||
+                id.includes("node_modules/scheduler/")) {
+              return "vendor-react";
+            }
+
+            // Split Radix UI into functional groups for better code splitting
+            // Overlay components - dialogs, popovers, dropdowns (load on interaction)
+            if (id.includes("@radix-ui/react-dialog") ||
+                id.includes("@radix-ui/react-popover") ||
+                id.includes("@radix-ui/react-dropdown-menu") ||
+                id.includes("@radix-ui/react-tooltip") ||
+                id.includes("@radix-ui/react-hover-card") ||
+                id.includes("@radix-ui/react-context-menu") ||
+                id.includes("@radix-ui/react-alert-dialog")) {
+              return "vendor-ui-overlay";
+            }
+
+            // Form components - inputs, selects, toggles
+            if (id.includes("@radix-ui/react-checkbox") ||
+                id.includes("@radix-ui/react-radio-group") ||
+                id.includes("@radix-ui/react-select") ||
+                id.includes("@radix-ui/react-switch") ||
+                id.includes("@radix-ui/react-slider") ||
+                id.includes("@radix-ui/react-toggle") ||
+                id.includes("@radix-ui/react-toggle-group") ||
+                id.includes("@radix-ui/react-label")) {
+              return "vendor-ui-form";
+            }
+
+            // Layout components - accordions, tabs, navigation
+            if (id.includes("@radix-ui/react-accordion") ||
+                id.includes("@radix-ui/react-tabs") ||
+                id.includes("@radix-ui/react-collapsible") ||
+                id.includes("@radix-ui/react-scroll-area") ||
+                id.includes("@radix-ui/react-separator") ||
+                id.includes("@radix-ui/react-aspect-ratio") ||
+                id.includes("@radix-ui/react-navigation-menu") ||
+                id.includes("@radix-ui/react-menubar")) {
+              return "vendor-ui-layout";
+            }
+
+            // Core Radix primitives (slot, avatar, progress) - small, frequently used
+            if (id.includes("@radix-ui/react-")) {
+              return "vendor-ui-core";
+            }
+
+            // Icons - lucide-react
+            if (id.includes("lucide-react")) {
+              return "vendor-icons";
+            }
+
+            // D3 utilities - foundation for recharts (split from recharts)
+            if (id.includes("d3-")) {
+              return "vendor-d3";
+            }
+
+            // Recharts - charting library (depends on d3)
+            if (id.includes("recharts")) {
+              return "vendor-recharts";
+            }
+
+            // Forms - react-hook-form, zod validation
+            if (id.includes("react-hook-form") ||
+                id.includes("@hookform/") ||
+                id.includes("node_modules/zod/")) {
+              return "vendor-forms";
+            }
+
+            // Data fetching - tanstack query, trpc
+            if (id.includes("@tanstack/react-query") ||
+                id.includes("@trpc/")) {
+              return "vendor-query";
+            }
+
+            // Animation - framer-motion (heavy, defer loading)
+            if (id.includes("framer-motion") || id.includes("popmotion")) {
+              return "vendor-animation";
+            }
+
+            // Maps - leaflet (only load on map pages)
+            if (id.includes("leaflet") || id.includes("react-leaflet")) {
+              return "vendor-maps";
+            }
+
+            // PDF generation (only load when needed)
+            if (id.includes("@react-pdf") || id.includes("pdfkit") || id.includes("jspdf")) {
+              return "vendor-pdf";
+            }
+
+            // Blockchain/crypto (only load when needed)
+            if (id.includes("ethers") || id.includes("@noble/")) {
+              return "vendor-crypto";
+            }
+
             // Date utilities
-            "vendor-date": ["date-fns"],
-            // Animation
-            "vendor-animation": ["framer-motion"],
+            if (id.includes("date-fns")) {
+              return "vendor-date";
+            }
+
+            // Supabase client
+            if (id.includes("@supabase/")) {
+              return "vendor-supabase";
+            }
           },
         },
       },
