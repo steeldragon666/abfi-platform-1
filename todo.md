@@ -142,6 +142,10 @@
 - [x] **ABARES** - Land use mapping (CLUM WMS)
 - [x] **BOM** - Bureau of Meteorology weather forecasts
 - [x] **myGovID** - OAuth authentication
+- [x] **AREMI/AEMO** - Live bioenergy power generation data
+  - [x] 36 bioenergy generators with lat/lon coordinates
+  - [x] Real-time output from AEMO dispatch data
+  - [x] Fuel types: Bagasse, Landfill Gas, Sewerage, Biogas
 - [ ] **Tomorrow.io** - Fire Weather Index (premium)
 
 ---
