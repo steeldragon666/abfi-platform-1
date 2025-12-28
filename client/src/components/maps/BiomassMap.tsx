@@ -17,14 +17,16 @@ L.Icon.Default.mergeOptions({
 const AUSTRALIA_CENTER: L.LatLngTuple = [-25.2744, 133.7751];
 const DEFAULT_ZOOM = 4;
 
-// WMS Layer configurations from Digital Atlas of Australia and ABBA
+// WMS Layer configurations from Digital Atlas of Australia, Terria/NationalMap, and ABBA
+// Reference: https://nationalmap.gov.au/ (now Terria Map)
+// ABBA data: https://www.dpi.nsw.gov.au/forestry/science/forest-carbon/abba
 const WMS_LAYERS = {
-  // Digital Atlas of Australia Layers
+  // Digital Atlas of Australia / ABARES Layers
   landUse: {
     name: "Land Use (CLUM)",
-    url: "https://di-daa.img.arcgis.com/arcgis/services/Land_and_vegetation/Catchment_Scale_Land_Use_Agricultural_Industries/ImageServer/WMSServer",
-    layers: "Catchment_Scale_Land_Use_Agricultural_Industries",
-    attribution: "© ABARES, CC BY 4.0",
+    url: "https://www.asris.csiro.au/arcgis/services/abares/clum_50m_2020/MapServer/WMSServer",
+    layers: "0",
+    attribution: "© ABARES CLUM, CC BY 4.0",
     opacity: 0.5,
     category: "infrastructure",
   },
@@ -37,48 +39,58 @@ const WMS_LAYERS = {
     category: "infrastructure",
   },
   // ABBA (Australian Biomass for Bioenergy Assessment) Layers
-  // Source: Queensland CKAN API - https://www.data.qld.gov.au/api/3/action/
-  // Dataset: australian-biomass-for-bioenergy-assessment
+  // Now hosted on Terria Map platform (replaced National Map June 2025)
+  // Data navigation: Explore Data > Australia > National Datasets > Energy > Renewable Energy > Bioenergy
+  // Source: Queensland CKAN API - https://www.data.qld.gov.au/dataset/australian-biomass-for-bioenergy-assessment
   // License: CC BY 4.0
   bagasse: {
     name: "Sugarcane Bagasse (ABBA)",
-    url: "https://terria-catalog-services.data.gov.au/geoserver/wms",
-    layers: "abba:sugarcane_bagasse",
-    attribution: "© ABBA Project, CC BY 4.0",
+    url: "https://geoserver.nationalmap.nicta.com.au/abba/wms",
+    layers: "abba:sugarcane_bagasse_2020",
+    attribution: "© ABBA Project (ARENA), CC BY 4.0",
     opacity: 0.6,
     category: "biomass",
   },
   grainStubble: {
     name: "Grain Stubble (ABBA)",
-    url: "https://terria-catalog-services.data.gov.au/geoserver/wms",
-    layers: "abba:grain_stubble",
-    attribution: "© ABBA Project, CC BY 4.0",
+    url: "https://geoserver.nationalmap.nicta.com.au/abba/wms",
+    layers: "abba:grain_stubble_2020",
+    attribution: "© ABBA Project (ARENA), CC BY 4.0",
     opacity: 0.6,
     category: "biomass",
   },
   forestryResidues: {
     name: "Forestry Residues (ABBA)",
-    url: "https://terria-catalog-services.data.gov.au/geoserver/wms",
-    layers: "abba:forestry_residues",
-    attribution: "© ABBA Project, CC BY 4.0",
+    url: "https://geoserver.nationalmap.nicta.com.au/abba/wms",
+    layers: "abba:forestry_residues_2024",
+    attribution: "© ABBA Project (ARENA), CC BY 4.0",
     opacity: 0.6,
     category: "biomass",
   },
   cottonGinTrash: {
     name: "Cotton Gin Trash (ABBA)",
-    url: "https://terria-catalog-services.data.gov.au/geoserver/wms",
-    layers: "abba:cotton_gin_trash",
-    attribution: "© ABBA Project, CC BY 4.0",
+    url: "https://geoserver.nationalmap.nicta.com.au/abba/wms",
+    layers: "abba:cotton_gin_trash_2020",
+    attribution: "© ABBA Project (ARENA), CC BY 4.0",
     opacity: 0.6,
     category: "biomass",
   },
   urbanOrganicWaste: {
     name: "Urban Organic Waste (ABBA)",
-    url: "https://terria-catalog-services.data.gov.au/geoserver/wms",
-    layers: "abba:urban_organic_waste",
-    attribution: "© ABBA Project, CC BY 4.0",
+    url: "https://geoserver.nationalmap.nicta.com.au/abba/wms",
+    layers: "abba:urban_organic_waste_2020",
+    attribution: "© ABBA Project (ARENA), CC BY 4.0",
     opacity: 0.6,
     category: "biomass",
+  },
+  // Additional BOM weather radar (if available)
+  bomRainfall: {
+    name: "BOM Rainfall Analysis",
+    url: "https://services.ga.gov.au/gis/services/Rainfall_Gridded_Analysis/MapServer/WMSServer",
+    layers: "0",
+    attribution: "© Bureau of Meteorology, CC BY 4.0",
+    opacity: 0.5,
+    category: "weather",
   },
 };
 

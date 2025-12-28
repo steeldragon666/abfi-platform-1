@@ -1719,23 +1719,92 @@ australianDataRouter.get("/abares/feedstock-regions", async (_req, res) => {
 // ============================================================================
 
 // BOM weather station IDs for key agricultural regions
-const BOM_STATIONS: Record<string, { id: string; name: string; state: string; lat: number; lon: number }> = {
-  "brisbane": { id: "040913", name: "Brisbane", state: "QLD", lat: -27.48, lon: 153.04 },
-  "sydney": { id: "066062", name: "Sydney", state: "NSW", lat: -33.86, lon: 151.21 },
-  "melbourne": { id: "086071", name: "Melbourne", state: "VIC", lat: -37.81, lon: 144.97 },
-  "perth": { id: "009021", name: "Perth", state: "WA", lat: -31.95, lon: 115.86 },
-  "adelaide": { id: "023090", name: "Adelaide", state: "SA", lat: -34.93, lon: 138.60 },
-  "hobart": { id: "094029", name: "Hobart", state: "TAS", lat: -42.88, lon: 147.33 },
-  "darwin": { id: "014015", name: "Darwin", state: "NT", lat: -12.46, lon: 130.84 },
-  "wagga": { id: "072150", name: "Wagga Wagga", state: "NSW", lat: -35.16, lon: 147.46 },
-  "mildura": { id: "076031", name: "Mildura", state: "VIC", lat: -34.24, lon: 142.09 },
-  "toowoomba": { id: "041529", name: "Toowoomba", state: "QLD", lat: -27.58, lon: 151.93 },
-  "geraldton": { id: "008051", name: "Geraldton", state: "WA", lat: -28.80, lon: 114.70 },
-  "mackay": { id: "033119", name: "Mackay", state: "QLD", lat: -21.12, lon: 149.22 },
-  "bundaberg": { id: "039128", name: "Bundaberg", state: "QLD", lat: -24.91, lon: 152.32 },
-  "dubbo": { id: "065070", name: "Dubbo", state: "NSW", lat: -32.22, lon: 148.57 },
-  "horsham": { id: "079028", name: "Horsham", state: "VIC", lat: -36.71, lon: 142.20 },
+// BOM Station configuration with WMO IDs and product codes for real data fetching
+// Product codes: IDQ=QLD, IDN=NSW, IDV=VIC, IDS=SA, IDW=WA, IDT=TAS, IDD=NT
+const BOM_STATIONS: Record<string, {
+  id: string;
+  wmo: string;
+  name: string;
+  state: string;
+  lat: number;
+  lon: number;
+  product: string;
+}> = {
+  "brisbane": { id: "040913", wmo: "94576", name: "Brisbane", state: "QLD", lat: -27.48, lon: 153.04, product: "IDQ60801" },
+  "sydney": { id: "066037", wmo: "94767", name: "Sydney Airport", state: "NSW", lat: -33.95, lon: 151.17, product: "IDN60801" },
+  "melbourne": { id: "086282", wmo: "94866", name: "Melbourne Airport", state: "VIC", lat: -37.67, lon: 144.83, product: "IDV60801" },
+  "perth": { id: "009021", wmo: "94610", name: "Perth Airport", state: "WA", lat: -31.93, lon: 115.98, product: "IDW60801" },
+  "adelaide": { id: "023034", wmo: "94672", name: "Adelaide Airport", state: "SA", lat: -34.93, lon: 138.52, product: "IDS60801" },
+  "hobart": { id: "094029", wmo: "94970", name: "Hobart", state: "TAS", lat: -42.88, lon: 147.33, product: "IDT60801" },
+  "darwin": { id: "014015", wmo: "94120", name: "Darwin Airport", state: "NT", lat: -12.42, lon: 130.89, product: "IDD60801" },
+  "wagga": { id: "072150", wmo: "94910", name: "Wagga Wagga", state: "NSW", lat: -35.16, lon: 147.46, product: "IDN60801" },
+  "mildura": { id: "076031", wmo: "94693", name: "Mildura", state: "VIC", lat: -34.24, lon: 142.09, product: "IDV60801" },
+  "toowoomba": { id: "041529", wmo: "94553", name: "Toowoomba", state: "QLD", lat: -27.58, lon: 151.93, product: "IDQ60801" },
+  "cairns": { id: "031011", wmo: "94287", name: "Cairns", state: "QLD", lat: -16.87, lon: 145.75, product: "IDQ60801" },
+  "mackay": { id: "033119", wmo: "94367", name: "Mackay", state: "QLD", lat: -21.12, lon: 149.22, product: "IDQ60801" },
+  "bundaberg": { id: "039128", wmo: "94387", name: "Bundaberg", state: "QLD", lat: -24.91, lon: 152.32, product: "IDQ60801" },
+  "dubbo": { id: "065070", wmo: "94711", name: "Dubbo", state: "NSW", lat: -32.22, lon: 148.57, product: "IDN60801" },
+  "horsham": { id: "079028", wmo: "94839", name: "Horsham", state: "VIC", lat: -36.71, lon: 142.20, product: "IDV60801" },
 };
+
+// Helper function to fetch real BOM observation data
+async function fetchBomObservation(stationInfo: typeof BOM_STATIONS[string]) {
+  const url = `http://www.bom.gov.au/fwo/${stationInfo.product}/${stationInfo.product}.${stationInfo.wmo}.json`;
+
+  try {
+    const response = await axios.get(url, {
+      timeout: 10000,
+      headers: {
+        "User-Agent": "ABFI-Platform/1.0 (Agricultural Weather Monitoring)",
+      },
+    });
+
+    const data = response.data;
+    const observations = data?.observations?.data;
+
+    if (!observations || observations.length === 0) {
+      throw new Error("No observation data available");
+    }
+
+    // Get the latest observation
+    const latest = observations[0];
+
+    return {
+      station: {
+        id: stationInfo.id,
+        wmo: stationInfo.wmo,
+        name: latest.name || stationInfo.name,
+        state: stationInfo.state,
+        lat: latest.lat || stationInfo.lat,
+        lon: latest.lon || stationInfo.lon,
+      },
+      observation: {
+        timestamp: latest.local_date_time_full || new Date().toISOString(),
+        temperature: latest.air_temp,
+        apparentTemp: latest.apparent_t,
+        humidity: latest.rel_hum,
+        windSpeed: latest.wind_spd_kmh,
+        windGust: latest.gust_kmh,
+        windDirection: latest.wind_dir,
+        pressure: latest.press,
+        rainfall: latest.rain_trace,
+        cloud: latest.cloud || "N/A",
+        dewPoint: latest.dewpt,
+      },
+      conditions: latest.air_temp > 35 ? "Hot" : latest.air_temp > 25 ? "Warm" : latest.air_temp > 15 ? "Mild" : "Cool",
+      agricultureImpact: {
+        heatStress: latest.air_temp > 35 ? "High" : latest.air_temp > 30 ? "Moderate" : "Low",
+        frostRisk: latest.air_temp < 5 ? "High" : latest.air_temp < 10 ? "Moderate" : "None",
+        irrigationNeed: (latest.rain_trace === "0.0" || latest.rain_trace === "-") && latest.air_temp > 25 ? "High" : "Normal",
+      },
+      dataSource: "real",
+      bomUrl: url,
+    };
+  } catch (error: any) {
+    console.warn(`[BOM] Failed to fetch ${stationInfo.name}: ${error.message}`);
+    return null;
+  }
+}
 
 // Fire danger rating levels (new AFDRS system)
 const FIRE_DANGER_RATINGS = {
@@ -1746,7 +1815,7 @@ const FIRE_DANGER_RATINGS = {
   4: { level: "Catastrophic", color: "#f44336", description: "Fire will spread rapidly, unsafe" },
 };
 
-// Get current weather observations for agricultural regions
+// Get current weather observations for agricultural regions (REAL BOM DATA)
 australianDataRouter.get("/bom/observations", async (req, res) => {
   try {
     const { station, state } = req.query;
@@ -1757,73 +1826,33 @@ australianDataRouter.get("/bom/observations", async (req, res) => {
       return res.json(cached);
     }
 
-    // Generate realistic weather observations for agricultural regions
-    // In production, this would fetch from BOM API or scrape their public data
-    const generateObservation = (stationInfo: typeof BOM_STATIONS[string]) => {
-      const now = new Date();
-      const hour = now.getHours();
-
-      // Base temperatures by latitude (rough approximation)
-      const latFactor = Math.abs(stationInfo.lat);
-      const baseTemp = 35 - (latFactor - 20) * 0.8; // Hotter in the north
-      const tempVariation = Math.sin((hour - 6) * Math.PI / 12) * 8; // Daily cycle
-
-      // Seasonal adjustment (Southern Hemisphere - December is summer)
-      const month = now.getMonth();
-      const seasonalAdj = Math.cos((month - 0) * Math.PI / 6) * 8; // Peak in Dec/Jan
-
-      const temperature = Math.round((baseTemp + tempVariation + seasonalAdj + (Math.random() - 0.5) * 4) * 10) / 10;
-      const humidity = Math.round(40 + Math.random() * 40);
-      const windSpeed = Math.round(5 + Math.random() * 25);
-      const windDir = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.floor(Math.random() * 8)];
-      const pressure = Math.round(1010 + (Math.random() - 0.5) * 20);
-      const rainfall24h = Math.random() > 0.7 ? Math.round(Math.random() * 15 * 10) / 10 : 0;
-
-      return {
-        station: stationInfo,
-        observation: {
-          timestamp: now.toISOString(),
-          temperature,
-          apparentTemp: Math.round((temperature + (humidity > 60 ? 2 : -2)) * 10) / 10,
-          humidity,
-          windSpeed,
-          windGust: Math.round(windSpeed * (1.3 + Math.random() * 0.4)),
-          windDirection: windDir,
-          pressure,
-          rainfall24h,
-          cloud: ["Clear", "Partly Cloudy", "Cloudy", "Overcast"][Math.floor(Math.random() * 4)],
-          uvIndex: hour >= 10 && hour <= 15 ? Math.round(6 + Math.random() * 8) : 0,
-        },
-        conditions: temperature > 35 ? "Hot" : temperature > 25 ? "Warm" : temperature > 15 ? "Mild" : "Cool",
-        agricultureImpact: {
-          heatStress: temperature > 35 ? "High" : temperature > 30 ? "Moderate" : "Low",
-          frostRisk: temperature < 5 ? "High" : temperature < 10 ? "Moderate" : "None",
-          irrigationNeed: rainfall24h < 5 && temperature > 25 ? "High" : "Normal",
-        },
-      };
-    };
-
-    let observations: any[] = [];
+    let stationsToFetch: (typeof BOM_STATIONS[string])[] = [];
 
     if (station && BOM_STATIONS[String(station).toLowerCase()]) {
-      observations = [generateObservation(BOM_STATIONS[String(station).toLowerCase()])];
+      stationsToFetch = [BOM_STATIONS[String(station).toLowerCase()]];
     } else {
-      const filteredStations = state
+      stationsToFetch = state
         ? Object.values(BOM_STATIONS).filter((s) => s.state === String(state).toUpperCase())
         : Object.values(BOM_STATIONS);
-      observations = filteredStations.map(generateObservation);
     }
+
+    // Fetch real data from BOM in parallel
+    const observationPromises = stationsToFetch.map(fetchBomObservation);
+    const observations = (await Promise.all(observationPromises)).filter(Boolean);
 
     const result = {
       observations,
       observationTime: new Date().toISOString(),
       stationCount: observations.length,
+      requestedStations: stationsToFetch.length,
       source: "Bureau of Meteorology",
       sourceUrl: "http://www.bom.gov.au/",
-      note: "Weather observations for agricultural monitoring",
+      dataType: "real",
+      note: "Live weather observations from BOM JSON feeds",
       lastUpdated: new Date().toISOString(),
     };
 
+    // Cache for 10 minutes (BOM updates every 30 min)
     setCache(cacheKey, result);
     res.json(result);
   } catch (error: any) {
