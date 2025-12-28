@@ -77,6 +77,7 @@ interface LayerConfig {
   wmsLayers?: string;
   color: string;
   visible: boolean;
+  filter?: (feature: any) => boolean;
 }
 
 interface GeoJSONFeature {
@@ -178,15 +179,51 @@ export default function FeedstockMap() {
     },
     {
       id: "sugar-mills",
-      name: "Sugar Mills",
+      name: "Sugar Mills (22)",
       type: "marker",
       source: "/geojson/sugar_mills.json",
       color: "#8B4513",
+      visible: true,
+    },
+    {
+      id: "beema-bamboo-zones",
+      name: "Beema Bamboo Zones",
+      type: "polygon",
+      source: "/geojson/feedstock_growth_zones.json",
+      color: "#10b981",
+      visible: true,
+      filter: (f: any) => f.properties?.type === "beema_bamboo",
+    },
+    {
+      id: "sugarcane-zones",
+      name: "Sugarcane Bagasse Zones",
+      type: "polygon",
+      source: "/geojson/feedstock_growth_zones.json",
+      color: "#84cc16",
       visible: false,
+      filter: (f: any) => f.properties?.type === "sugarcane_bagasse",
+    },
+    {
+      id: "grain-zones",
+      name: "Grain Stubble Zones",
+      type: "polygon",
+      source: "/geojson/feedstock_growth_zones.json",
+      color: "#eab308",
+      visible: false,
+      filter: (f: any) => f.properties?.type === "grain_stubble",
+    },
+    {
+      id: "forestry-zones",
+      name: "Forestry Residue Zones",
+      type: "polygon",
+      source: "/geojson/feedstock_growth_zones.json",
+      color: "#166534",
+      visible: false,
+      filter: (f: any) => f.properties?.type === "forestry_residues",
     },
     {
       id: "grain-regions",
-      name: "Grain Regions",
+      name: "Grain Regions (Legacy)",
       type: "polygon",
       source: "/geojson/grain_regions.json",
       color: "#DAA520",
@@ -194,7 +231,7 @@ export default function FeedstockMap() {
     },
     {
       id: "forestry-regions",
-      name: "Forestry Regions",
+      name: "Forestry Regions (Legacy)",
       type: "polygon",
       source: "/geojson/forestry_regions.json",
       color: "#228B22",
@@ -256,6 +293,10 @@ export default function FeedstockMap() {
     "land-use": 50,
     "electricity": 70,
     "sugar-mills": 100,
+    "beema-bamboo-zones": 40,
+    "sugarcane-zones": 30,
+    "grain-zones": 30,
+    "forestry-zones": 30,
     "grain-regions": 30,
     "forestry-regions": 30,
     "abba-bagasse": 60,
@@ -308,12 +349,17 @@ export default function FeedstockMap() {
   useEffect(() => {
     const loadData = async () => {
       const data: Record<string, GeoJSONData> = {};
+      const loadedSources: Record<string, GeoJSONData> = {};
+
       for (const layer of layers) {
         if (layer.source) {
           try {
-            const response = await fetch(layer.source);
-            const geojson = await response.json();
-            data[layer.id] = geojson;
+            // Cache sources to avoid reloading the same file
+            if (!loadedSources[layer.source]) {
+              const response = await fetch(layer.source);
+              loadedSources[layer.source] = await response.json();
+            }
+            data[layer.id] = loadedSources[layer.source];
           } catch (error) {
             console.error(`Failed to load ${layer.id}:`, error);
           }
@@ -726,18 +772,32 @@ export default function FeedstockMap() {
         const data = layerData[layer.id];
         if (!data) return;
 
-        const geoJsonLayer = L.geoJSON(data as any, {
-          style: (feature) => ({
-            fillColor: layer.color,
-            fillOpacity: ((layerOpacity[layer.id] || 100) / 100) * 0.3,
-            color: layer.color,
-            weight: 2,
-            opacity: 0.8,
-          }),
+        // Apply layer-specific filter if defined
+        const filteredData = layer.filter
+          ? { ...data, features: data.features.filter(layer.filter) }
+          : data;
+
+        const geoJsonLayer = L.geoJSON(filteredData as any, {
+          style: (feature) => {
+            const props = feature.properties;
+            const isBeema = props?.type === "beema_bamboo";
+            return {
+              fillColor: props?.color || layer.color,
+              fillOpacity: ((layerOpacity[layer.id] || 100) / 100) * (isBeema ? 0.4 : 0.3),
+              color: props?.color || layer.color,
+              weight: isBeema ? 3 : 2,
+              opacity: isBeema ? 1 : 0.8,
+              dashArray: props?.status === "proposed" ? "5, 5" : undefined,
+            };
+          },
           pointToLayer: (feature, latlng) => {
+            const props = feature.properties;
+            const isSugarMill = props?.crushing_capacity_tonnes !== undefined;
+            const hasCogen = props?.cogeneration_mw > 0;
+
             return L.circleMarker(latlng, {
-              radius: 8,
-              fillColor: layer.color,
+              radius: isSugarMill ? (hasCogen ? 10 : 7) : 8,
+              fillColor: hasCogen ? "#10b981" : layer.color,
               fillOpacity: (layerOpacity[layer.id] || 100) / 100,
               color: "#fff",
               weight: 2,
@@ -745,14 +805,77 @@ export default function FeedstockMap() {
           },
           onEachFeature: (feature, featureLayer) => {
             const props = feature.properties;
-            const popupContent = `
-              <div style="font-family: system-ui; font-size: 13px; padding: 4px;">
-                <strong>${props.name || props.NAME || "Feature"}</strong>
-                ${props.state || props.STATE ? `<br><span style="color: #666;">State: ${props.state || props.STATE}</span>` : ""}
-                ${props.capacity || props.crushing_capacity_tonnes ? `<br><span style="color: #666;">Capacity: ${(props.capacity || props.crushing_capacity_tonnes || 0).toLocaleString()}</span>` : ""}
-              </div>
-            `;
-            featureLayer.bindPopup(popupContent);
+            let popupContent = "";
+
+            // Sugar mill popup
+            if (props?.crushing_capacity_tonnes !== undefined) {
+              popupContent = `
+                <div style="font-family: system-ui; font-size: 13px; padding: 4px; min-width: 200px;">
+                  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                    <span style="font-size: 16px;">🏭</span>
+                    <strong style="font-size: 14px;">${props.name}</strong>
+                  </div>
+                  <div style="color: #666; margin-bottom: 4px;">${props.town}, ${props.state}</div>
+                  <div style="display: grid; gap: 2px; font-size: 12px;">
+                    <div><strong>Owner:</strong> ${props.owner}</div>
+                    <div><strong>Crushing:</strong> ${(props.crushing_capacity_tonnes / 1000000).toFixed(1)}M tonnes/yr</div>
+                    ${props.cogeneration_mw > 0 ? `<div style="color: #10b981;"><strong>Cogeneration:</strong> ${props.cogeneration_mw} MW ${props.grid_export ? "⚡ Grid Export" : ""}</div>` : ""}
+                    <div><strong>Region:</strong> ${props.region}</div>
+                  </div>
+                </div>
+              `;
+            }
+            // Feedstock growth zone popup (including Beema Bamboo)
+            else if (props?.feedstock !== undefined) {
+              const isBeema = props.type === "beema_bamboo";
+              popupContent = `
+                <div style="font-family: system-ui; font-size: 13px; padding: 4px; min-width: 280px;">
+                  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                    <span style="font-size: 18px;">${isBeema ? "🎋" : props.type === "sugarcane_bagasse" ? "🌾" : props.type === "grain_stubble" ? "🌾" : "🌲"}</span>
+                    <div>
+                      <strong style="font-size: 14px; color: ${isBeema ? "#10b981" : "#333"};">${props.name}</strong>
+                      ${isBeema ? '<span style="background: #10b981; color: white; padding: 1px 6px; border-radius: 10px; font-size: 10px; margin-left: 6px;">HIGH PRIORITY</span>' : ""}
+                    </div>
+                  </div>
+                  <div style="color: #666; margin-bottom: 8px;">${props.region}, ${props.state}</div>
+                  <div style="background: ${isBeema ? "#ecfdf5" : "#f9fafb"}; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                    <div style="font-weight: 600; margin-bottom: 4px;">Feedstock: ${props.feedstock}</div>
+                    <div style="font-size: 12px; color: #666;">${props.description}</div>
+                  </div>
+                  <div style="display: grid; gap: 3px; font-size: 12px;">
+                    ${props.yield_tonnes_per_ha ? `<div><strong>Yield:</strong> ${props.yield_tonnes_per_ha} dry t/ha/yr</div>` : ""}
+                    ${props.carbon_sequestration_tonnes_co2_ha_yr ? `<div style="color: #10b981;"><strong>Carbon Sequestration:</strong> ${props.carbon_sequestration_tonnes_co2_ha_yr} t CO₂/ha/yr</div>` : ""}
+                    ${props.growth_cycle_years ? `<div><strong>Harvest Cycle:</strong> Every ${props.growth_cycle_years} years</div>` : ""}
+                    ${props.water_requirement ? `<div><strong>Water Needs:</strong> ${props.water_requirement}</div>` : ""}
+                    ${props.existing_mills ? `<div><strong>Nearby Mills:</strong> ${props.existing_mills}</div>` : ""}
+                    ${props.cogeneration_capacity_mw ? `<div><strong>Cogen Capacity:</strong> ${props.cogeneration_capacity_mw} MW</div>` : ""}
+                  </div>
+                  ${props.advantages && props.advantages.length > 0 ? `
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
+                      <div style="font-weight: 600; font-size: 11px; color: #666; margin-bottom: 4px;">KEY ADVANTAGES:</div>
+                      <ul style="margin: 0; padding-left: 16px; font-size: 11px;">
+                        ${props.advantages.slice(0, 4).map((a: string) => `<li>${a}</li>`).join("")}
+                      </ul>
+                    </div>
+                  ` : ""}
+                  <div style="margin-top: 8px; font-size: 10px; color: #9ca3af;">
+                    Status: ${props.status?.toUpperCase() || "N/A"} | Priority: ${props.priority?.toUpperCase() || "N/A"}
+                  </div>
+                </div>
+              `;
+            }
+            // Default popup
+            else {
+              popupContent = `
+                <div style="font-family: system-ui; font-size: 13px; padding: 4px;">
+                  <strong>${props.name || props.NAME || "Feature"}</strong>
+                  ${props.state || props.STATE ? `<br><span style="color: #666;">State: ${props.state || props.STATE}</span>` : ""}
+                  ${props.capacity ? `<br><span style="color: #666;">Capacity: ${props.capacity.toLocaleString()}</span>` : ""}
+                </div>
+              `;
+            }
+
+            featureLayer.bindPopup(popupContent, { maxWidth: 320 });
           },
           filter: (feature) => {
             const state = feature.properties?.state || feature.properties?.STATE;

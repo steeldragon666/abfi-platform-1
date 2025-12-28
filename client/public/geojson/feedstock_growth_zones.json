@@ -1,0 +1,400 @@
+{
+  "type": "FeatureCollection",
+  "name": "Australian Bioenergy Feedstock Growth Zones",
+  "description": "Proposed and established feedstock production regions for bioenergy",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [147.0, -19.2],
+          [147.6, -19.2],
+          [147.7, -19.4],
+          [147.7, -19.9],
+          [147.5, -20.1],
+          [147.0, -20.0],
+          [146.9, -19.6],
+          [147.0, -19.2]
+        ]]
+      },
+      "properties": {
+        "name": "Burdekin Beema Bamboo Zone",
+        "type": "beema_bamboo",
+        "feedstock": "Beema Bamboo",
+        "region": "Burdekin",
+        "state": "QLD",
+        "status": "proposed",
+        "priority": "high",
+        "description": "Strategic Beema Bamboo cultivation zone in the Burdekin Delta. Beema Bamboo is a fast-growing tropical grass with exceptional biomass yield (40-80 dry tonnes/ha/year), low water requirements, and carbon sequestration potential of 40+ tonnes CO2/ha/year.",
+        "yield_tonnes_per_ha": 60,
+        "growth_cycle_years": 4,
+        "carbon_sequestration_tonnes_co2_ha_yr": 42,
+        "water_requirement": "low",
+        "soil_types": ["alluvial", "clay loam", "sandy loam"],
+        "annual_rainfall_mm": 1000,
+        "existing_infrastructure": ["sugar mills", "rail", "port access"],
+        "advantages": [
+          "Fast growth - harvest every 4-5 years",
+          "High biomass yield - 3x sugarcane",
+          "Deep root system - drought tolerant",
+          "Perennial - no annual replanting",
+          "Carbon negative lifecycle",
+          "Low input costs after establishment",
+          "Compatible with existing sugar logistics",
+          "Year-round harvest possible"
+        ],
+        "color": "#10b981",
+        "icon": "bamboo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [145.0, -16.8],
+          [146.2, -16.8],
+          [146.5, -17.5],
+          [146.3, -18.2],
+          [145.5, -18.5],
+          [145.0, -18.0],
+          [145.0, -16.8]
+        ]]
+      },
+      "properties": {
+        "name": "Far North Queensland Sugarcane",
+        "type": "sugarcane_bagasse",
+        "feedstock": "Sugarcane Bagasse",
+        "region": "Far North Queensland",
+        "state": "QLD",
+        "status": "established",
+        "priority": "high",
+        "description": "Major sugarcane production region with established milling infrastructure and cogeneration capacity.",
+        "yield_tonnes_per_ha": 85,
+        "bagasse_percentage": 30,
+        "existing_mills": 4,
+        "cogeneration_capacity_mw": 59,
+        "color": "#84cc16",
+        "icon": "sugarcane"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [148.4, -20.2],
+          [149.4, -20.2],
+          [149.5, -21.0],
+          [149.3, -21.6],
+          [148.5, -21.5],
+          [148.2, -21.0],
+          [148.4, -20.2]
+        ]]
+      },
+      "properties": {
+        "name": "Mackay-Proserpine Sugarcane",
+        "type": "sugarcane_bagasse",
+        "feedstock": "Sugarcane Bagasse",
+        "region": "Mackay-Proserpine",
+        "state": "QLD",
+        "status": "established",
+        "priority": "high",
+        "description": "One of Australia's largest sugar regions with significant cogeneration infrastructure.",
+        "yield_tonnes_per_ha": 90,
+        "bagasse_percentage": 30,
+        "existing_mills": 6,
+        "cogeneration_capacity_mw": 48,
+        "color": "#84cc16",
+        "icon": "sugarcane"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [151.8, -24.5],
+          [152.8, -24.5],
+          [153.0, -25.0],
+          [152.9, -25.8],
+          [152.2, -25.8],
+          [151.8, -25.2],
+          [151.8, -24.5]
+        ]]
+      },
+      "properties": {
+        "name": "Bundaberg-Isis Sugarcane",
+        "type": "sugarcane_bagasse",
+        "feedstock": "Sugarcane Bagasse",
+        "region": "Bundaberg/Isis",
+        "state": "QLD",
+        "status": "established",
+        "priority": "medium",
+        "description": "Southern Queensland sugar region with Licella HTL project partnership opportunity.",
+        "yield_tonnes_per_ha": 80,
+        "bagasse_percentage": 30,
+        "existing_mills": 3,
+        "cogeneration_capacity_mw": 25,
+        "htl_potential": true,
+        "color": "#84cc16",
+        "icon": "sugarcane"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [152.8, -28.0],
+          [153.6, -28.0],
+          [153.6, -29.6],
+          [153.0, -29.8],
+          [152.6, -29.4],
+          [152.8, -28.0]
+        ]]
+      },
+      "properties": {
+        "name": "Northern Rivers Sugarcane",
+        "type": "sugarcane_bagasse",
+        "feedstock": "Sugarcane Bagasse",
+        "region": "Northern Rivers",
+        "state": "NSW",
+        "status": "established",
+        "priority": "medium",
+        "description": "NSW sugar region with three operational mills and established grid export.",
+        "yield_tonnes_per_ha": 75,
+        "bagasse_percentage": 30,
+        "existing_mills": 3,
+        "cogeneration_capacity_mw": 90,
+        "color": "#84cc16",
+        "icon": "sugarcane"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [149.5, -28.5],
+          [151.5, -28.5],
+          [152.0, -29.5],
+          [151.5, -31.0],
+          [149.5, -31.0],
+          [149.0, -30.0],
+          [149.5, -28.5]
+        ]]
+      },
+      "properties": {
+        "name": "Northern NSW Grain Belt",
+        "type": "grain_stubble",
+        "feedstock": "Grain Stubble / Straw",
+        "region": "Northern NSW",
+        "state": "NSW",
+        "status": "established",
+        "priority": "medium",
+        "description": "Wheat and sorghum production region with significant stubble availability.",
+        "yield_tonnes_per_ha": 3.5,
+        "stubble_ratio": 1.2,
+        "crops": ["wheat", "sorghum", "barley"],
+        "color": "#eab308",
+        "icon": "wheat"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [138.0, -33.0],
+          [140.5, -33.0],
+          [141.0, -34.5],
+          [140.0, -36.5],
+          [137.5, -36.0],
+          [137.0, -34.5],
+          [138.0, -33.0]
+        ]]
+      },
+      "properties": {
+        "name": "South Australian Grain Belt",
+        "type": "grain_stubble",
+        "feedstock": "Grain Stubble / Straw",
+        "region": "SA Grain Belt",
+        "state": "SA",
+        "status": "established",
+        "priority": "medium",
+        "description": "Major wheat and barley production area with export logistics via Port Adelaide.",
+        "yield_tonnes_per_ha": 2.8,
+        "stubble_ratio": 1.1,
+        "crops": ["wheat", "barley"],
+        "color": "#eab308",
+        "icon": "wheat"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [143.5, -35.5],
+          [146.0, -35.5],
+          [146.5, -37.0],
+          [145.5, -38.0],
+          [143.0, -37.5],
+          [143.0, -36.5],
+          [143.5, -35.5]
+        ]]
+      },
+      "properties": {
+        "name": "Victorian Grain Belt",
+        "type": "grain_stubble",
+        "feedstock": "Grain Stubble / Canola",
+        "region": "Wimmera-Mallee",
+        "state": "VIC",
+        "status": "established",
+        "priority": "medium",
+        "description": "Wheat and canola region with GrainCorp aggregation infrastructure.",
+        "yield_tonnes_per_ha": 2.5,
+        "stubble_ratio": 1.0,
+        "crops": ["wheat", "canola", "barley"],
+        "canola_oil_potential": true,
+        "color": "#eab308",
+        "icon": "wheat"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [150.0, -32.0],
+          [152.5, -32.0],
+          [153.0, -33.5],
+          [152.0, -34.5],
+          [150.0, -34.0],
+          [149.5, -32.5],
+          [150.0, -32.0]
+        ]]
+      },
+      "properties": {
+        "name": "Central NSW Forestry",
+        "type": "forestry_residues",
+        "feedstock": "Forestry Residues",
+        "region": "Central Tablelands",
+        "state": "NSW",
+        "status": "established",
+        "priority": "low",
+        "description": "Softwood and hardwood forestry with sawmill and harvest residue availability.",
+        "plantation_area_ha": 250000,
+        "residue_availability_tonnes_yr": 180000,
+        "forest_types": ["radiata pine", "eucalyptus"],
+        "color": "#166534",
+        "icon": "tree"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [146.5, -38.0],
+          [148.0, -38.0],
+          [148.5, -38.8],
+          [147.5, -39.0],
+          [146.0, -38.5],
+          [146.5, -38.0]
+        ]]
+      },
+      "properties": {
+        "name": "Gippsland Forestry",
+        "type": "forestry_residues",
+        "feedstock": "Forestry Residues",
+        "region": "Gippsland",
+        "state": "VIC",
+        "status": "established",
+        "priority": "low",
+        "description": "Plantation forestry with established harvest and processing infrastructure.",
+        "plantation_area_ha": 180000,
+        "residue_availability_tonnes_yr": 120000,
+        "forest_types": ["radiata pine", "eucalyptus"],
+        "color": "#166534",
+        "icon": "tree"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [147.5, -19.0],
+          [148.5, -19.0],
+          [148.8, -20.0],
+          [148.5, -21.0],
+          [147.5, -21.0],
+          [147.2, -20.0],
+          [147.5, -19.0]
+        ]]
+      },
+      "properties": {
+        "name": "North Queensland Beema Expansion",
+        "type": "beema_bamboo",
+        "feedstock": "Beema Bamboo",
+        "region": "Bowen-Collinsville",
+        "state": "QLD",
+        "status": "proposed",
+        "priority": "medium",
+        "description": "Proposed expansion zone for Beema Bamboo cultivation leveraging existing rail and port infrastructure at Abbot Point.",
+        "yield_tonnes_per_ha": 55,
+        "growth_cycle_years": 4,
+        "carbon_sequestration_tonnes_co2_ha_yr": 38,
+        "water_requirement": "low",
+        "advantages": [
+          "Existing coal rail infrastructure",
+          "Abbot Point port access",
+          "Underutilized agricultural land",
+          "Just transition opportunity"
+        ],
+        "color": "#10b981",
+        "icon": "bamboo"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [150.5, -23.0],
+          [151.5, -23.0],
+          [151.8, -24.0],
+          [151.2, -24.5],
+          [150.3, -24.0],
+          [150.5, -23.0]
+        ]]
+      },
+      "properties": {
+        "name": "Central Queensland Bamboo Opportunity",
+        "type": "beema_bamboo",
+        "feedstock": "Beema Bamboo",
+        "region": "Gladstone-Rockhampton",
+        "state": "QLD",
+        "status": "proposed",
+        "priority": "medium",
+        "description": "Future Beema Bamboo zone with excellent port access at Gladstone and potential co-location with biofuel facilities.",
+        "yield_tonnes_per_ha": 50,
+        "growth_cycle_years": 4,
+        "carbon_sequestration_tonnes_co2_ha_yr": 35,
+        "water_requirement": "low",
+        "biofuel_synergy": ["Northern Oil Yarwun", "XCF Global"],
+        "advantages": [
+          "Gladstone port infrastructure",
+          "Multiple biofuel projects nearby",
+          "Suitable climate",
+          "Land availability"
+        ],
+        "color": "#10b981",
+        "icon": "bamboo"
+      }
+    }
+  ]
+}
