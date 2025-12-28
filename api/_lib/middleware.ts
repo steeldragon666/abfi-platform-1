@@ -173,10 +173,17 @@ export function createServerRouterHandler<TRouter>(
       const request = new Request(url, { method: req.method, headers, body });
 
       // Create context compatible with server routers
+      // sdk.authenticateRequest expects Express-style req with .get() or .headers.cookie
+      const cookieHeader = headers.get("cookie") || "";
+      const expressLikeReq = {
+        get: (name: string) => name === "cookie" ? cookieHeader : headers.get(name),
+        headers: { cookie: cookieHeader },
+      };
+
       const createContext = async () => {
         let user: User | null = null;
         try {
-          user = await sdk.authenticateRequest(request);
+          user = await sdk.authenticateRequest(expressLikeReq);
         } catch {
           user = null;
         }
