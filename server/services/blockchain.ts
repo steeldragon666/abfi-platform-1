@@ -6,9 +6,13 @@
  * - Ethereum Mainnet, Sepolia, Polygon
  * - Smart contract interaction for Merkle root storage
  * - Transaction management with retry logic
+ *
+ * NOTE: Uses dynamic imports for ethers to reduce bundle size.
+ * The ethers library (~2MB) is only loaded when blockchain features are used.
  */
 
-import { ethers, JsonRpcProvider, Wallet, Contract, ContractTransactionResponse } from "ethers";
+// Type-only imports (stripped at compile time, no bundle impact)
+import type { JsonRpcProvider, Wallet, Contract, ContractTransactionResponse } from "ethers";
 
 // ABFI Evidence Anchor Contract ABI (minimal interface)
 const ANCHOR_CONTRACT_ABI = [
@@ -67,28 +71,51 @@ const CHAIN_CONFIGS: Record<string, Partial<BlockchainConfig>> = {
   },
 };
 
+// Lazy-loaded ethers module
+let ethersModule: typeof import("ethers") | null = null;
+
+async function getEthers() {
+  if (!ethersModule) {
+    ethersModule = await import("ethers");
+  }
+  return ethersModule;
+}
+
 /**
  * BlockchainService handles all Ethereum interactions for the Evidence Vault
+ * Uses lazy-loaded ethers to minimize bundle size impact.
  */
 export class BlockchainService {
-  private provider: JsonRpcProvider;
+  private provider: JsonRpcProvider | null = null;
   private wallet: Wallet | null = null;
-  private contract: Contract;
+  private contract: Contract | null = null;
   private config: BlockchainConfig;
+  private initialized = false;
 
   constructor(config: BlockchainConfig) {
     this.config = config;
-    this.provider = new JsonRpcProvider(config.rpcUrl, {
-      chainId: config.chainId,
-      name: config.chainName,
+  }
+
+  /**
+   * Lazily initialize ethers components
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (this.initialized) return;
+
+    const { JsonRpcProvider, Wallet, Contract } = await getEthers();
+
+    this.provider = new JsonRpcProvider(this.config.rpcUrl, {
+      chainId: this.config.chainId,
+      name: this.config.chainName,
     });
 
-    if (config.privateKey) {
-      this.wallet = new Wallet(config.privateKey, this.provider);
+    if (this.config.privateKey) {
+      this.wallet = new Wallet(this.config.privateKey, this.provider);
     }
 
     const signer = this.wallet || this.provider;
-    this.contract = new Contract(config.contractAddress, ANCHOR_CONTRACT_ABI, signer);
+    this.contract = new Contract(this.config.contractAddress, ANCHOR_CONTRACT_ABI, signer);
+    this.initialized = true;
   }
 
   /**
@@ -99,6 +126,8 @@ export class BlockchainService {
     leafCount: number,
     batchId: number
   ): Promise<AnchorResult> {
+    await this.ensureInitialized();
+
     if (!this.wallet) {
       return {
         success: false,
@@ -113,7 +142,7 @@ export class BlockchainService {
         : "0x" + merkleRoot;
 
       // Estimate gas first
-      const gasEstimate = await this.contract.anchorMerkleRoot.estimateGas(
+      const gasEstimate = await this.contract!.anchorMerkleRoot.estimateGas(
         merkleRootBytes32,
         leafCount,
         batchId
@@ -123,7 +152,7 @@ export class BlockchainService {
       const gasLimit = (gasEstimate * BigInt(120)) / BigInt(100);
 
       // Submit transaction
-      const tx: ContractTransactionResponse = await this.contract.anchorMerkleRoot(
+      const tx: ContractTransactionResponse = await this.contract!.anchorMerkleRoot(
         merkleRootBytes32,
         leafCount,
         batchId,
@@ -146,7 +175,7 @@ export class BlockchainService {
       let onChainAnchorId: number | undefined;
       for (const log of receipt.logs) {
         try {
-          const parsed = this.contract.interface.parseLog({
+          const parsed = this.contract!.interface.parseLog({
             topics: log.topics as string[],
             data: log.data,
           });
@@ -160,7 +189,7 @@ export class BlockchainService {
       }
 
       // Get block timestamp
-      const block = await this.provider.getBlock(receipt.blockNumber);
+      const block = await this.provider!.getBlock(receipt.blockNumber);
 
       return {
         success: true,
@@ -185,8 +214,10 @@ export class BlockchainService {
    * Retrieve anchor data from the blockchain
    */
   async getAnchor(anchorId: number): Promise<AnchorData | null> {
+    await this.ensureInitialized();
+
     try {
-      const result = await this.contract.getAnchor(anchorId);
+      const result = await this.contract!.getAnchor(anchorId);
       return {
         merkleRoot: result.merkleRoot,
         leafCount: Number(result.leafCount),
@@ -207,12 +238,14 @@ export class BlockchainService {
     leaf: string,
     proof: string[]
   ): Promise<boolean> {
+    await this.ensureInitialized();
+
     try {
       const merkleRootBytes32 = merkleRoot.startsWith("0x") ? merkleRoot : "0x" + merkleRoot;
       const leafBytes32 = leaf.startsWith("0x") ? leaf : "0x" + leaf;
       const proofBytes32 = proof.map((p) => (p.startsWith("0x") ? p : "0x" + p));
 
-      return await this.contract.verifyInclusion(merkleRootBytes32, leafBytes32, proofBytes32);
+      return await this.contract!.verifyInclusion(merkleRootBytes32, leafBytes32, proofBytes32);
     } catch (error) {
       console.error(`[Blockchain] Verification failed:`, error);
       return false;
@@ -223,7 +256,9 @@ export class BlockchainService {
    * Get current gas price
    */
   async getGasPrice(): Promise<{ gasPrice: string; maxFeePerGas?: string }> {
-    const feeData = await this.provider.getFeeData();
+    await this.ensureInitialized();
+
+    const feeData = await this.provider!.getFeeData();
     return {
       gasPrice: feeData.gasPrice?.toString() || "0",
       maxFeePerGas: feeData.maxFeePerGas?.toString(),
@@ -241,9 +276,12 @@ export class BlockchainService {
     walletBalance?: string;
   }> {
     try {
+      await this.ensureInitialized();
+      const ethers = await getEthers();
+
       const [network, blockNumber] = await Promise.all([
-        this.provider.getNetwork(),
-        this.provider.getBlockNumber(),
+        this.provider!.getNetwork(),
+        this.provider!.getBlockNumber(),
       ]);
 
       const result: {
@@ -260,7 +298,7 @@ export class BlockchainService {
 
       if (this.wallet) {
         result.walletAddress = await this.wallet.getAddress();
-        const balance = await this.provider.getBalance(result.walletAddress);
+        const balance = await this.provider!.getBalance(result.walletAddress);
         result.walletBalance = ethers.formatEther(balance);
       }
 
