@@ -19,10 +19,10 @@ export const systemRouter = router({
   getStats: publicProcedure.query(async () => {
     const db = await import("../../../server/db");
     const suppliers = await db.getAllSuppliers();
-    const buyers = await db.getAllBuyers();
+    const users = await db.getAllUsers();
     return {
       supplierCount: suppliers.length,
-      buyerCount: buyers.length,
+      userCount: users.length,
       timestamp: new Date().toISOString(),
     };
   }),
