@@ -1,3 +1,9 @@
+/**
+ * @deprecated This component is superseded by UnifiedMapPage.tsx
+ * Routes are redirected to /map which uses the consolidated UnifiedMap component.
+ * This file can be removed once migration is complete.
+ * @see client/src/pages/UnifiedMapPage.tsx
+ */
 import { Button } from "@/components/ui/button";
 import {
   Card,

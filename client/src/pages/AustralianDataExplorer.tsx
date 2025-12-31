@@ -1,8 +1,12 @@
 /**
- * Australian Data Explorer Page
+ * @deprecated This component is superseded by UnifiedMapPage.tsx
+ * The /australian-data route now redirects to /map (UnifiedMap).
+ * This file can be removed once migration is verified.
+ * @see client/src/pages/UnifiedMapPage.tsx
  *
- * Explore Australian environmental data including climate,
- * soil, and carbon credit information with live data feeds.
+ * Original Description:
+ * Australian Data Explorer Page - Explore Australian environmental data
+ * including climate, soil, and carbon credit information with live data feeds.
  */
 
 import { useState, useEffect } from "react";

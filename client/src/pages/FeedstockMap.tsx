@@ -1,3 +1,9 @@
+/**
+ * @deprecated This component is superseded by UnifiedMapPage.tsx
+ * The /feedstock-map route now redirects to /map (UnifiedMap).
+ * This file can be removed once migration is verified.
+ * @see client/src/pages/UnifiedMapPage.tsx
+ */
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";

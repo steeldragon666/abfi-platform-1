@@ -1,3 +1,9 @@
+/**
+ * @deprecated This component is superseded by Landing.tsx
+ * The /home route now redirects to / (Landing page).
+ * This file can be removed once migration is verified.
+ * @see client/src/pages/Landing.tsx
+ */
 import React from 'react';
 import { Leaf, Factory, TrendingUp, CheckCircle, Zap, BarChart, Shield, Users, Globe, ChevronRight } from 'lucide-react';
 import { H1, H2, H3, Body, MetricValue } from '@/components/Typography';

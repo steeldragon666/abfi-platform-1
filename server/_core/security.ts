@@ -175,6 +175,9 @@ function buildCSPDirectives(nonce: string, config: SecurityHeadersOptions): stri
         "'self'",
         "'unsafe-inline'",
         "'unsafe-eval'", // Required for Vite HMR
+        // Google Maps
+        "https://maps.googleapis.com",
+        "https://*.googleapis.com",
       ]
     : [
         "'self'",
@@ -184,6 +187,9 @@ function buildCSPDirectives(nonce: string, config: SecurityHeadersOptions): stri
         "https://js.sentry.io",
         "https://www.googletagmanager.com",
         "https://va.vercel-scripts.com", // Vercel Analytics
+        // Google Maps
+        "https://maps.googleapis.com",
+        "https://*.googleapis.com",
         ...(config.trustedScriptSources || []),
       ];
   directives.push(`script-src ${scriptSources.join(" ")}`);

@@ -1,8 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Route, Switch } from "wouter";
+import { Route, Switch, Redirect, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { UserRoleProvider } from "./contexts/UserRoleContext";
@@ -152,6 +152,8 @@ const CarbonIntensityAnalysis = lazy(() => import("./pages/CarbonIntensityAnalys
 const Landing = lazy(() => import("./pages/Landing"));
 const Explore = lazy(() => import("./pages/Explore"));
 const SimplifiedDashboard = lazy(() => import("./components/dashboard/SimplifiedDashboard").then(m => ({ default: m.SimplifiedDashboard })));
+const UnifiedDashboard = lazy(() => import("./pages/UnifiedDashboard"));
+const UnifiedMapPage = lazy(() => import("./pages/UnifiedMapPage"));
 const GrowerDashboard = lazy(() => import("./pages/GrowerDashboard"));
 const GrowerSettings = lazy(() => import("./pages/GrowerSettings"));
 const DeveloperDashboard = lazy(() => import("./pages/DeveloperDashboard"));
@@ -185,10 +187,32 @@ function Router() {
     <AppLayout>
       <Suspense fallback={<PageLoader />}>
         <Switch>
-        {/* New navigation architecture routes */}
+        {/* ============================================= */}
+        {/* CONSOLIDATED NAVIGATION ARCHITECTURE         */}
+        {/* ============================================= */}
+
+        {/* Core Routes */}
         <Route path="/" component={Landing} />
         <Route path="/explore" component={Explore} />
         <Route path="/welcome" component={SimplifiedDashboard} />
+        <Route path="/unified" component={UnifiedDashboard} />
+
+        {/* Unified Map - Primary map experience */}
+        <Route path="/map" component={UnifiedMapPage} />
+        <Route path="/unified-map" component={UnifiedMapPage} />
+
+        {/* Legacy map routes -> redirect to unified map */}
+        <Route path="/feedstock-map">
+          <Redirect to="/map" />
+        </Route>
+        <Route path="/market-intelligence">
+          <Redirect to="/map" />
+        </Route>
+        <Route path="/australian-data">
+          <Redirect to="/map" />
+        </Route>
+
+        {/* Role-specific dashboards (will be deprecated - redirect to unified) */}
         <Route path="/grower/dashboard" component={GrowerDashboard} />
         <Route path="/grower/settings" component={GrowerSettings} />
         <Route path="/developer/dashboard" component={DeveloperDashboard} />
@@ -200,8 +224,10 @@ function Router() {
         <Route path="/quote-request" component={QuoteRequest} />
         <Route path="/changelog" component={Changelog} />
 
-        {/* Legacy home route */}
-        <Route path="/home" component={Home} />
+        {/* Legacy home route -> redirect to landing */}
+        <Route path="/home">
+          <Redirect to="/" />
+        </Route>
         <Route path="/financial-onboarding" component={FinancialOnboarding} />
         <Route
           path="/financial-onboarding/success"
@@ -209,7 +235,7 @@ function Router() {
         />
         <Route path="/bankability-explainer" component={BankabilityExplainer} />
         <Route path="/explainers" component={Explainers} />
-        <Route path="/grower-benefits" component={GrowerBenefits} />
+        {/* grower-benefits redirected to for-growers above */}
         <Route path="/project-registration" component={ProjectRegistration} />
         <Route
           path="/project-registration/flow"
@@ -312,15 +338,20 @@ function Router() {
         <Route path="/futures/:id" component={FuturesDetailBuyer} />
         <Route path="/buyer/eois" component={MyEOIs} />
         <Route path="/for-growers" component={ForGrowers} />
+        {/* Merge grower-benefits into for-growers */}
+        <Route path="/grower-benefits">
+          <Redirect to="/for-growers" />
+        </Route>
         <Route path="/grower-qualification" component={GrowerQualificationTiers} />
         <Route path="/for-developers" component={ForDevelopers} />
         <Route path="/for-lenders" component={ForLenders} />
         <Route path="/platform-features" component={PlatformFeatures} />
-        <Route path="/map" component={MapView} />
-        <Route path="/feedstock-map" component={FeedstockMap} />
-        <Route path="/australian-data" component={AustralianDataExplorer} />
+        {/* Map routes consolidated above - legacy components kept for reference */}
+        {/* Authentication - consolidated */}
         <Route path="/login" component={DevLogin} />
-        <Route path="/dev-login" component={DevLogin} />
+        <Route path="/dev-login">
+          <Redirect to="/login" />
+        </Route>
         <Route path="/mygovid-login" component={MyGovIdLogin} />
         <Route path="/producer-registration" component={ProducerRegistration} />
         <Route

@@ -45,14 +45,14 @@ test.describe("Navigation & Accessibility", () => {
   test("should have semantic HTML structure", async ({ page }) => {
     await page.goto("/");
 
-    // Check for main landmark
-    const main = page.locator("main");
+    // Check for main landmark (use first() to handle multiple main elements)
+    const main = page.locator("main").first();
     if (await main.isVisible()) {
       await expect(main).toBeVisible();
     }
 
     // Check for header
-    const header = page.locator("header");
+    const header = page.locator("header").first();
     if (await header.isVisible()) {
       await expect(header).toBeVisible();
     }
@@ -99,5 +99,33 @@ test.describe("Navigation & Accessibility", () => {
     // Basic check that text is visible
     const bodyText = await page.locator("body").textContent();
     expect(bodyText).toBeTruthy();
+  });
+
+  test("should load unified map page", async ({ page }) => {
+    // Navigate to unified map
+    await page.goto("/unified-map");
+
+    // Should render the map container
+    await page.waitForLoadState("networkidle");
+
+    // Check for map-related UI elements
+    const layersButton = page.getByRole("button", { name: /layers/i });
+    const filtersButton = page.getByRole("button", { name: /filters/i });
+
+    // At least one of these should be visible (map controls)
+    const layersVisible = await layersButton.isVisible().catch(() => false);
+    const filtersVisible = await filtersButton.isVisible().catch(() => false);
+
+    expect(layersVisible || filtersVisible).toBeTruthy();
+  });
+
+  test("should load unified dashboard page", async ({ page }) => {
+    await page.goto("/unified");
+
+    await page.waitForLoadState("networkidle");
+
+    // Check for dashboard content
+    const welcomeText = page.getByText(/welcome to abfi/i);
+    await expect(welcomeText).toBeVisible();
   });
 });
