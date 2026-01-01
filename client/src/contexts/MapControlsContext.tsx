@@ -139,6 +139,11 @@ export function useMapControls() {
   return context;
 }
 
+// Safe version that returns null if outside provider (for optional context usage)
+export function useMapControlsSafe() {
+  return useContext(MapControlsContext);
+}
+
 interface MapControlsProviderProps {
   children: ReactNode;
   userRole?: string;

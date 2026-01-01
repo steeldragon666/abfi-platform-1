@@ -4,6 +4,38 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { cn } from "@/lib/utils";
+import { useMapControlsSafe } from "@/contexts/MapControlsContext";
+
+// Tile layer configurations
+const TILE_LAYERS = {
+  roadmap: {
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
+  satellite: {
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: '&copy; <a href="https://www.esri.com/">Esri</a> | Earthstar Geographics',
+    maxZoom: 18,
+  },
+  hybrid: {
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: '&copy; <a href="https://www.esri.com/">Esri</a> | Earthstar Geographics',
+    maxZoom: 18,
+  },
+  terrain: {
+    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+    maxZoom: 17,
+  },
+};
+
+// Labels overlay for hybrid view
+const LABELS_LAYER = {
+  url: "https://stamen-tiles.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}.png",
+  attribution: '&copy; <a href="https://stamen.com">Stamen Design</a>',
+  maxZoom: 18,
+};
 
 // Fix Leaflet default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -40,7 +72,20 @@ export function SimpleLeafletMap({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const labelsLayerRef = useRef<L.TileLayer | null>(null);
   const [isReady, setIsReady] = useState(false);
+
+  // Get layer state from context (with fallback for standalone usage)
+  const mapControlsContext = useMapControlsSafe();
+  const layers = mapControlsContext?.layers ?? [];
+
+  // Determine map view type from context
+  const mapViewType: 'roadmap' | 'satellite' | 'hybrid' | 'terrain' =
+    layers.find((l) => l.id === 'satelliteImagery')?.enabled ? 'satellite' :
+    layers.find((l) => l.id === 'hybridView')?.enabled ? 'hybrid' :
+    layers.find((l) => l.id === 'terrainView')?.enabled ? 'terrain' :
+    'roadmap';
 
   // Initialize map
   useEffect(() => {
@@ -53,10 +98,11 @@ export function SimpleLeafletMap({
       scrollWheelZoom: true,
     });
 
-    // Add OpenStreetMap base layer
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
+    // Add initial tile layer (will be updated by separate effect)
+    const tileConfig = TILE_LAYERS.roadmap;
+    tileLayerRef.current = L.tileLayer(tileConfig.url, {
+      attribution: tileConfig.attribution,
+      maxZoom: tileConfig.maxZoom,
     }).addTo(map);
 
     // Add scale control
@@ -72,8 +118,43 @@ export function SimpleLeafletMap({
     return () => {
       map.remove();
       mapRef.current = null;
+      tileLayerRef.current = null;
+      labelsLayerRef.current = null;
     };
   }, []);
+
+  // Update tile layer when map view type changes
+  useEffect(() => {
+    if (!mapRef.current || !isReady) return;
+
+    const map = mapRef.current;
+    const tileConfig = TILE_LAYERS[mapViewType];
+
+    // Remove existing tile layer
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    // Remove existing labels layer
+    if (labelsLayerRef.current) {
+      map.removeLayer(labelsLayerRef.current);
+      labelsLayerRef.current = null;
+    }
+
+    // Add new tile layer
+    tileLayerRef.current = L.tileLayer(tileConfig.url, {
+      attribution: tileConfig.attribution,
+      maxZoom: tileConfig.maxZoom,
+    }).addTo(map);
+
+    // Add labels overlay for hybrid view
+    if (mapViewType === 'hybrid') {
+      labelsLayerRef.current = L.tileLayer(LABELS_LAYER.url, {
+        attribution: LABELS_LAYER.attribution,
+        maxZoom: LABELS_LAYER.maxZoom,
+      }).addTo(map);
+    }
+  }, [mapViewType, isReady]);
 
   // Handle markers
   useEffect(() => {
