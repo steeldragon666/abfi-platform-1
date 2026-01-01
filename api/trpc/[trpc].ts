@@ -1,12 +1,13 @@
 /**
  * tRPC API Route Handler for Vercel Serverless
  * Self-contained with mock data for demo deployments
- * Version: 2.0.0 - includes prices router
+ * Version: 2.1.0 - added superjson transformer for client compatibility
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { initTRPC } from "@trpc/server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { z } from "zod";
+import superjson from "superjson";
 
 // =============================================================================
 // Middleware
@@ -187,7 +188,9 @@ function getMockTechnicals(commodity: string) {
 
 type Context = { user: null };
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+  transformer: superjson,
+});
 const publicProcedure = t.procedure;
 const router = t.router;
 
@@ -239,7 +242,7 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.0.0",
+        version: "2.1.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
         hasRouter: { prices: true },
