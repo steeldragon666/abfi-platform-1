@@ -1,14 +1,15 @@
 /**
- * tRPC API Route Handler - Self-Contained for Vercel Serverless
- * All dependencies are inlined to avoid ESM module resolution issues
+ * tRPC API Route Handler for Vercel Serverless
+ * Imports routers from server for full API functionality
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { z } from "zod";
+import { pricesRouter } from "../../server/pricesRouter";
 
 // =============================================================================
-// Inlined Middleware
+// Middleware
 // =============================================================================
 
 const ALLOWED_ORIGINS = [
@@ -65,7 +66,7 @@ const t = initTRPC.context<Context>().create();
 const publicProcedure = t.procedure;
 const router = t.router;
 
-// Minimal API router for Vercel - public endpoints only
+// API router for Vercel with full functionality
 const apiRouter = router({
   system: router({
     health: publicProcedure
@@ -76,6 +77,8 @@ const apiRouter = router({
         environment: process.env.NODE_ENV || "production",
       })),
   }),
+  // Include prices router for feedstock price dashboard
+  prices: pricesRouter,
 });
 
 export const config = {

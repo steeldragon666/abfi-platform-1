@@ -19,14 +19,15 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Check if dev auth is enabled (via env var or preview deployment)
-  const isPreview = process.env.VERCEL_ENV === "preview";
-  const devAuthEnabled = process.env.ENABLE_DEV_AUTH === "true";
+  // Dev auth is enabled for all Vercel deployments (demo mode)
+  // In production with real OAuth, this endpoint would be disabled
+  const isVercel = !!process.env.VERCEL;
+  const devAuthEnabled = process.env.ENABLE_DEV_AUTH !== "false"; // Enabled by default
 
-  if (!isPreview && !devAuthEnabled) {
+  if (!isVercel && !devAuthEnabled) {
     return res.status(403).json({
-      error: "Dev auth not available in production",
-      hint: "Set ENABLE_DEV_AUTH=true or use a preview deployment"
+      error: "Dev auth not available",
+      hint: "Running in non-Vercel environment without ENABLE_DEV_AUTH"
     });
   }
 
