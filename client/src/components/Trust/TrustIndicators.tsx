@@ -203,24 +203,27 @@ interface TrustFooterProps {
 
 export function TrustFooter({ className }: TrustFooterProps) {
   return (
-    <div
+    <footer
       className={cn(
         "border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 py-4 px-6",
         className
       )}
+      role="contentinfo"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
+        {/* Security Indicators */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <div className="security-badge ssl-indicator flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
             <span>256-bit SSL Encryption</span>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <span>AU Data Residency</span>
+            <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+            <span>Australian Data Residency</span>
           </div>
         </div>
 
+        {/* Compliance Badges */}
         <div className="flex items-center gap-3">
           <ComplianceBadges compact />
           <span className="text-xs text-gray-500 dark:text-gray-500">
@@ -228,7 +231,26 @@ export function TrustFooter({ className }: TrustFooterProps) {
           </span>
         </div>
       </div>
-    </div>
+
+      {/* Legal Links */}
+      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+        <a
+          href="/privacy"
+          className="privacy-link hover:text-gray-700 dark:hover:text-gray-300 underline-offset-2 hover:underline"
+        >
+          Privacy Policy
+        </a>
+        <span aria-hidden="true">•</span>
+        <a
+          href="/terms"
+          className="terms-link hover:text-gray-700 dark:hover:text-gray-300 underline-offset-2 hover:underline"
+        >
+          Terms of Service
+        </a>
+        <span aria-hidden="true">•</span>
+        <span>© {new Date().getFullYear()} ABFI Platform. All rights reserved.</span>
+      </div>
+    </footer>
   );
 }
 
@@ -289,12 +311,12 @@ export function FloatingSecurityIndicator({ className }: FloatingSecurityIndicat
       ) : (
         <button
           onClick={() => setIsExpanded(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-emerald-200 dark:border-emerald-800 hover:shadow-xl transition-shadow"
+          className="security-badge ssl-badge flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-emerald-200 dark:border-emerald-800 hover:shadow-xl transition-shadow"
           aria-label="View security status"
         >
-          <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Secure</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">SSL Secure</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
         </button>
       )}
     </div>

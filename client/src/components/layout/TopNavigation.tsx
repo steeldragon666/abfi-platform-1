@@ -267,17 +267,24 @@ export function TopNavigation({ className }: TopNavigationProps) {
         <div className="ml-auto flex items-center gap-2">
           {/* Trust Indicators - SSL Badge */}
           {!isMobile && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-xs font-medium text-emerald-800 dark:text-emerald-300">
-              <Lock className="h-3 w-3" />
-              <span>Secure</span>
+            <div
+              className="security-badge ssl-badge flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-xs font-medium text-emerald-800 dark:text-emerald-300"
+              aria-label="SSL secured connection"
+            >
+              <Lock className="h-3 w-3" aria-hidden="true" />
+              <span>SSL Secure</span>
             </div>
           )}
 
           {/* Data Residency Badge */}
           {!isMobile && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-xs font-medium text-blue-800 dark:text-blue-300" title="Data stored in Australia">
-              <Globe className="h-3 w-3" />
-              <span>AU</span>
+            <div
+              className="data-residency-badge flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-xs font-medium text-blue-800 dark:text-blue-300"
+              title="Data stored in Australia"
+              aria-label="Australian data residency"
+            >
+              <Globe className="h-3 w-3" aria-hidden="true" />
+              <span>AU Data</span>
             </div>
           )}
 
