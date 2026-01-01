@@ -1,7 +1,7 @@
 /**
  * tRPC API Route Handler for Vercel Serverless
  * Self-contained with mock data for demo deployments
- * Version: 2.2.0 - added auth router for dev login
+ * Version: 2.3.0 - fixed logout to clear session cookie
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { initTRPC, TRPCError } from "@trpc/server";
@@ -299,7 +299,7 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.2.0",
+        version: "2.3.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
         hasRouter: { prices: true, auth: true },
@@ -351,6 +351,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     response.headers.forEach((value, key) => res.setHeader(key, value));
+
+    // Check if this was a logout request and clear the session cookie
+    const urlPath = url.pathname + url.search;
+    if (urlPath.includes("auth.logout")) {
+      const isSecure = req.headers.host?.includes("vercel.app") || req.headers["x-forwarded-proto"] === "https";
+      res.setHeader("Set-Cookie", [
+        `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isSecure ? "; Secure" : ""}`
+      ]);
+    }
+
     res.status(response.status);
     res.send(await response.text());
   } catch (error) {
