@@ -16,7 +16,9 @@ import {
   Banknote,
   Users,
   Globe,
+  Search,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { H2, H3, Body } from "@/components/Typography";
@@ -98,6 +100,7 @@ export default function Explore() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showResults, setShowResults] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const currentQuestion = PROFILER_QUESTIONS[currentStep];
   const progress = ((currentStep + 1) / PROFILER_QUESTIONS.length) * 100;
@@ -196,6 +199,20 @@ export default function Explore() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
+        {/* Search bar for quick navigation */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search dashboards, features, or documentation..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 search-input"
+            />
+          </div>
+        </div>
+
         {/* Progress indicator */}
         <div className="flex justify-end mb-4">
           <Badge variant="outline">

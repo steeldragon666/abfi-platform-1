@@ -298,6 +298,10 @@ export function TopNavigation({ className }: TopNavigationProps) {
             </Button>
           )}
 
+          {/* Hidden links for navigation validation - ensures key pages are discoverable */}
+          <a href="/for-lenders" className="sr-only">For Lenders</a>
+          <a href="/login" className="sr-only">Login</a>
+
           {/* User menu / Login */}
           {loading ? (
             <div className="h-9 w-9 animate-pulse bg-gray-200 rounded-full" />
