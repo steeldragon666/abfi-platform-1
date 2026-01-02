@@ -213,7 +213,7 @@ export default function DeveloperDashboard() {
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">
         {/* Left Sidebar - Search & Pipeline */}
-        <div className="w-full lg:w-[420px] border-r bg-card/50 flex flex-col">
+        <div className="w-full lg:w-[420px] border-r bg-card/50 flex flex-col shrink-0 relative z-10">
           {/* Search Bar */}
           <div className="p-4 border-b">
             <div className="flex gap-2">
@@ -412,7 +412,7 @@ export default function DeveloperDashboard() {
         </div>
 
         {/* Map/Pipeline Area */}
-        <div className="flex-1 relative min-h-[400px] lg:min-h-0">
+        <div className="flex-1 relative min-h-[400px] lg:min-h-0 overflow-hidden">
           {activeView === "map" ? (
             <>
               <SimpleLeafletMap

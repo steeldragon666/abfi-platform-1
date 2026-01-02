@@ -42,18 +42,8 @@ export function SideNavigation({ className }: SideNavigationProps) {
         role="navigation"
         aria-label="Main navigation"
       >
-        {/* Portal Switcher - Top of sidebar */}
-        <div
-          className={cn(
-            "flex items-center border-b h-16 shrink-0",
-            sidebarCollapsed ? "justify-center px-2" : "px-3"
-          )}
-        >
-          <PortalSwitcher variant={sidebarCollapsed ? "compact" : "default"} />
-        </div>
-
-        {/* Primary Navigation */}
-        <div className="flex-1 overflow-y-auto py-4 px-2">
+        {/* Primary Navigation - TopBar has the PortalSwitcher */}
+        <div className="flex-1 overflow-y-auto py-4 px-2 pt-6">
           <NavSection
             label={portalConfig.label}
             collapsed={sidebarCollapsed}
