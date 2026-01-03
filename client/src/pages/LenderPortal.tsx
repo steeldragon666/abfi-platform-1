@@ -1,3 +1,14 @@
+/**
+ * Lender Portal - Nextgen Design
+ *
+ * Features:
+ * - Project access and permissions management
+ * - Stress test results visualization
+ * - Rating badges with color coding
+ * - Score breakdown components
+ * - Typography components for consistent styling
+ */
+
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import {

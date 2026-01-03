@@ -1,11 +1,12 @@
 /**
- * Lender Risk Analytics
+ * Lender Risk Analytics - Nextgen Design
  *
- * Advanced risk analysis tools for lenders including:
- * - Concentration risk (HHI index)
- * - Counterparty exposure
- * - Geographic risk distribution
- * - Stress testing scenarios
+ * Features:
+ * - Concentration risk analysis (HHI index)
+ * - Counterparty exposure tracking
+ * - Geographic risk distribution maps
+ * - Interactive stress testing scenarios
+ * - Typography components for consistent styling
  */
 
 import { useState } from "react";

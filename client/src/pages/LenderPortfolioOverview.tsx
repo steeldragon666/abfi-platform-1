@@ -1,11 +1,12 @@
 /**
- * Lender Portfolio Overview
+ * Lender Portfolio Overview - Nextgen Design
  *
- * Comprehensive view of the lender's investment portfolio including:
- * - Portfolio summary metrics
- * - Project allocation breakdown
- * - Risk distribution
- * - Performance trends
+ * Features:
+ * - Portfolio summary with key metrics
+ * - Project allocation breakdown charts
+ * - Risk distribution by rating
+ * - Performance trends visualization
+ * - Typography components for consistent styling
  */
 
 import { useState } from "react";
