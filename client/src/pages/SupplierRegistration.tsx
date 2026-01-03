@@ -1,3 +1,13 @@
+/**
+ * Supplier Registration - Nextgen Design
+ *
+ * Features:
+ * - Multi-step registration wizard
+ * - Business details and ABN validation
+ * - Location and capacity settings
+ * - Typography components for consistent styling
+ */
+
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import {

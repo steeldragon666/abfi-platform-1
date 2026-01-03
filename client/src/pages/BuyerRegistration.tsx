@@ -1,3 +1,13 @@
+/**
+ * Buyer Registration - Nextgen Design
+ *
+ * Features:
+ * - Multi-field registration form with validation
+ * - ABN verification integration
+ * - State/location selection
+ * - Typography components for consistent styling
+ */
+
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import {

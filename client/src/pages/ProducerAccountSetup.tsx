@@ -1,3 +1,13 @@
+/**
+ * Producer Account Setup - Nextgen Design
+ *
+ * Features:
+ * - ABN validation and lookup
+ * - Password strength indicator
+ * - Account creation form
+ * - Typography components for consistent styling
+ */
+
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/Button";

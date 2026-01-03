@@ -1,3 +1,13 @@
+/**
+ * Developer Registration - Nextgen Design
+ *
+ * Features:
+ * - Project developer registration form
+ * - Company and project details capture
+ * - Material requirements specification
+ * - Typography components for consistent styling
+ */
+
 import React, { useState, FormEvent, useMemo } from 'react';
 import { H1, H2, H3, Body, MetricValue, DataLabel } from "@/components/Typography";
 

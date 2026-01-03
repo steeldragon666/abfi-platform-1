@@ -1,3 +1,13 @@
+/**
+ * MyGovID Login - Nextgen Design
+ *
+ * Features:
+ * - Australian Government myGovID integration
+ * - OIDC authentication flow
+ * - Mock login for development environment
+ * - Typography components for consistent styling
+ */
+
 import { useState, useEffect } from "react";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { useLocation } from "wouter";

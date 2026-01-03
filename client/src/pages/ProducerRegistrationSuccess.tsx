@@ -1,3 +1,13 @@
+/**
+ * Producer Registration Success - Nextgen Design
+ *
+ * Features:
+ * - Success confirmation with animated icon
+ * - Next steps guidance cards
+ * - Application reference display
+ * - Typography components for consistent styling
+ */
+
 import { Link } from "wouter";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import {

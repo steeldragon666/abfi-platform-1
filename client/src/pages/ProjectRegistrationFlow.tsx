@@ -1,3 +1,13 @@
+/**
+ * Project Registration Flow - Nextgen Design
+ *
+ * Features:
+ * - 7-step registration wizard
+ * - Form auto-save functionality
+ * - Progress indicator with step labels
+ * - Typography components for consistent styling
+ */
+
 import { useState, useEffect } from "react";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { useLocation } from "wouter";

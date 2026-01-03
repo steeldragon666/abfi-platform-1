@@ -1,3 +1,13 @@
+/**
+ * Project Registration - Nextgen Design
+ *
+ * Features:
+ * - Bioenergy project registration landing page
+ * - Benefits and features showcase
+ * - Dark theme with gold accents
+ * - Typography components for consistent styling
+ */
+
 import { Link } from "wouter";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import {

@@ -1,3 +1,13 @@
+/**
+ * Producer Registration - Nextgen Design
+ *
+ * Features:
+ * - Landing page for producer onboarding
+ * - Benefits showcase cards
+ * - Call-to-action navigation
+ * - Typography components for consistent styling
+ */
+
 import { Link } from "wouter";
 import { Button } from "@/components/ui/Button";
 import {

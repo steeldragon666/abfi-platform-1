@@ -1,3 +1,13 @@
+/**
+ * Lender Registration - Nextgen Design
+ *
+ * Features:
+ * - Financial institution registration form
+ * - Custom styled form components
+ * - Gold accent color scheme (#D4AF37)
+ * - Typography components for consistent styling
+ */
+
 import React, { useState, FormEvent } from 'react';
 import { H1, H2, H3, Body, MetricValue, DataLabel } from "@/components/Typography";
 

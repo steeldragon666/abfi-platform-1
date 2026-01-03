@@ -1,3 +1,13 @@
+/**
+ * Grower Registration Flow - Nextgen Design
+ *
+ * Features:
+ * - Multi-step grower onboarding wizard
+ * - Role selection (Grower, Farm Manager, Consultant)
+ * - Evidence file upload capability
+ * - Typography components for consistent styling
+ */
+
 import React, { useState, useMemo } from 'react';
 import { H1, H2, H3, Body, MetricValue, DataLabel } from "@/components/Typography";
 
