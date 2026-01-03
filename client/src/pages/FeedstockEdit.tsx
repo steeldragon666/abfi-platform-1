@@ -1,5 +1,14 @@
+/**
+ * Feedstock Edit - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Card-based form layout
+ * - Typography components for consistent styling
+ */
+
 import { Button } from "@/components/ui/Button";
-import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { H1, Body } from "@/components/Typography";
 import {
   Card,
   CardContent,
@@ -18,10 +27,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { Loader2 } from "lucide-react";
+import { Loader2, Package, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useLocation, useRoute } from "wouter";
+import { Link, useLocation, useRoute } from "wouter";
 
 export default function FeedstockEdit() {
   const [, params] = useRoute("/feedstock/edit/:id");
@@ -123,14 +132,32 @@ export default function FeedstockEdit() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container max-w-4xl">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6 max-w-4xl">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <Package className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              <H1 className="text-2xl">Edit Feedstock</H1>
+              <Body className="text-gray-600">Update your feedstock listing details</Body>
+            </div>
+          </div>
+          <Link href="/supplier/feedstocks">
+            <Button variant="ghost">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Feedstocks
+            </Button>
+          </Link>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle>Edit Feedstock</CardTitle>
+            <CardTitle>Feedstock Details</CardTitle>
             <CardDescription>
-              Update your feedstock listing - Category: {feedstock.category},
-              State: {feedstock.state}
+              Category: {feedstock.category} | State: {feedstock.state}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -142,7 +169,7 @@ export default function FeedstockEdit() {
                   <Input
                     value={feedstock.category}
                     disabled
-                    className="bg-gray-100"
+                    className="bg-muted"
                   />
                 </div>
                 <div>
@@ -150,7 +177,7 @@ export default function FeedstockEdit() {
                   <Input
                     value={feedstock.state}
                     disabled
-                    className="bg-gray-100"
+                    className="bg-muted"
                   />
                 </div>
               </div>

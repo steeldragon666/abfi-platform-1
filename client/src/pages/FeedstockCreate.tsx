@@ -1,3 +1,12 @@
+/**
+ * Feedstock Create - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Card-based form layout
+ * - Typography components for consistent styling
+ */
+
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import {
@@ -19,7 +28,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { AUSTRALIAN_STATES, FEEDSTOCK_CATEGORIES } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Leaf, Package } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
 import { useState } from "react";
 import { Link, Redirect, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -108,7 +117,7 @@ export default function FeedstockCreate() {
 
   if (!profile?.supplier) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Supplier Profile Required</CardTitle>
@@ -128,36 +137,25 @@ export default function FeedstockCreate() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/">
-            <div className="flex items-center gap-2 cursor-pointer">
-              <Leaf className="h-8 w-8 text-[#D4AF37]" />
-              <span className="text-2xl font-bold text-[#D4AF37]">ABFI</span>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6 max-w-4xl">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <Package className="h-6 w-6 text-[#D4AF37]" />
             </div>
-          </Link>
+            <div>
+              <H1 className="text-2xl">List New Feedstock</H1>
+              <Body className="text-gray-600">Add a new feedstock to the ABFI marketplace</Body>
+            </div>
+          </div>
           <Link href="/dashboard">
             <Button variant="ghost">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
             </Button>
           </Link>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <Package className="h-8 w-8 text-[#D4AF37]" />
-            <H1 className="text-4xl text-[#D4AF37]">
-              List New Feedstock
-            </H1>
-          </div>
-          <Body className="text-gray-600">
-            Add a new feedstock to the ABFI marketplace
-          </Body>
         </div>
 
         <Card>
