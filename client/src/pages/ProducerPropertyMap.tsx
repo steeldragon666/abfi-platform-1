@@ -1,3 +1,14 @@
+/**
+ * Producer Property Map - Nextgen Design
+ *
+ * Features:
+ * - Interactive map for property location
+ * - Address search functionality
+ * - Click-to-select coordinates
+ * - Agricultural zone identification
+ * - Typography components for consistent styling
+ */
+
 import { useState } from "react";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { useLocation } from "wouter";

@@ -1,3 +1,14 @@
+/**
+ * Producer Marketplace Listing - Nextgen Design
+ *
+ * Features:
+ * - Availability and volume configuration
+ * - Flexible pricing models
+ * - Logistics and delivery options
+ * - Quality specifications and certifications
+ * - Typography components for consistent styling
+ */
+
 import { useState } from "react";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { useLocation } from "wouter";

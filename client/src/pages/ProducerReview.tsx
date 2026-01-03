@@ -1,3 +1,14 @@
+/**
+ * Producer Review - Nextgen Design
+ *
+ * Features:
+ * - Registration data summary review
+ * - Profile visibility settings
+ * - Terms and conditions acceptance
+ * - Final submission with API integration
+ * - Typography components for consistent styling
+ */
+
 import { useState, useEffect } from "react";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { useLocation } from "wouter";

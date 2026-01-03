@@ -1,3 +1,14 @@
+/**
+ * Producer Property Details - Nextgen Design
+ *
+ * Features:
+ * - Property address and location form
+ * - Land area and cultivation details
+ * - Water access configuration
+ * - Lot/plan number entry
+ * - Typography components for consistent styling
+ */
+
 import { useState } from "react";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { useLocation } from "wouter";

@@ -1,3 +1,14 @@
+/**
+ * Producer Contracts - Nextgen Design
+ *
+ * Features:
+ * - Existing contract management
+ * - Dynamic contract form with add/remove
+ * - Volume and pricing tracking
+ * - Delivery frequency configuration
+ * - Typography components for consistent styling
+ */
+
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/Button";

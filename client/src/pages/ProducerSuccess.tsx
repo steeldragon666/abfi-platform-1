@@ -1,3 +1,13 @@
+/**
+ * Producer Success - Nextgen Design
+ *
+ * Features:
+ * - Registration success confirmation
+ * - Next steps guidance with timeline
+ * - Quick action buttons for dashboard
+ * - Typography components for consistent styling
+ */
+
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { CheckCircle2, Home, LayoutDashboard, Search } from "lucide-react";

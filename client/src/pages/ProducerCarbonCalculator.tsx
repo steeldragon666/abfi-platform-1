@@ -1,3 +1,14 @@
+/**
+ * Producer Carbon Calculator - Nextgen Design
+ *
+ * Features:
+ * - Carbon sequestration estimation by crop type
+ * - Interactive sliders for land area and yield
+ * - Certification eligibility indicators
+ * - Real-time CO2 capture calculations
+ * - Typography components for consistent styling
+ */
+
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/Button";
