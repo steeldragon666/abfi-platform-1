@@ -1,5 +1,15 @@
+/**
+ * Bankability Assessment - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Card-based form layout with sliders
+ * - Typography components for consistent styling
+ * - Real-time score calculation
+ */
+
 import { useState, useEffect } from "react";
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import {
@@ -253,15 +263,25 @@ export default function BankabilityAssessment() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container py-8">
-        <Button
-          variant="ghost"
-          className="mb-6"
-          onClick={() => setLocation("/bankability")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <TrendingUp className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              <H1 className="text-2xl">Bankability Assessment</H1>
+              <Body className="text-gray-600">Project: {project.name}</Body>
+            </div>
+          </div>
+          <Link href="/bankability">
+            <Button variant="ghost">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Assessment Form */}
@@ -269,10 +289,10 @@ export default function BankabilityAssessment() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Bankability Assessment
+                  <Shield className="h-5 w-5 text-purple-600" />
+                  Assessment Criteria
                 </CardTitle>
-                <CardDescription>Project: {project.name}</CardDescription>
+                <CardDescription>Rate each category from 0-100 based on project evidence</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">

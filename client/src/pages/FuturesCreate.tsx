@@ -1,3 +1,14 @@
+/**
+ * Futures Create - Multi-step Wizard
+ *
+ * Features:
+ * - Hero section with gradient background
+ * - 6-step wizard with progress indicators
+ * - Typography components for consistent styling
+ * - Dynamic yield projections table
+ * - Draft/Publish workflow
+ */
+
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import {
