@@ -207,15 +207,22 @@ export const AGRICULTURAL_REGIONS = [
 /**
  * BOM Climate Data Connector
  * Fetches climate data from BOM and SILO APIs
+ *
+ * Authentication:
+ * - SILO: Requires email address only (set SILO_EMAIL env var)
+ *   Register at: https://www.longpaddock.qld.gov.au/silo/
+ * - BOM: Anonymous FTP access (no auth required)
  */
 export class BOMConnector extends BaseConnector {
-  private siloApiKey: string;
+  private siloEmail: string;
   private bomApiBaseUrl = "http://www.bom.gov.au/fwo";
   private siloApiBaseUrl = "https://www.longpaddock.qld.gov.au/cgi-bin/silo";
 
   constructor(config: ConnectorConfig) {
     super(config, "BOM");
-    this.siloApiKey = process.env.SILO_API_KEY || "";
+    // SILO only requires an email address for authentication
+    // Register at: https://www.longpaddock.qld.gov.au/silo/
+    this.siloEmail = process.env.SILO_EMAIL || process.env.SILO_API_KEY || "";
   }
 
   /**
@@ -280,6 +287,10 @@ export class BOMConnector extends BaseConnector {
 
   /**
    * Fetch SILO climate data for a specific location and date range
+   *
+   * SILO authentication requires only an email address.
+   * Set SILO_EMAIL environment variable with your registered email.
+   * Register for free at: https://www.longpaddock.qld.gov.au/silo/
    */
   async fetchSILOData(
     latitude: number,
@@ -288,30 +299,62 @@ export class BOMConnector extends BaseConnector {
     endDate: string,
     variables: SILOVariable[] = ["daily_rain", "max_temp", "min_temp", "radiation"]
   ): Promise<SILOTimeSeries> {
+    // SILO requires email for tracking usage - register at longpaddock.qld.gov.au/silo
+    if (!this.siloEmail) {
+      console.warn("[BOMConnector] SILO_EMAIL not set. Set your email to access SILO historical data.");
+      // Return empty dataset instead of failing
+      return {
+        location: { latitude, longitude },
+        period: { start: startDate, end: endDate },
+        data: [],
+        metadata: {
+          source: "silo",
+          variables,
+          interpolationMethod: "not_available",
+        },
+      };
+    }
+
     const params = new URLSearchParams({
-      lat: latitude.toString(),
-      lon: longitude.toString(),
+      lat: latitude.toFixed(4),
+      lon: longitude.toFixed(4),
       start: startDate.replace(/-/g, ""),
       finish: endDate.replace(/-/g, ""),
       format: "json",
-      username: this.siloApiKey || "guest",
-      password: "guest",
+      username: this.siloEmail,  // Email address is the username
+      password: "apirequest",    // Required password for grid/DataDrill API
     });
 
-    // Add variables
-    variables.forEach(v => params.append("variable", v));
-
-    const response = await this.fetchWithRateLimit(
-      `${this.siloApiBaseUrl}/DataDrillDataset.php?${params.toString()}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`SILO API error: ${response.status} ${response.statusText}`);
+    // Add requested climate variables
+    for (const v of variables) {
+      params.append("variable", v);
     }
 
-    const data = await response.json();
+    try {
+      const response = await this.fetchWithRateLimit(
+        `${this.siloApiBaseUrl}/DataDrillDataset.php?${params.toString()}`
+      );
 
-    return this.parseSILOResponse(data, latitude, longitude, variables);
+      if (!response.ok) {
+        throw new Error(`SILO API error: ${response.status} ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        // SILO returns HTML error pages for invalid credentials
+        const text = await response.text();
+        if (text.includes("Invalid") || text.includes("error")) {
+          throw new Error("SILO API authentication failed. Check your SILO_EMAIL is registered.");
+        }
+        throw new Error(`SILO API returned non-JSON response: ${contentType}`);
+      }
+
+      const data = await response.json();
+      return this.parseSILOResponse(data, latitude, longitude, variables);
+    } catch (error) {
+      console.error("[BOMConnector] SILO fetch error:", error);
+      throw error;
+    }
   }
 
   /**
@@ -551,6 +594,7 @@ export class BOMConnector extends BaseConnector {
 
   /**
    * Get comprehensive climate intelligence for a location
+   * Gracefully handles SILO API errors and continues with other data sources
    */
   async getClimateIntelligence(
     latitude: number,
@@ -567,9 +611,9 @@ export class BOMConnector extends BaseConnector {
       cropType,
     } = options;
 
-    // Fetch all data in parallel
+    // Fetch all data in parallel, catching SILO errors gracefully
     const [
-      historicalClimate,
+      historicalClimateResult,
       currentObservations,
       forecast,
       seasonalOutlooks,
@@ -577,12 +621,21 @@ export class BOMConnector extends BaseConnector {
     ] = await Promise.all([
       includeHistorical
         ? this.fetchHistoricalClimate(latitude, longitude, historicalYears)
+            .catch(err => {
+              console.warn(`[BOMConnector] Historical climate data unavailable: ${err.message}`);
+              return null;
+            })
         : Promise.resolve(null),
       this.fetchNearestObservation(latitude, longitude).then(obs => obs ? [obs] : []),
       this.fetchForecast(latitude, longitude),
       this.fetchSeasonalOutlook(),
       this.fetchActiveWarnings(),
     ]);
+
+    // Check if historical data has content (empty data array means SILO unavailable)
+    const historicalClimate = historicalClimateResult?.data?.length
+      ? historicalClimateResult
+      : null;
 
     // Find nearest seasonal outlook
     const nearestOutlook = seasonalOutlooks[0] || null;
