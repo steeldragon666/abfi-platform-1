@@ -1,5 +1,15 @@
+/**
+ * Supplier Feedstocks - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Card-based list layout
+ * - Certificate generation dialogs
+ * - Typography components for consistent styling
+ */
+
 import { useAuth } from "@/_core/hooks/useAuth";
-import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { H1, Body } from "@/components/Typography";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
@@ -20,6 +30,7 @@ import {
   Award,
   FileText,
   Download,
+  ArrowLeft,
 } from "lucide-react";
 import {
   Dialog,
@@ -147,19 +158,30 @@ export default function SupplierFeedstocks() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container py-8">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">My Feedstocks</h1>
-            <p className="text-gray-600">
-              Manage your feedstock listings
-            </p>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <Package className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              <H1 className="text-2xl">My Feedstocks</H1>
+              <Body className="text-gray-600">Manage your feedstock listings</Body>
+            </div>
           </div>
-          <Link href="/feedstock/create">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Feedstock
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/feedstock/create">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Feedstock
+              </Button>
+            </Link>
+            <Link href="/dashboard">
+              <Button variant="ghost">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (

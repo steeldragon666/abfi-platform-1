@@ -1,8 +1,15 @@
 /**
- * SupplierFutures - Supplier dashboard for managing futures listings.
+ * Supplier Futures - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Stats cards with metrics
+ * - Card-based list layout
+ * - Typography components for consistent styling
  */
+
 import { useAuth } from "@/_core/hooks/useAuth";
-import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { H1, Body } from "@/components/Typography";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
@@ -199,18 +206,19 @@ export default function SupplierFutures() {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            {showingMockData && (
-              <Badge className="mb-3 bg-amber-100 text-amber-800">
-                Demo Data
-              </Badge>
-            )}
-            <h1 className="text-2xl font-bold mb-1">
-              Futures Listings
-            </h1>
-            <p className="text-gray-600">
-              Manage your long-term perennial crop projections and EOIs
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <Sprout className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              {showingMockData && (
+                <Badge className="mb-1 bg-amber-100 text-amber-800">
+                  Demo Data
+                </Badge>
+              )}
+              <H1 className="text-2xl">Futures Listings</H1>
+              <Body className="text-gray-600">Manage your long-term perennial crop projections and EOIs</Body>
+            </div>
           </div>
           <Button
             size="lg"

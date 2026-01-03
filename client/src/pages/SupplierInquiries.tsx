@@ -1,5 +1,14 @@
+/**
+ * Supplier Inquiries - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Card-based list layout
+ * - Typography components for consistent styling
+ */
+
 import { useAuth } from "@/_core/hooks/useAuth";
-import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { H1, Body } from "@/components/Typography";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
@@ -11,7 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/lib/trpc";
-import { Inbox, MessageSquare, Calendar, Package } from "lucide-react";
+import { Inbox, MessageSquare, Calendar, Package, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { formatDate } from "@/const";
 
@@ -51,11 +60,22 @@ export default function SupplierInquiries() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Received Inquiries</h1>
-          <p className="text-gray-600">
-            Manage inquiries from buyers interested in your feedstocks
-          </p>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <Inbox className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              <H1 className="text-2xl">Received Inquiries</H1>
+              <Body className="text-gray-600">Manage inquiries from buyers interested in your feedstocks</Body>
+            </div>
+          </div>
+          <Link href="/dashboard">
+            <Button variant="ghost">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
         </div>
 
         {isLoading ? (

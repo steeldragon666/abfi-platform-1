@@ -1,3 +1,13 @@
+/**
+ * Supplier Directory - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Search with filter functionality
+ * - Card-based grid layout
+ * - Typography components for consistent styling
+ */
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +31,8 @@ import {
   Phone,
   Mail,
   Globe,
+  Building2,
+  ArrowLeft,
 } from "lucide-react";
 import { Link } from "wouter";
 import { H1, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
@@ -313,11 +325,22 @@ export default function SupplierDirectory() {
     <div className="min-h-screen bg-background">
       <div className="container py-8">
         {/* Header */}
-        <div className="mb-8">
-          <H1 className="mb-2">Supplier Directory</H1>
-          <Body className="text-muted-foreground">
-            Browse certified suppliers and request quotes for biofuel feedstocks.
-          </Body>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <Building2 className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              <H1 className="text-2xl">Supplier Directory</H1>
+              <Body className="text-muted-foreground">Browse certified suppliers and request quotes for biofuel feedstocks</Body>
+            </div>
+          </div>
+          <Link href="/dashboard">
+            <Button variant="ghost">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
         </div>
 
         {/* Search */}
