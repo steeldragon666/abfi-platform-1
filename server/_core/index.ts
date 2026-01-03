@@ -14,6 +14,8 @@ import { certificateVerificationRouter } from "../certificateVerificationApi";
 import { didResolutionRouter } from "../didResolutionApi";
 import { aiChatRouter } from "../aiChatRouter";
 import { australianDataRouter } from "../apis/australianDataRouter";
+import { intelligenceRouter } from "../intelligenceRouter";
+import { climateRouter } from "../climateRouter";
 import { securityHeaders, rateLimit, rateLimitConfigs } from "./security";
 import { createSSERouter } from "./sse";
 import { createDevAuthRouter } from "./devAuth";
@@ -120,6 +122,12 @@ async function startServer() {
 
   // Australian Data APIs (climate, soil, carbon credits)
   app.use("/api/australian-data", australianDataRouter);
+
+  // ABARES Market Intelligence API (yield predictions, price benchmarks, viability)
+  app.use("/api/intelligence", intelligenceRouter);
+
+  // BOM Climate Intelligence API (climate risk, forecasts, warnings)
+  app.use("/api/climate", climateRouter);
 
   // Server-Sent Events for real-time notifications
   app.use("/api/sse", createSSERouter());

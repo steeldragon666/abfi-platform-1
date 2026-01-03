@@ -9,6 +9,26 @@ export { ArenaConnector } from "./arenaConnector";
 export { CEFCConnector } from "./cefcConnector";
 export { QldEpaConnector } from "./qldEpaConnector";
 export { IPAustraliaConnector } from "./ipAustraliaConnector";
+export { ABARESConnector, createABARESConnector } from "./abaresConnector";
+export type {
+  CropForecast,
+  CommodityPrice,
+  FarmBenchmark,
+  LandUseData,
+  ABARESIntelligence,
+} from "./abaresConnector";
+export { BOMConnector, createBOMConnector, AGRICULTURAL_REGIONS } from "./bomConnector";
+export type {
+  SILOVariable,
+  SILODataPoint,
+  SILOTimeSeries,
+  BOMObservation,
+  BOMForecast,
+  BOMForecastDay,
+  SeasonalOutlook,
+  BOMWarning,
+  ClimateIntelligence,
+} from "./bomConnector";
 
 import { ConnectorConfig, ConnectorResult, RawSignal } from "./baseConnector";
 import { NSWPlanningConnector } from "./nswPlanningConnector";
@@ -16,6 +36,8 @@ import { ArenaConnector } from "./arenaConnector";
 import { CEFCConnector } from "./cefcConnector";
 import { QldEpaConnector } from "./qldEpaConnector";
 import { IPAustraliaConnector } from "./ipAustraliaConnector";
+import { ABARESConnector } from "./abaresConnector";
+import { BOMConnector } from "./bomConnector";
 
 // Default connector configurations
 export const CONNECTOR_CONFIGS: Record<string, ConnectorConfig> = {
@@ -43,6 +65,16 @@ export const CONNECTOR_CONFIGS: Record<string, ConnectorConfig> = {
     name: "IP Australia Patents",
     enabled: true,
     rateLimit: 10,
+  },
+  abares: {
+    name: "ABARES Agricultural Intelligence",
+    enabled: true,
+    rateLimit: 30,
+  },
+  bom: {
+    name: "BOM Climate Data",
+    enabled: true,
+    rateLimit: 30,
   },
 };
 
@@ -73,6 +105,14 @@ export async function runAllConnectors(
     {
       key: "ip_australia",
       connector: new IPAustraliaConnector(CONNECTOR_CONFIGS.ip_australia),
+    },
+    {
+      key: "abares",
+      connector: new ABARESConnector(CONNECTOR_CONFIGS.abares),
+    },
+    {
+      key: "bom",
+      connector: new BOMConnector(CONNECTOR_CONFIGS.bom),
     },
   ];
 
@@ -127,6 +167,8 @@ export async function runConnector(
     cefc: CEFCConnector,
     qld_epa: QldEpaConnector,
     ip_australia: IPAustraliaConnector,
+    abares: ABARESConnector,
+    bom: BOMConnector,
   };
 
   const ConnectorClass = connectorMap[connectorName];

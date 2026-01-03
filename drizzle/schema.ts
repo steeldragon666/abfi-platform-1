@@ -5448,3 +5448,1155 @@ export const policyConsultations = mysqlTable(
     closesIdx: index("consultation_closes_idx").on(table.closes),
   })
 );
+
+// ============================================================================
+// UNIFIED MARKET INTELLIGENCE MAP (Phase 9)
+// ============================================================================
+
+/**
+ * Growing Intentions
+ * Grower planting commitments for forward visibility
+ */
+export const growingIntentions = mysqlTable(
+  "growingIntentions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    growerId: int("growerId")
+      .notNull()
+      .references(() => suppliers.id),
+    feedstockTypeId: varchar("feedstockTypeId", { length: 50 }).notNull(),
+    areaHa: decimal("areaHa", { precision: 10, scale: 2 }).notNull(),
+    latitude: varchar("latitude", { length: 20 }).notNull(),
+    longitude: varchar("longitude", { length: 20 }).notNull(),
+    plantDate: date("plantDate").notNull(),
+    expectedHarvestDate: date("expectedHarvestDate").notNull(),
+    expectedYield: decimal("expectedYield", { precision: 12, scale: 2 }),
+    commitmentLevel: mysqlEnum("commitmentLevel", [
+      "planning",
+      "confirmed",
+      "under_contract",
+    ]).notNull(),
+    visibility: mysqlEnum("visibility", [
+      "private",
+      "market_wide",
+      "role_restricted",
+      "counterparty",
+      "public",
+    ]).default("market_wide"),
+    status: mysqlEnum("intentionStatus", ["active", "cancelled", "harvested"]).default(
+      "active"
+    ),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    growerIdIdx: index("growingIntentions_growerId_idx").on(table.growerId),
+    statusIdx: index("growingIntentions_status_idx").on(table.status),
+    harvestDateIdx: index("growingIntentions_harvestDate_idx").on(
+      table.expectedHarvestDate
+    ),
+  })
+);
+
+export type GrowingIntention = typeof growingIntentions.$inferSelect;
+export type InsertGrowingIntention = typeof growingIntentions.$inferInsert;
+
+/**
+ * Power Stations / Processing Facilities
+ * Biomass/bioenergy processing infrastructure
+ */
+export const powerStations = mysqlTable(
+  "powerStations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    latitude: varchar("latitude", { length: 20 }).notNull(),
+    longitude: varchar("longitude", { length: 20 }).notNull(),
+    type: mysqlEnum("stationType", [
+      "cofiring",
+      "dedicated",
+      "cogen",
+      "biogas",
+      "processor",
+    ]).notNull(),
+    capacityMw: decimal("capacityMw", { precision: 10, scale: 2 }),
+    feedstockRequirements: json("feedstockRequirements").$type<string[]>(),
+    contractStatus: mysqlEnum("stationContractStatus", [
+      "open",
+      "partial",
+      "contracted",
+    ]),
+    ownerName: varchar("ownerName", { length: 255 }),
+    status: mysqlEnum("stationStatus", [
+      "operational",
+      "development",
+      "planned",
+    ]),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    typeIdx: index("powerStations_type_idx").on(table.type),
+    statusIdx: index("powerStations_status_idx").on(table.status),
+  })
+);
+
+export type PowerStation = typeof powerStations.$inferSelect;
+export type InsertPowerStation = typeof powerStations.$inferInsert;
+
+/**
+ * Logistics Hubs
+ * Ports, rail terminals, storage facilities
+ */
+export const logisticsHubs = mysqlTable(
+  "logisticsHubs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    latitude: varchar("latitude", { length: 20 }).notNull(),
+    longitude: varchar("longitude", { length: 20 }).notNull(),
+    type: mysqlEnum("hubType", [
+      "port",
+      "rail_terminal",
+      "road_hub",
+      "storage",
+    ]).notNull(),
+    handlingCapacity: decimal("handlingCapacity", { precision: 12, scale: 2 }),
+    feedstockTypes: json("feedstockTypes").$type<string[]>(),
+    transportCostPerKm: decimal("transportCostPerKm", { precision: 6, scale: 2 }),
+    status: mysqlEnum("hubStatus", ["active", "planned"]).default("active"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    typeIdx: index("logisticsHubs_type_idx").on(table.type),
+  })
+);
+
+export type LogisticsHub = typeof logisticsHubs.$inferSelect;
+export type InsertLogisticsHub = typeof logisticsHubs.$inferInsert;
+
+/**
+ * Contract Matches
+ * AI-generated matches between demand signals and supply
+ */
+export const contractMatches = mysqlTable(
+  "contractMatches",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    demandSignalId: int("demandSignalId")
+      .notNull()
+      .references(() => demandSignals.id),
+    projectId: int("projectId").references(() => projects.id),
+    intentionId: int("intentionId").references(() => growingIntentions.id),
+    matchScore: decimal("matchScore", { precision: 5, scale: 2 }).notNull(), // 0-100
+    distanceKm: decimal("distanceKm", { precision: 8, scale: 2 }),
+    estimatedTransportCost: decimal("estimatedTransportCost", {
+      precision: 10,
+      scale: 2,
+    }),
+    volumeMatchPercent: decimal("volumeMatchPercent", { precision: 5, scale: 2 }),
+    status: mysqlEnum("matchStatus", [
+      "suggested",
+      "viewed",
+      "negotiating",
+      "accepted",
+      "rejected",
+      "expired",
+    ]).default("suggested"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    expiresAt: timestamp("expiresAt"),
+  },
+  (table) => ({
+    demandSignalIdIdx: index("contractMatches_demandSignalId_idx").on(
+      table.demandSignalId
+    ),
+    statusIdx: index("contractMatches_status_idx").on(table.status),
+    intentionIdIdx: index("contractMatches_intentionId_idx").on(table.intentionId),
+  })
+);
+
+export type ContractMatch = typeof contractMatches.$inferSelect;
+export type InsertContractMatch = typeof contractMatches.$inferInsert;
+
+/**
+ * Contracts
+ * Executed supply contracts between growers and buyers
+ */
+export const contracts = mysqlTable(
+  "contracts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    matchId: int("matchId")
+      .notNull()
+      .references(() => contractMatches.id),
+    buyerId: int("buyerId")
+      .notNull()
+      .references(() => users.id),
+    growerId: int("growerId")
+      .notNull()
+      .references(() => users.id),
+    feedstockTypeId: varchar("feedstockTypeId", { length: 50 }).notNull(),
+    volumeTonnes: decimal("volumeTonnes", { precision: 12, scale: 2 }).notNull(),
+    pricePerTonne: decimal("pricePerTonne", { precision: 10, scale: 2 }).notNull(),
+    totalValue: decimal("totalValue", { precision: 14, scale: 2 }).notNull(),
+    deliveryTerms: json("deliveryTerms").$type<Record<string, any>>(),
+    qualitySpecs: json("qualitySpecs").$type<Record<string, any>>(),
+    paymentTerms: mysqlEnum("paymentTerms", [
+      "upfront",
+      "on_delivery",
+      "net_30",
+      "milestone",
+    ]),
+    paymentSchedule: json("paymentSchedule").$type<any[]>(),
+    status: mysqlEnum("contractStatus", [
+      "draft",
+      "pending_grower",
+      "pending_buyer",
+      "active",
+      "delivering",
+      "completed",
+      "disputed",
+      "cancelled",
+    ]).default("draft"),
+    signedByBuyer: timestamp("signedByBuyer"),
+    signedByGrower: timestamp("signedByGrower"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    buyerIdIdx: index("contracts_buyerId_idx").on(table.buyerId),
+    growerIdIdx: index("contracts_growerId_idx").on(table.growerId),
+    statusIdx: index("contracts_status_idx").on(table.status),
+    matchIdIdx: index("contracts_matchId_idx").on(table.matchId),
+  })
+);
+
+export type Contract = typeof contracts.$inferSelect;
+export type InsertContract = typeof contracts.$inferInsert;
+
+/**
+ * Deliveries
+ * Individual delivery events under contracts
+ */
+export const deliveries = mysqlTable(
+  "deliveries",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    contractId: int("contractId")
+      .notNull()
+      .references(() => contracts.id),
+    scheduledDate: timestamp("scheduledDate").notNull(),
+    actualDate: timestamp("actualDate"),
+    volumeTonnes: decimal("volumeTonnes", { precision: 12, scale: 2 }).notNull(),
+    qualityResults: json("qualityResults").$type<Record<string, any>>(),
+    pickupLocation: json("pickupLocation").$type<{
+      lat: number;
+      lng: number;
+      address: string;
+    }>(),
+    deliveryLocation: json("deliveryLocation").$type<{
+      lat: number;
+      lng: number;
+      address: string;
+    }>(),
+    transportProvider: varchar("transportProvider", { length: 255 }),
+    transportCost: decimal("transportCost", { precision: 10, scale: 2 }),
+    status: mysqlEnum("deliveryStatus", [
+      "scheduled",
+      "in_transit",
+      "delivered",
+      "quality_verified",
+      "disputed",
+      "settled",
+    ]).default("scheduled"),
+    proofOfDelivery: varchar("proofOfDelivery", { length: 500 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    contractIdIdx: index("deliveries_contractId_idx").on(table.contractId),
+    statusIdx: index("deliveries_status_idx").on(table.status),
+    scheduledDateIdx: index("deliveries_scheduledDate_idx").on(table.scheduledDate),
+  })
+);
+
+export type Delivery = typeof deliveries.$inferSelect;
+export type InsertDelivery = typeof deliveries.$inferInsert;
+
+/**
+ * Price Signals
+ * Market price indicators by feedstock and region
+ */
+export const priceSignals = mysqlTable(
+  "priceSignals",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    feedstockTypeId: varchar("feedstockTypeId", { length: 50 }).notNull(),
+    regionId: varchar("regionId", { length: 10 }).notNull(),
+    spotPrice: decimal("spotPrice", { precision: 10, scale: 2 }),
+    forward1M: decimal("forward1M", { precision: 10, scale: 2 }),
+    forward3M: decimal("forward3M", { precision: 10, scale: 2 }),
+    forward6M: decimal("forward6M", { precision: 10, scale: 2 }),
+    forward12M: decimal("forward12M", { precision: 10, scale: 2 }),
+    supplyIndex: decimal("supplyIndex", { precision: 5, scale: 2 }),
+    demandIndex: decimal("demandIndex", { precision: 5, scale: 2 }),
+    source: mysqlEnum("priceSource", [
+      "contract_average",
+      "demand_signal",
+      "grower_ask",
+      "external_index",
+      "calculated",
+    ]),
+    confidence: mysqlEnum("priceConfidence", [
+      "high",
+      "medium",
+      "low",
+      "indicative",
+    ]),
+    validFrom: timestamp("validFrom").notNull(),
+    validTo: timestamp("validTo").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    feedstockRegionIdx: index("priceSignals_feedstock_region_idx").on(
+      table.feedstockTypeId,
+      table.regionId
+    ),
+    validFromIdx: index("priceSignals_validFrom_idx").on(table.validFrom),
+  })
+);
+
+export type PriceSignal = typeof priceSignals.$inferSelect;
+export type InsertPriceSignal = typeof priceSignals.$inferInsert;
+
+/**
+ * Price Alerts
+ * User-configured price threshold notifications
+ */
+export const priceAlerts = mysqlTable(
+  "priceAlerts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    feedstockTypeId: varchar("feedstockTypeId", { length: 50 }).notNull(),
+    regionId: varchar("regionId", { length: 10 }),
+    alertType: mysqlEnum("alertType", [
+      "above_threshold",
+      "below_threshold",
+      "percent_change_up",
+      "percent_change_down",
+    ]).notNull(),
+    thresholdValue: decimal("thresholdValue", { precision: 10, scale: 2 }).notNull(),
+    isActive: boolean("isActive").default(true),
+    lastTriggered: timestamp("lastTriggered"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("priceAlerts_userId_idx").on(table.userId),
+    activeIdx: index("priceAlerts_active_idx").on(table.isActive),
+  })
+);
+
+export type PriceAlert = typeof priceAlerts.$inferSelect;
+export type InsertPriceAlert = typeof priceAlerts.$inferInsert;
+
+/**
+ * Transport Routes
+ * Cached route calculations between locations
+ */
+export const transportRoutes = mysqlTable(
+  "transportRoutes",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    originType: mysqlEnum("originType", [
+      "project",
+      "intention",
+      "power_station",
+      "logistics_hub",
+      "custom",
+    ]).notNull(),
+    originId: int("originId"),
+    originLat: varchar("originLat", { length: 20 }).notNull(),
+    originLng: varchar("originLng", { length: 20 }).notNull(),
+    destinationType: mysqlEnum("destinationType", [
+      "project",
+      "intention",
+      "power_station",
+      "logistics_hub",
+      "custom",
+    ]).notNull(),
+    destinationId: int("destinationId"),
+    destinationLat: varchar("destinationLat", { length: 20 }).notNull(),
+    destinationLng: varchar("destinationLng", { length: 20 }).notNull(),
+    distanceKm: decimal("distanceKm", { precision: 8, scale: 2 }).notNull(),
+    estimatedHours: decimal("estimatedHours", { precision: 6, scale: 2 }),
+    routeGeometry: json("routeGeometry").$type<any>(), // GeoJSON LineString
+    baseCostPerKm: decimal("baseCostPerKm", { precision: 6, scale: 2 }),
+    fuelSurcharge: decimal("fuelSurcharge", { precision: 6, scale: 2 }),
+    tollsCost: decimal("tollsCost", { precision: 8, scale: 2 }),
+    handlingCost: decimal("handlingCost", { precision: 8, scale: 2 }),
+    totalCostPerTonne: decimal("totalCostPerTonne", { precision: 8, scale: 2 }),
+    transportMode: mysqlEnum("routeTransportMode", [
+      "road",
+      "rail",
+      "road_rail",
+      "ship",
+    ]).notNull(),
+    validFrom: timestamp("validFrom").defaultNow().notNull(),
+    validTo: timestamp("validTo"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    originIdx: index("transportRoutes_origin_idx").on(
+      table.originType,
+      table.originId
+    ),
+    destinationIdx: index("transportRoutes_destination_idx").on(
+      table.destinationType,
+      table.destinationId
+    ),
+  })
+);
+
+export type TransportRoute = typeof transportRoutes.$inferSelect;
+export type InsertTransportRoute = typeof transportRoutes.$inferInsert;
+
+/**
+ * Forward Availability
+ * Aggregated supply/demand forecasts by region and period
+ */
+export const forwardAvailability = mysqlTable(
+  "forwardAvailability",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    feedstockTypeId: varchar("feedstockTypeId", { length: 50 }).notNull(),
+    regionCode: varchar("regionCode", { length: 10 }),
+    month: int("month").notNull(),
+    year: int("year").notNull(),
+    confirmedSupply: decimal("confirmedSupply", { precision: 14, scale: 2 }),
+    projectedSupply: decimal("projectedSupply", { precision: 14, scale: 2 }),
+    demandCommitted: decimal("demandCommitted", { precision: 14, scale: 2 }),
+    confidence: mysqlEnum("availabilityConfidence", ["high", "medium", "low"]),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    feedstockRegionMonthIdx: index("forwardAvailability_frm_idx").on(
+      table.feedstockTypeId,
+      table.regionCode,
+      table.year,
+      table.month
+    ),
+  })
+);
+
+export type ForwardAvailability = typeof forwardAvailability.$inferSelect;
+export type InsertForwardAvailability = typeof forwardAvailability.$inferInsert;
+
+// ============================================================================
+// ABARES MARKET INTELLIGENCE
+// ============================================================================
+
+/**
+ * ABARES Crop Forecasts
+ * Australian Crop Report data for yield prediction and supply forecasting
+ */
+export const abaresCropForecasts = mysqlTable(
+  "abaresCropForecasts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Report identification
+    reportDate: timestamp("reportDate").notNull(),
+    season: varchar("season", { length: 10 }).notNull(), // e.g., "2024-25"
+    sourceReport: varchar("sourceReport", { length: 255 }),
+
+    // Crop and location
+    crop: varchar("crop", { length: 50 }).notNull(),
+    state: mysqlEnum("cropState", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]).notNull(),
+    regionCode: varchar("regionCode", { length: 20 }), // SA2/SA4 code
+
+    // Area metrics (hectares)
+    plantedAreaHa: decimal("plantedAreaHa", { precision: 12, scale: 2 }),
+    harvestedAreaHa: decimal("harvestedAreaHa", { precision: 12, scale: 2 }),
+
+    // Production metrics
+    expectedProductionTonnes: decimal("expectedProductionTonnes", { precision: 14, scale: 2 }),
+    expectedYieldTonnesPerHa: decimal("expectedYieldTonnesPerHa", { precision: 6, scale: 2 }),
+
+    // Confidence intervals
+    confidenceLower: decimal("confidenceLower", { precision: 6, scale: 2 }),
+    confidenceUpper: decimal("confidenceUpper", { precision: 6, scale: 2 }),
+
+    // Forecast metadata
+    forecastType: mysqlEnum("forecastType", ["preliminary", "revised", "final"]).default("revised"),
+    comparedToPreviousYear: decimal("comparedToPreviousYear", { precision: 5, scale: 2 }), // % change
+    comparedTo5YearAvg: decimal("comparedTo5YearAvg", { precision: 5, scale: 2 }), // % change
+
+    // Weather impact
+    seasonalConditions: mysqlEnum("seasonalConditions", [
+      "favorable",
+      "average",
+      "below_average",
+      "drought",
+    ]).default("average"),
+    notes: text("notes"),
+
+    // Ingestion tracking
+    ingestedAt: timestamp("ingestedAt").defaultNow().notNull(),
+    sourceUrl: varchar("sourceUrl", { length: 500 }),
+  },
+  (table) => ({
+    seasonIdx: index("abaresCropForecasts_season_idx").on(table.season),
+    cropStateIdx: index("abaresCropForecasts_cropState_idx").on(table.crop, table.state),
+    reportDateIdx: index("abaresCropForecasts_reportDate_idx").on(table.reportDate),
+  })
+);
+
+export type AbaresCropForecast = typeof abaresCropForecasts.$inferSelect;
+export type InsertAbaresCropForecast = typeof abaresCropForecasts.$inferInsert;
+
+/**
+ * ABARES Commodity Prices
+ * Historical and current commodity price data for benchmarking
+ */
+export const abaresCommodityPrices = mysqlTable(
+  "abaresCommodityPrices",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Price identification
+    priceDate: timestamp("priceDate").notNull(),
+    commodity: varchar("commodity", { length: 100 }).notNull(),
+    unit: varchar("unit", { length: 50 }).notNull(), // e.g., "$/tonne", "$/kg"
+
+    // Price data
+    price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+    priceType: mysqlEnum("priceType", ["farm_gate", "export", "wholesale"]).default("farm_gate"),
+
+    // Location
+    state: mysqlEnum("commodityState", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "NAT"]),
+    region: varchar("region", { length: 100 }),
+
+    // Trailing averages
+    avg5Year: decimal("avg5Year", { precision: 10, scale: 2 }),
+    avg10Year: decimal("avg10Year", { precision: 10, scale: 2 }),
+
+    // Source
+    sourceReport: varchar("sourceReport", { length: 255 }),
+    isProjected: boolean("isProjected").default(false),
+
+    // Ingestion
+    ingestedAt: timestamp("ingestedAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    commodityDateIdx: index("abaresCommodityPrices_commodityDate_idx").on(
+      table.commodity,
+      table.priceDate
+    ),
+    priceDateIdx: index("abaresCommodityPrices_priceDate_idx").on(table.priceDate),
+  })
+);
+
+export type AbaresCommodityPrice = typeof abaresCommodityPrices.$inferSelect;
+export type InsertAbaresCommodityPrice = typeof abaresCommodityPrices.$inferInsert;
+
+/**
+ * ABARES Farm Benchmarks
+ * Farm financial benchmarks for viability scoring
+ */
+export const abaresFarmBenchmarks = mysqlTable(
+  "abaresFarmBenchmarks",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Benchmark identification
+    financialYear: varchar("financialYear", { length: 10 }).notNull(), // e.g., "2023-24"
+    farmSizeCategory: mysqlEnum("farmSizeCategory", ["small", "medium", "large", "very_large"]),
+    farmType: varchar("farmType", { length: 100 }).notNull(), // e.g., "cropping", "mixed_farming"
+    state: mysqlEnum("benchmarkState", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]).notNull(),
+    region: varchar("benchmarkRegion", { length: 100 }),
+
+    // Financial metrics ($/ha or AUD)
+    avgGrossMarginPerHa: decimal("avgGrossMarginPerHa", { precision: 10, scale: 2 }),
+    avgOperatingCostsPerHa: decimal("avgOperatingCostsPerHa", { precision: 10, scale: 2 }),
+    avgNetFarmIncome: decimal("avgNetFarmIncome", { precision: 14, scale: 2 }),
+    medianNetFarmIncome: decimal("medianNetFarmIncome", { precision: 14, scale: 2 }),
+
+    // Balance sheet ratios (stored as decimal 0-1)
+    debtToAssetRatio: decimal("debtToAssetRatio", { precision: 5, scale: 4 }),
+    returnOnCapital: decimal("returnOnCapital", { precision: 5, scale: 4 }),
+    equityRatio: decimal("equityRatio", { precision: 5, scale: 4 }),
+
+    // Operational metrics
+    avgFarmAreaHa: decimal("avgFarmAreaHa", { precision: 10, scale: 2 }),
+    avgCroppedAreaHa: decimal("avgCroppedAreaHa", { precision: 10, scale: 2 }),
+
+    // Sample metadata
+    sampleSize: int("sampleSize"),
+    confidenceLevel: decimal("confidenceLevel", { precision: 4, scale: 2 }), // e.g., 0.95
+
+    // Ingestion
+    ingestedAt: timestamp("ingestedAt").defaultNow().notNull(),
+    sourceReport: varchar("sourceReport", { length: 255 }),
+  },
+  (table) => ({
+    fyStateIdx: index("abaresFarmBenchmarks_fyState_idx").on(table.financialYear, table.state),
+    farmTypeIdx: index("abaresFarmBenchmarks_farmType_idx").on(table.farmType),
+  })
+);
+
+export type AbaresFarmBenchmark = typeof abaresFarmBenchmarks.$inferSelect;
+export type InsertAbaresFarmBenchmark = typeof abaresFarmBenchmarks.$inferInsert;
+
+/**
+ * ABARES Supply Forecasts
+ * ML-generated supply availability predictions
+ */
+export const abaresSupplyForecasts = mysqlTable(
+  "abaresSupplyForecasts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Forecast identification
+    forecastDate: timestamp("forecastDate").notNull(),
+    regionCode: varchar("forecastRegionCode", { length: 20 }).notNull(),
+    feedstockType: varchar("feedstockType", { length: 100 }).notNull(),
+    horizonDays: int("horizonDays").notNull(), // e.g., 90, 180
+
+    // Probability output
+    availabilityProbability: decimal("availabilityProbability", { precision: 5, scale: 4 }).notNull(),
+    confidenceIntervalLower: decimal("confidenceIntervalLower", { precision: 5, scale: 4 }),
+    confidenceIntervalUpper: decimal("confidenceIntervalUpper", { precision: 5, scale: 4 }),
+
+    // Contributing factors
+    contributingFactors: json("contributingFactors").$type<{
+      weatherImpact: number;
+      cropForecastImpact: number;
+      historicalReliability: number;
+      freightCapacity: number;
+      [key: string]: number;
+    }>(),
+
+    // Model metadata
+    modelVersion: varchar("modelVersion", { length: 50 }),
+    modelAccuracy: decimal("modelAccuracy", { precision: 5, scale: 4 }), // Validation accuracy
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    regionFeedstockIdx: index("abaresSupplyForecasts_regionFeedstock_idx").on(
+      table.regionCode,
+      table.feedstockType
+    ),
+    forecastDateIdx: index("abaresSupplyForecasts_forecastDate_idx").on(table.forecastDate),
+  })
+);
+
+export type AbaresSupplyForecast = typeof abaresSupplyForecasts.$inferSelect;
+export type InsertAbaresSupplyForecast = typeof abaresSupplyForecasts.$inferInsert;
+
+/**
+ * ABARES Yield Predictions
+ * AI-enhanced yield predictions combining ABARES data with satellite/weather
+ */
+export const abaresYieldPredictions = mysqlTable(
+  "abaresYieldPredictions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Prediction target
+    predictionDate: timestamp("predictionDate").notNull(),
+    propertyId: int("propertyId").references(() => properties.id),
+    supplierId: int("supplierId").references(() => suppliers.id),
+    crop: varchar("predictionCrop", { length: 50 }).notNull(),
+    season: varchar("predictionSeason", { length: 10 }).notNull(),
+
+    // Location (if not linked to property)
+    state: mysqlEnum("predictionState", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]),
+    regionCode: varchar("predictionRegionCode", { length: 20 }),
+
+    // Yield prediction
+    predictedYieldTonnesPerHa: decimal("predictedYieldTonnesPerHa", { precision: 8, scale: 2 }).notNull(),
+    confidenceLower: decimal("yieldConfidenceLower", { precision: 8, scale: 2 }),
+    confidenceUpper: decimal("yieldConfidenceUpper", { precision: 8, scale: 2 }),
+
+    // Prediction basis
+    methodology: varchar("methodology", { length: 255 }), // e.g., "ABARES + Satellite NDVI"
+    dataInputs: json("dataInputs").$type<{
+      abaresWeight: number;
+      satelliteWeight: number;
+      historicalWeight: number;
+      weatherWeight: number;
+    }>(),
+
+    // Validation (after harvest)
+    actualYieldTonnesPerHa: decimal("actualYieldTonnesPerHa", { precision: 8, scale: 2 }),
+    predictionError: decimal("predictionError", { precision: 6, scale: 4 }), // % error
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    validatedAt: timestamp("validatedAt"),
+  },
+  (table) => ({
+    propertyIdx: index("abaresYieldPredictions_property_idx").on(table.propertyId),
+    cropSeasonIdx: index("abaresYieldPredictions_cropSeason_idx").on(table.crop, table.season),
+  })
+);
+
+export type AbaresYieldPrediction = typeof abaresYieldPredictions.$inferSelect;
+export type InsertAbaresYieldPrediction = typeof abaresYieldPredictions.$inferInsert;
+
+/**
+ * ABARES Ingestion Runs
+ * Track data ingestion from ABARES sources
+ */
+export const abaresIngestionRuns = mysqlTable(
+  "abaresIngestionRuns",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Run identification
+    runType: mysqlEnum("runType", [
+      "crop_report",
+      "commodity_prices",
+      "farm_benchmarks",
+      "land_use",
+    ]).notNull(),
+    sourceUrl: varchar("ingestionSourceUrl", { length: 500 }),
+
+    // Timing
+    startedAt: timestamp("startedAt").notNull(),
+    finishedAt: timestamp("finishedAt"),
+
+    // Results
+    status: mysqlEnum("ingestionStatus", ["started", "succeeded", "partial", "failed"]).notNull(),
+    recordsIn: int("recordsIn"),
+    recordsOut: int("recordsOut"),
+    recordsSkipped: int("recordsSkipped"),
+
+    // Errors
+    errorMessage: text("errorMessage"),
+    errorDetails: json("errorDetails").$type<{
+      errors: string[];
+      warnings: string[];
+    }>(),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    runTypeIdx: index("abaresIngestionRuns_runType_idx").on(table.runType),
+    startedAtIdx: index("abaresIngestionRuns_startedAt_idx").on(table.startedAt),
+  })
+);
+
+export type AbaresIngestionRun = typeof abaresIngestionRuns.$inferSelect;
+export type InsertAbaresIngestionRun = typeof abaresIngestionRuns.$inferInsert;
+
+// ============================================================================
+// BOM CLIMATE DATA
+// ============================================================================
+
+/**
+ * SILO Climate Data Points
+ * Historical climate data from SILO (Scientific Information for Land Owners)
+ * 5km grid resolution, 1889-present
+ */
+export const siloClimateData = mysqlTable(
+  "siloClimateData",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Location
+    latitude: decimal("latitude", { precision: 10, scale: 6 }).notNull(),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }).notNull(),
+    stationId: varchar("stationId", { length: 20 }),
+    stationName: varchar("stationName", { length: 100 }),
+
+    // Date
+    date: date("date").notNull(),
+
+    // Core variables
+    dailyRainMm: decimal("dailyRainMm", { precision: 8, scale: 2 }),
+    maxTempC: decimal("maxTempC", { precision: 5, scale: 2 }),
+    minTempC: decimal("minTempC", { precision: 5, scale: 2 }),
+    solarRadiationMJ: decimal("solarRadiationMJ", { precision: 6, scale: 2 }),
+
+    // Evaporation
+    evapPanMm: decimal("evapPanMm", { precision: 6, scale: 2 }),
+    evapSynMm: decimal("evapSynMm", { precision: 6, scale: 2 }),
+    etShortCropMm: decimal("etShortCropMm", { precision: 6, scale: 2 }),
+    etTallCropMm: decimal("etTallCropMm", { precision: 6, scale: 2 }),
+
+    // Humidity and pressure
+    vapourPressureHPa: decimal("vapourPressureHPa", { precision: 6, scale: 2 }),
+    vpDeficitHPa: decimal("vpDeficitHPa", { precision: 6, scale: 2 }),
+    relHumidityMaxTemp: int("relHumidityMaxTemp"),
+    relHumidityMinTemp: int("relHumidityMinTemp"),
+    mslPressureHPa: decimal("mslPressureHPa", { precision: 7, scale: 2 }),
+
+    // Quality codes (0=observed, 1-3=interpolated)
+    qualityCodes: json("qualityCodes").$type<Record<string, number>>(),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    locationDateIdx: index("siloClimateData_location_date_idx").on(
+      table.latitude,
+      table.longitude,
+      table.date
+    ),
+    dateIdx: index("siloClimateData_date_idx").on(table.date),
+    stationIdx: index("siloClimateData_station_idx").on(table.stationId),
+  })
+);
+
+export type SiloClimateData = typeof siloClimateData.$inferSelect;
+export type InsertSiloClimateData = typeof siloClimateData.$inferInsert;
+
+/**
+ * BOM Weather Observations
+ * Real-time weather observations from BOM stations
+ */
+export const bomObservations = mysqlTable(
+  "bomObservations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Station info
+    stationId: varchar("stationId", { length: 20 }).notNull(),
+    stationName: varchar("stationName", { length: 100 }).notNull(),
+    state: mysqlEnum("state", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]).notNull(),
+    latitude: decimal("latitude", { precision: 10, scale: 6 }).notNull(),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }).notNull(),
+
+    // Observation time
+    observationTime: timestamp("observationTime").notNull(),
+
+    // Temperature
+    temperatureC: decimal("temperatureC", { precision: 5, scale: 2 }),
+    apparentTempC: decimal("apparentTempC", { precision: 5, scale: 2 }),
+    dewPointC: decimal("dewPointC", { precision: 5, scale: 2 }),
+
+    // Humidity
+    humidityPercent: int("humidityPercent"),
+
+    // Wind
+    windSpeedKmh: decimal("windSpeedKmh", { precision: 6, scale: 2 }),
+    windGustKmh: decimal("windGustKmh", { precision: 6, scale: 2 }),
+    windDirection: varchar("windDirection", { length: 10 }),
+
+    // Pressure
+    pressureHPa: decimal("pressureHPa", { precision: 7, scale: 2 }),
+
+    // Rainfall
+    rainfallSince9amMm: decimal("rainfallSince9amMm", { precision: 8, scale: 2 }),
+    rainfall24hrMm: decimal("rainfall24hrMm", { precision: 8, scale: 2 }),
+
+    // Cloud
+    cloudCover: varchar("cloudCover", { length: 50 }),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    stationTimeIdx: index("bomObservations_station_time_idx").on(
+      table.stationId,
+      table.observationTime
+    ),
+    timeIdx: index("bomObservations_time_idx").on(table.observationTime),
+    stateIdx: index("bomObservations_state_idx").on(table.state),
+  })
+);
+
+export type BomObservation = typeof bomObservations.$inferSelect;
+export type InsertBomObservation = typeof bomObservations.$inferInsert;
+
+/**
+ * BOM Forecasts
+ * Weather forecasts from BOM
+ */
+export const bomForecasts = mysqlTable(
+  "bomForecasts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Location
+    locationName: varchar("locationName", { length: 100 }).notNull(),
+    state: mysqlEnum("state", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]).notNull(),
+    latitude: decimal("latitude", { precision: 10, scale: 6 }).notNull(),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }).notNull(),
+
+    // Issue time
+    issueTime: timestamp("issueTime").notNull(),
+
+    // Forecast date
+    forecastDate: date("forecastDate").notNull(),
+
+    // Temperature
+    minTempC: decimal("minTempC", { precision: 5, scale: 2 }),
+    maxTempC: decimal("maxTempC", { precision: 5, scale: 2 }),
+
+    // Conditions
+    precis: varchar("precis", { length: 255 }),
+    precipitationProbability: int("precipitationProbability"),
+    precipitationRangeMin: decimal("precipitationRangeMin", { precision: 6, scale: 2 }),
+    precipitationRangeMax: decimal("precipitationRangeMax", { precision: 6, scale: 2 }),
+
+    // UV and fire
+    uvIndex: int("uvIndex"),
+    uvCategory: varchar("uvCategory", { length: 20 }),
+    fireWeatherRating: varchar("fireWeatherRating", { length: 50 }),
+    fireWeatherIndex: int("fireWeatherIndex"),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    locationDateIdx: index("bomForecasts_location_date_idx").on(
+      table.locationName,
+      table.forecastDate
+    ),
+    issueTimeIdx: index("bomForecasts_issueTime_idx").on(table.issueTime),
+    forecastDateIdx: index("bomForecasts_forecastDate_idx").on(table.forecastDate),
+  })
+);
+
+export type BomForecast = typeof bomForecasts.$inferSelect;
+export type InsertBomForecast = typeof bomForecasts.$inferInsert;
+
+/**
+ * Seasonal Climate Outlooks
+ * 3-month probabilistic rainfall and temperature outlooks
+ */
+export const seasonalOutlooks = mysqlTable(
+  "seasonalOutlooks",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Issue date
+    issueDate: date("issueDate").notNull(),
+
+    // Valid period
+    validPeriodStart: date("validPeriodStart").notNull(),
+    validPeriodEnd: date("validPeriodEnd").notNull(),
+    validPeriodMonths: varchar("validPeriodMonths", { length: 50 }), // e.g., "Jan - Mar"
+
+    // Region
+    region: varchar("region", { length: 100 }).notNull(),
+    state: mysqlEnum("state", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]),
+    latitude: decimal("latitude", { precision: 10, scale: 6 }),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }),
+
+    // Rainfall outlook (tercile probabilities)
+    rainBelowMedianPercent: int("rainBelowMedianPercent"),
+    rainNearMedianPercent: int("rainNearMedianPercent"),
+    rainAboveMedianPercent: int("rainAboveMedianPercent"),
+    medianRainfallMm: decimal("medianRainfallMm", { precision: 8, scale: 2 }),
+
+    // Temperature outlook - max temp
+    maxTempBelowMedianPercent: int("maxTempBelowMedianPercent"),
+    maxTempNearMedianPercent: int("maxTempNearMedianPercent"),
+    maxTempAboveMedianPercent: int("maxTempAboveMedianPercent"),
+
+    // Temperature outlook - min temp
+    minTempBelowMedianPercent: int("minTempBelowMedianPercent"),
+    minTempNearMedianPercent: int("minTempNearMedianPercent"),
+    minTempAboveMedianPercent: int("minTempAboveMedianPercent"),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    regionDateIdx: index("seasonalOutlooks_region_date_idx").on(
+      table.region,
+      table.issueDate
+    ),
+    issueDateIdx: index("seasonalOutlooks_issueDate_idx").on(table.issueDate),
+    validPeriodIdx: index("seasonalOutlooks_validPeriod_idx").on(
+      table.validPeriodStart,
+      table.validPeriodEnd
+    ),
+  })
+);
+
+export type SeasonalOutlook = typeof seasonalOutlooks.$inferSelect;
+export type InsertSeasonalOutlook = typeof seasonalOutlooks.$inferInsert;
+
+/**
+ * BOM Weather Warnings
+ * Active severe weather warnings
+ */
+export const bomWarnings = mysqlTable(
+  "bomWarnings",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Warning identification
+    warningId: varchar("warningId", { length: 50 }).notNull().unique(),
+    warningType: mysqlEnum("warningType", [
+      "severe_thunderstorm",
+      "flood",
+      "fire_weather",
+      "heat",
+      "frost",
+      "wind",
+      "other",
+    ]).notNull(),
+    severity: mysqlEnum("severity", [
+      "minor",
+      "moderate",
+      "severe",
+      "extreme",
+    ]).notNull(),
+
+    // Content
+    title: varchar("title", { length: 255 }).notNull(),
+    description: text("description").notNull(),
+
+    // Timing
+    issueTime: timestamp("issueTime").notNull(),
+    expiryTime: timestamp("expiryTime"),
+
+    // Affected areas
+    affectedAreas: json("affectedAreas").$type<string[]>().notNull(),
+    state: mysqlEnum("state", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]),
+
+    // Coordinates
+    coordinates: json("coordinates").$type<Array<{
+      latitude: number;
+      longitude: number;
+      radius?: number;
+    }>>(),
+
+    // Status
+    active: boolean("active").default(true).notNull(),
+    supersededBy: varchar("supersededBy", { length: 50 }),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    warningIdIdx: index("bomWarnings_warningId_idx").on(table.warningId),
+    typeIdx: index("bomWarnings_type_idx").on(table.warningType),
+    severityIdx: index("bomWarnings_severity_idx").on(table.severity),
+    activeIdx: index("bomWarnings_active_idx").on(table.active),
+    issueTimeIdx: index("bomWarnings_issueTime_idx").on(table.issueTime),
+    stateIdx: index("bomWarnings_state_idx").on(table.state),
+  })
+);
+
+export type BomWarning = typeof bomWarnings.$inferSelect;
+export type InsertBomWarning = typeof bomWarnings.$inferInsert;
+
+/**
+ * Agricultural Climate Metrics
+ * Derived metrics for agricultural planning
+ */
+export const agriculturalClimateMetrics = mysqlTable(
+  "agriculturalClimateMetrics",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Location
+    propertyId: int("propertyId").references(() => properties.id),
+    supplierId: int("supplierId").references(() => suppliers.id),
+    latitude: decimal("latitude", { precision: 10, scale: 6 }).notNull(),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }).notNull(),
+    region: varchar("region", { length: 100 }),
+
+    // Period
+    periodStart: date("periodStart").notNull(),
+    periodEnd: date("periodEnd").notNull(),
+    season: varchar("season", { length: 20 }), // e.g., "2024-25"
+
+    // Crop reference
+    cropType: varchar("cropType", { length: 50 }),
+
+    // Growing metrics
+    growingDegreeDays: int("growingDegreeDays"),
+    chillHours: int("chillHours"),
+    effectiveRainfallMm: decimal("effectiveRainfallMm", { precision: 8, scale: 2 }),
+
+    // Stress metrics
+    frostDays: int("frostDays"),
+    heatStressDays: int("heatStressDays"), // Days > 35°C
+    droughtIndex: decimal("droughtIndex", { precision: 5, scale: 4 }), // 0-1
+
+    // Risk levels
+    frostRisk: mysqlEnum("frostRisk", ["low", "moderate", "high"]),
+    heatStressRisk: mysqlEnum("heatStressRisk", ["low", "moderate", "high"]),
+    droughtRisk: mysqlEnum("droughtRisk", ["low", "moderate", "high"]),
+
+    // Soil moisture estimate
+    soilMoistureIndex: decimal("soilMoistureIndex", { precision: 5, scale: 4 }),
+
+    // Calculation metadata
+    dataSource: varchar("dataSource", { length: 50 }).default("SILO"),
+    calculatedAt: timestamp("calculatedAt").notNull(),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    propertyIdx: index("agClimateMetrics_property_idx").on(table.propertyId),
+    supplierIdx: index("agClimateMetrics_supplier_idx").on(table.supplierId),
+    periodIdx: index("agClimateMetrics_period_idx").on(
+      table.periodStart,
+      table.periodEnd
+    ),
+    regionIdx: index("agClimateMetrics_region_idx").on(table.region),
+  })
+);
+
+export type AgriculturalClimateMetric = typeof agriculturalClimateMetrics.$inferSelect;
+export type InsertAgriculturalClimateMetric = typeof agriculturalClimateMetrics.$inferInsert;
+
+/**
+ * BOM Ingestion Runs
+ * Track data ingestion from BOM/SILO sources
+ */
+export const bomIngestionRuns = mysqlTable(
+  "bomIngestionRuns",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Run identification
+    runType: mysqlEnum("runType", [
+      "silo_historical",
+      "observations",
+      "forecasts",
+      "seasonal_outlook",
+      "warnings",
+      "climate_metrics",
+    ]).notNull(),
+    sourceUrl: varchar("sourceUrl", { length: 500 }),
+
+    // Scope
+    region: varchar("region", { length: 100 }),
+    state: mysqlEnum("state", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]),
+    dateRangeStart: date("dateRangeStart"),
+    dateRangeEnd: date("dateRangeEnd"),
+
+    // Timing
+    startedAt: timestamp("startedAt").notNull(),
+    finishedAt: timestamp("finishedAt"),
+
+    // Results
+    status: mysqlEnum("status", ["started", "succeeded", "partial", "failed"]).notNull(),
+    recordsIn: int("recordsIn"),
+    recordsOut: int("recordsOut"),
+    recordsSkipped: int("recordsSkipped"),
+
+    // Errors
+    errorMessage: text("errorMessage"),
+    errorDetails: json("errorDetails").$type<{
+      errors: string[];
+      warnings: string[];
+    }>(),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    runTypeIdx: index("bomIngestionRuns_runType_idx").on(table.runType),
+    startedAtIdx: index("bomIngestionRuns_startedAt_idx").on(table.startedAt),
+    stateIdx: index("bomIngestionRuns_state_idx").on(table.state),
+  })
+);
+
+export type BomIngestionRun = typeof bomIngestionRuns.$inferSelect;
+export type InsertBomIngestionRun = typeof bomIngestionRuns.$inferInsert;
