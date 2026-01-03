@@ -1,3 +1,13 @@
+/**
+ * Feedstock Detail - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Card-based content layout
+ * - Typography components for consistent styling
+ * - ABFI Score display with grade breakdown
+ */
+
 import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/Button";
@@ -18,9 +28,10 @@ import {
   FileText,
   Send,
   ArrowLeft,
+  Package,
 } from "lucide-react";
 import { FEEDSTOCK_CATEGORIES } from "@/const";
-import { H1, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { H1, Body } from "@/components/Typography";
 
 const FEEDSTOCK_TYPES: Record<
   string,
@@ -108,23 +119,16 @@ export default function FeedstockDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-primary text-[#D4AF37]-foreground py-8">
-        <div className="container">
-          <Link href="/browse">
-            <Button
-              variant="ghost"
-              className="mb-4 text-[#D4AF37]-foreground hover:bg-primary-foreground/10"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Browse
-            </Button>
-          </Link>
-
-          <div className="flex items-start justify-between">
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <Package className="h-6 w-6 text-[#D4AF37]" />
+            </div>
             <div>
-              <H1 className="text-3xl mb-2">{feedstock.abfiId}</H1>
-              <p className="text-lg opacity-90">
+              <H1 className="text-2xl">{feedstock.abfiId}</H1>
+              <Body className="text-gray-600">
                 {
                   FEEDSTOCK_CATEGORIES.find(c => c.value === feedstock.category)
                     ?.label
@@ -135,25 +139,31 @@ export default function FeedstockDetail() {
                     feedstock.category as keyof typeof FEEDSTOCK_TYPES
                   ]?.find((t: any) => t.value === feedstock.type)?.label
                 }
-              </p>
+              </Body>
             </div>
-
-            <div className="text-right">
-              <div className="text-sm opacity-90 mb-1">ABFI Score</div>
+          </div>
+          <div className="flex items-center gap-4">
+            {/* ABFI Score Badge */}
+            <div className="text-center">
+              <div className="text-sm text-gray-600 mb-1">ABFI Score</div>
               <div
-                className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${getScoreColor(feedstock.abfiScore)} text-black font-bold text-2xl`}
+                className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${getScoreColor(feedstock.abfiScore)} text-white font-bold text-xl`}
               >
                 {feedstock.abfiScore || "N/A"}
               </div>
-              <div className="text-sm mt-1 opacity-90">
+              <div className="text-sm mt-1 text-gray-600">
                 {getScoreGrade(feedstock.abfiScore)}
               </div>
             </div>
+            <Link href="/browse">
+              <Button variant="ghost">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Browse
+              </Button>
+            </Link>
           </div>
         </div>
-      </div>
 
-      <div className="container py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">

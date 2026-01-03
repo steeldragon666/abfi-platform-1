@@ -1,5 +1,15 @@
+/**
+ * Supplier Public Profile - Nextgen Design
+ *
+ * Features:
+ * - Hero section with company overview
+ * - ABFI Score ring visualization
+ * - Feedstock cards with specifications
+ * - Certifications and production charts
+ * - Contact information sidebar
+ */
+
 import { Button } from "@/components/ui/Button";
-import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import {
   Card,
   CardContent,
@@ -253,7 +263,7 @@ export default function SupplierPublicProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-[#D4AF37]" />
       </div>
     );
@@ -261,7 +271,7 @@ export default function SupplierPublicProfile() {
 
   if (!supplier) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="max-w-md">
           <CardContent className="py-12 text-center">
             <p className="text-slate-600">Supplier not found.</p>
@@ -275,7 +285,7 @@ export default function SupplierPublicProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="bg-white border-b">
         <div className="container max-w-7xl mx-auto px-4 py-8">

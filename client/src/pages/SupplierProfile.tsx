@@ -1,5 +1,14 @@
+/**
+ * Supplier Profile - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Card-based form layout
+ * - Typography components for consistent styling
+ */
+
 import { Button } from "@/components/ui/Button";
-import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { H1, Body } from "@/components/Typography";
 import {
   Card,
   CardContent,
@@ -19,7 +28,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { AUSTRALIAN_STATES } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2 } from "lucide-react";
+import { Loader2, Building2, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -112,13 +122,32 @@ export default function SupplierProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container max-w-4xl">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6 max-w-4xl">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <Building2 className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              <H1 className="text-2xl">Supplier Profile</H1>
+              <Body className="text-gray-600">Manage your company information and contact details</Body>
+            </div>
+          </div>
+          <Link href="/dashboard">
+            <Button variant="ghost">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle>Supplier Profile</CardTitle>
+            <CardTitle>Company Information</CardTitle>
             <CardDescription>
-              Manage your company information and contact details
+              Update your business details below
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -126,7 +155,7 @@ export default function SupplierProfile() {
               {/* ABN (read-only) */}
               <div>
                 <Label>ABN</Label>
-                <Input value={supplier.abn} disabled className="bg-gray-100" />
+                <Input value={supplier.abn} disabled className="bg-muted" />
                 <p className="text-sm text-gray-500 mt-1">
                   ABN cannot be changed
                 </p>

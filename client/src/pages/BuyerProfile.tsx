@@ -1,5 +1,14 @@
+/**
+ * Buyer Profile - Nextgen Design
+ *
+ * Features:
+ * - Header with icon container pattern
+ * - Card-based form layout
+ * - Typography components for consistent styling
+ */
+
 import { useAuth } from "@/_core/hooks/useAuth";
-import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { H1, Body } from "@/components/Typography";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
@@ -21,7 +30,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUSTRALIAN_STATES } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShoppingCart, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -132,13 +142,32 @@ export default function BuyerProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="container max-w-4xl">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6 max-w-4xl">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <ShoppingCart className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              <H1 className="text-2xl">Buyer Profile</H1>
+              <Body className="text-gray-600">Manage your company information and facility details</Body>
+            </div>
+          </div>
+          <Link href="/dashboard">
+            <Button variant="ghost">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle>Buyer Profile</CardTitle>
+            <CardTitle>Company Information</CardTitle>
             <CardDescription>
-              Manage your company information and facility details
+              Update your business and facility details below
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -146,7 +175,7 @@ export default function BuyerProfile() {
               {/* ABN - Read Only */}
               <div>
                 <Label>ABN (cannot be changed)</Label>
-                <Input value={buyer.abn} disabled className="bg-gray-100" />
+                <Input value={buyer.abn} disabled className="bg-muted" />
               </div>
 
               {/* Company Information */}
