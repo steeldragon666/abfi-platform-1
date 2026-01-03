@@ -1,3 +1,14 @@
+/**
+ * Futures Marketplace - Nextgen Design
+ *
+ * Features:
+ * - Searchable futures listings grid
+ * - Filter by crop type, state, and price
+ * - Crop type icons and badges
+ * - Yield and pricing display cards
+ * - Typography components for consistent styling
+ */
+
 import { Button } from "@/components/ui/Button";
 import {
   Card,

@@ -1,6 +1,14 @@
 /**
- * FuturesDetailBuyer - Buyer view for futures listing detail with EOI submission.
+ * Futures Detail Buyer - Nextgen Design
+ *
+ * Features:
+ * - Futures listing detail view for buyers
+ * - Expression of Interest (EOI) submission dialog
+ * - Yield projections and pricing information
+ * - Supplier contact details display
+ * - Typography components for consistent styling
  */
+
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import {

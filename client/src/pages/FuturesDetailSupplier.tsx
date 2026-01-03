@@ -1,3 +1,14 @@
+/**
+ * Futures Detail Supplier - Nextgen Design
+ *
+ * Features:
+ * - Futures listing management for suppliers
+ * - EOI review and response workflow
+ * - Listing visibility and status controls
+ * - Edit and delete functionality
+ * - Typography components for consistent styling
+ */
+
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import {
