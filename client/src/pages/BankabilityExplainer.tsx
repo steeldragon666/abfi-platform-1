@@ -1,3 +1,14 @@
+/**
+ * Bankability Explainer - Nextgen Design
+ *
+ * Features:
+ * - 5-step verification process visualization
+ * - Assurance cards with check items
+ * - Production, quality, and financial verification
+ * - Blockchain certification explanation
+ * - Typography components for consistent styling
+ */
+
 import {
   Shield,
   Database,
