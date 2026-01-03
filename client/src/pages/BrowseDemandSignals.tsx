@@ -1,6 +1,14 @@
 /**
- * BrowseDemandSignals - Browse feedstock demand signals from verified buyers.
+ * Browse Demand Signals - Nextgen Design
+ *
+ * Features:
+ * - Searchable demand signals grid from verified buyers
+ * - Filter by feedstock type, location, and urgency
+ * - Price range and volume indicators
+ * - Response deadline tracking
+ * - Typography components for consistent styling
  */
+
 import { useState } from "react";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { useLocation } from "wouter";

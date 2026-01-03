@@ -1,6 +1,14 @@
 /**
- * DemandSignalDetail - View demand signal details and submit response.
+ * Demand Signal Detail - Nextgen Design
+ *
+ * Features:
+ * - Comprehensive demand signal view
+ * - Response submission dialog for suppliers
+ * - Quality requirements display
+ * - Pricing and delivery specifications
+ * - Typography components for consistent styling
  */
+
 import { useState } from "react";
 import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { useRoute, useLocation } from "wouter";
