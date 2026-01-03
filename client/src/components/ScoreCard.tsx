@@ -19,7 +19,7 @@ import {
   animate,
   useInView,
 } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import { easeOut } from "@/lib/motion";
 
 // Score tier configuration matching the design system
@@ -110,7 +110,7 @@ interface ScoreCardProps {
   className?: string;
 }
 
-export function ScoreCard({
+export const ScoreCard = memo(function ScoreCard({
   title,
   score,
   maxScore = 100,
@@ -242,7 +242,7 @@ export function ScoreCard({
       </CardContent>
     </Card>
   );
-}
+});
 
 /**
  * ScoreGauge - Animated circular gauge for scores
@@ -408,7 +408,7 @@ interface RatingBadgeProps {
   className?: string;
 }
 
-export function RatingBadge({
+export const RatingBadge = memo(function RatingBadge({
   rating,
   size = "md",
   showDescription = false,
@@ -474,7 +474,7 @@ export function RatingBadge({
       {rating}
     </Badge>
   );
-}
+});
 
 interface ScoreBreakdownProps {
   scores: Array<{
@@ -486,7 +486,7 @@ interface ScoreBreakdownProps {
   className?: string;
 }
 
-export function ScoreBreakdown({
+export const ScoreBreakdown = memo(function ScoreBreakdown({
   scores,
   className = "",
 }: ScoreBreakdownProps) {
@@ -513,7 +513,7 @@ export function ScoreBreakdown({
       })}
     </div>
   );
-}
+});
 
 interface ABFIScoreBadgeProps {
   score: number;
@@ -522,7 +522,7 @@ interface ABFIScoreBadgeProps {
   className?: string;
 }
 
-export function ABFIScoreBadge({
+export const ABFIScoreBadge = memo(function ABFIScoreBadge({
   score,
   size = "md",
   showLabel = true,
@@ -554,4 +554,4 @@ export function ABFIScoreBadge({
       </Badge>
     </div>
   );
-}
+});

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TourProvider as ReactTourProvider } from '@reactour/tour';
+import { TourProvider as ReactTourProvider, useTour } from '@reactour/tour';
 import { HeyGenTourStep } from './HeyGenTourStep';
 
 interface TourStep {
@@ -45,28 +45,27 @@ interface TourProviderProps {
   children: React.ReactNode;
 }
 
-export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+// Inner component that uses the tour context
+const TourController: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { setIsOpen, currentStep, setCurrentStep } = useTour();
 
   useEffect(() => {
     // Show tour on first visit (after onboarding modal is dismissed)
     const hasSeenTour = localStorage.getItem('abfi-has-seen-tour');
     const hasSeenOnboarding = localStorage.getItem('abfi_onboarding_completed');
     const hasSkippedOnboarding = localStorage.getItem('abfi_onboarding_skipped');
-    
+
     if (!hasSeenTour && (hasSeenOnboarding || hasSkippedOnboarding)) {
       setTimeout(() => setIsOpen(true), 1000);
     }
-  }, []);
+  }, [setIsOpen]);
 
-  const handleStepChange = (step: number) => {
-    setCurrentStep(step);
-  };
+  return <>{children}</>;
+};
 
+export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
   const handleClose = () => {
     localStorage.setItem('abfi-has-seen-tour', 'true');
-    setIsOpen(false);
   };
 
   return (
@@ -79,21 +78,16 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
             description={step.description}
             videoUrl={step.videoUrl}
             onComplete={() => {
-              if (currentStep < tourSteps.length - 1) {
-                setCurrentStep(currentStep + 1);
-              } else {
-                handleClose();
-              }
+              // Will be handled by the tour's built-in navigation
             }}
           />
         ),
         position: step.position,
       }))}
-      // isOpen={isOpen} // TODO: Update to new @reactour/tour API
-      // onOpen={() => setIsOpen(true)}
-      // onClose={handleClose}
-      currentStep={currentStep}
-      setCurrentStep={setCurrentStep}
+      onClickClose={({ setIsOpen }) => {
+        handleClose();
+        setIsOpen(false);
+      }}
       showCloseButton={false}
       showNavigation={true}
       showBadge={true}
@@ -104,6 +98,10 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
           padding: '20px',
           maxWidth: '500px',
           background: '#ffffff',
+        }),
+        maskArea: (base: React.CSSProperties) => ({
+          ...base,
+          rx: 8,
         }),
         badge: (base: React.CSSProperties) => ({
           ...base,
@@ -116,7 +114,12 @@ export const TourProvider: React.FC<TourProviderProps> = ({ children }) => {
         }),
       }}
     >
-      {children}
+      <TourController>
+        {children}
+      </TourController>
     </ReactTourProvider>
   );
 };
+
+// Export the useTour hook for components that need to control the tour
+export { useTour };

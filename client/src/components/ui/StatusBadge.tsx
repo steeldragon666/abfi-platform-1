@@ -38,10 +38,10 @@ const statusStyles: Record<Status, string> = {
  * - Spacing: py-1 (4px), px-2 (8px) from the 4/8/12/16/24/32/40px scale.
  * - Border radius: rounded-lg (8px) from the 8/12/16px scale.
  */
-const StatusBadge: React.FC<StatusBadgeProps> = ({ status, label }) => {
+const StatusBadge: React.FC<StatusBadgeProps> = React.memo(({ status, label }) => {
   // Base styles applied to all badges
   const baseStyles = 'inline-flex items-center justify-center font-medium text-[18px] py-1 px-2 rounded-lg whitespace-nowrap';
-  
+
   // Variant styles based on the status prop
   const variantStyles = statusStyles[status];
 
@@ -50,7 +50,9 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, label }) => {
       {label}
     </span>
   );
-};
+});
+
+StatusBadge.displayName = 'StatusBadge';
 
 export default StatusBadge;
 

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +16,7 @@ interface NavItemProps {
   className?: string;
 }
 
-export function NavItem({ item, collapsed = false, onClick, className }: NavItemProps) {
+export const NavItem = memo(function NavItem({ item, collapsed = false, onClick, className }: NavItemProps) {
   const [location] = useLocation();
   const isActive = location === item.href || location.startsWith(`${item.href}/`);
   const Icon = item.icon;
@@ -91,7 +92,7 @@ export function NavItem({ item, collapsed = false, onClick, className }: NavItem
   }
 
   return content;
-}
+});
 
 // Section header for grouped navigation
 interface NavSectionProps {
@@ -101,7 +102,7 @@ interface NavSectionProps {
   className?: string;
 }
 
-export function NavSection({ label, collapsed, children, className }: NavSectionProps) {
+export const NavSection = memo(function NavSection({ label, collapsed, children, className }: NavSectionProps) {
   return (
     <div className={cn("space-y-1", className)}>
       {!collapsed && (
@@ -115,9 +116,9 @@ export function NavSection({ label, collapsed, children, className }: NavSection
       </nav>
     </div>
   );
-}
+});
 
 // Separator for navigation sections
-export function NavSeparator({ className }: { className?: string }) {
+export const NavSeparator = memo(function NavSeparator({ className }: { className?: string }) {
   return <div className={cn("h-px bg-border my-3", className)} />;
-}
+});

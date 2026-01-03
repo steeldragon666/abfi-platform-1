@@ -1,7 +1,8 @@
 /**
  * StatsGrid - Consistent stats display grid with animated numbers.
+ * Memoized for performance optimization.
  */
-import { ReactNode } from "react";
+import { memo, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { LucideIcon } from "lucide-react";
@@ -29,7 +30,7 @@ const columnClasses = {
   5: "grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
 };
 
-export function StatsGrid({
+export const StatsGrid = memo(function StatsGrid({
   stats,
   columns = 4,
   variant = "default",
@@ -124,6 +125,6 @@ export function StatsGrid({
       ))}
     </div>
   );
-}
+});
 
 export default StatsGrid;
