@@ -1,5 +1,5 @@
 /**
- * Developer Dashboard - Redesigned
+ * Developer Dashboard - Nextgen Design
  *
  * Features:
  * - Split layout with GIS map for supplier sourcing
@@ -7,6 +7,7 @@
  * - Supply confidence tools
  * - Risk scoring integration
  * - Real-time price and policy feeds
+ * - Typography components for consistent styling
  */
 
 import { useState, useRef, useCallback } from "react";

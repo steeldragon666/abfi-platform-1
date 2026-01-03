@@ -1,3 +1,14 @@
+/**
+ * For Developers Landing Page - Nextgen Design
+ *
+ * Features:
+ * - ABFI bankability rating scale explanation
+ * - Platform benefits and feature highlights
+ * - Animated counters and hover cards
+ * - CTA for developer registration
+ * - Typography components for consistent styling
+ */
+
 import { Button } from "@/components/ui/Button";
 import {
   Card,
