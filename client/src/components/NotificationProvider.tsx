@@ -82,11 +82,8 @@ export function NotificationProvider() {
     []
   );
 
-  const handleConnectionChange = useCallback((isConnected: boolean) => {
-    if (!isConnected) {
-      // Only show after initial connection attempt fails
-      console.log("[NotificationProvider] SSE disconnected");
-    }
+  const handleConnectionChange = useCallback((_isConnected: boolean) => {
+    // Connection state changes are handled by the hook
   }, []);
 
   const { isConnected, error } = useSSENotifications({
