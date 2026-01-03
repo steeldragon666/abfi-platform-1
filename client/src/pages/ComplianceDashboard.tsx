@@ -1,3 +1,12 @@
+/**
+ * Compliance Dashboard - Nextgen Design
+ *
+ * Features:
+ * - Quick stats bar at top with icon + value + label pattern
+ * - Card-based layout with consistent spacing
+ * - Typography components for consistent styling
+ */
+
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import {
@@ -24,8 +33,44 @@ import {
   TrendingDown,
   FileText,
   Download,
+  Shield,
+  Activity,
+  Users,
+  ClipboardCheck,
 } from "lucide-react";
-import { H1, H3, Body, MetricValue } from "@/components/Typography";
+import { cn } from "@/lib/utils";
+import { H1, H3, Body, MetricValue, DataLabel } from "@/components/Typography";
+
+// Quick stats for top bar
+const QUICK_STATS = [
+  { label: "Audit Events", value: "1,247", icon: Activity, color: "text-[#D4AF37]" },
+  { label: "Active Consents", value: "156", icon: Users, color: "text-blue-600" },
+  { label: "Open Disputes", value: "3", icon: AlertCircle, color: "text-red-500" },
+  { label: "Compliance Score", value: "94%", icon: ClipboardCheck, color: "text-green-600" },
+];
+
+// Metric card helper component
+function MetricCard({
+  title,
+  value,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center">
+        {icon}
+      </div>
+      <div>
+        <DataLabel>{title}</DataLabel>
+        <MetricValue size="lg">{value}</MetricValue>
+      </div>
+    </div>
+  );
+}
 
 export default function ComplianceDashboard() {
   const currentQuarter = trpc.complianceReporting.getCurrentQuarter.useQuery();
@@ -50,15 +95,15 @@ export default function ComplianceDashboard() {
   const getComplianceBadge = (level: string) => {
     switch (level) {
       case "excellent":
-        return <Badge className="bg-green-500">Excellent</Badge>;
+        return <Badge className="bg-green-100 text-green-800 border-green-200">Excellent</Badge>;
       case "good":
-        return <Badge className="bg-blue-500">Good</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">Good</Badge>;
       case "fair":
-        return <Badge className="bg-yellow-500">Fair</Badge>;
+        return <Badge className="bg-amber-100 text-amber-800 border-amber-200">Fair</Badge>;
       case "needs_attention":
-        return <Badge className="bg-red-500">Needs Attention</Badge>;
+        return <Badge className="bg-red-100 text-red-800 border-red-200">Needs Attention</Badge>;
       default:
-        return <Badge>Unknown</Badge>;
+        return <Badge variant="outline">Unknown</Badge>;
     }
   };
 
@@ -74,13 +119,40 @@ export default function ComplianceDashboard() {
   };
 
   return (
-    <div className="container py-8">
-      <div className="mb-8">
-        <H1 className="text-3xl mb-2">Compliance Dashboard</H1>
-        <Body className="text-gray-600">
-          Quarterly compliance reports with governance metrics
-        </Body>
+    <div className="min-h-screen bg-background">
+      {/* Quick Stats Bar */}
+      <div className="border-b bg-card/50">
+        <div className="container mx-auto px-4 py-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {QUICK_STATS.map((stat, index) => (
+              <div key={index} className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center">
+                  <stat.icon className={cn("h-5 w-5", stat.color)} />
+                </div>
+                <div>
+                  <MetricValue size="md">{stat.value}</MetricValue>
+                  <DataLabel>{stat.label}</DataLabel>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <Shield className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              <H1 className="text-2xl">Compliance Dashboard</H1>
+              <Body className="text-gray-600">Quarterly compliance reports with governance metrics</Body>
+            </div>
+          </div>
+        </div>
 
       {/* Period Selector */}
       <Card className="mb-6">
@@ -592,25 +664,6 @@ export default function ComplianceDashboard() {
           </Tabs>
         </>
       )}
-    </div>
-  );
-}
-
-function MetricCard({
-  title,
-  value,
-  icon,
-}: {
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="p-2 bg-muted rounded-lg">{icon}</div>
-      <div>
-        <p className="text-sm text-gray-600">{title}</p>
-        <p className="text-2xl font-bold">{value}</p>
       </div>
     </div>
   );

@@ -1,3 +1,12 @@
+/**
+ * Lender Dashboard - Nextgen Design
+ *
+ * Features:
+ * - Quick stats bar at top with icon + value + label pattern
+ * - Card-based layout with consistent spacing
+ * - Typography components for consistent styling
+ */
+
 import React from 'react';
 import {
   ArrowRight,
@@ -9,342 +18,281 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  DollarSign,
+  TrendingUp,
 } from 'lucide-react';
-import { H1, H2, H3, Body, MetricValue } from '@/components/Typography';
+import { H1, H2, H3, Body, MetricValue, DataLabel } from '@/components/Typography';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { Link } from 'wouter';
 
-// --- Design System Colors and Constants ---
-const GOLD = '#D4AF37';
-const BLACK = '#000000';
-const WHITE = '#FFFFFF';
+// Quick stats for top bar
+const QUICK_STATS = [
+  { label: 'Portfolio Value', value: '$1.2B', icon: DollarSign, color: 'text-[#D4AF37]' },
+  { label: 'Active Borrowers', value: '45', icon: BarChart2, color: 'text-blue-600' },
+  { label: 'Avg Risk Score', value: 'B+', icon: ShieldCheck, color: 'text-purple-600' },
+  { label: 'Breach Alerts', value: '2', icon: AlertTriangle, color: 'text-red-500' },
+];
 
-// --- Utility Components ---
+// Mock Data for Covenant Monitoring
+const COVENANTS = [
+  {
+    id: 1,
+    borrower: 'Alpha Corp',
+    covenant: 'Debt Service Coverage Ratio (DSCR)',
+    status: 'compliant',
+    value: '1.45x (Min 1.25x)',
+    lastCheck: '2025-12-20',
+  },
+  {
+    id: 2,
+    borrower: 'Beta Ltd',
+    covenant: 'Liquidity Ratio',
+    status: 'warning',
+    value: '0.95x (Min 1.00x)',
+    lastCheck: '2025-12-26',
+  },
+  {
+    id: 3,
+    borrower: 'Gamma Inc',
+    covenant: 'Leverage Ratio',
+    status: 'pending',
+    value: '2.5x (Max 3.0x)',
+    lastCheck: '2025-12-27',
+  },
+];
 
-interface MetricCardProps {
-  title: string;
-  value: string;
-  description: string;
-  icon: React.ReactNode;
-}
+// Mock Data for Risk Matrix
+const RISK_MATRIX = [
+  { risk: 'High', count: 5, color: 'bg-red-500' },
+  { risk: 'Medium', count: 12, color: 'bg-amber-500' },
+  { risk: 'Low', count: 28, color: 'bg-green-500' },
+];
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, description, icon }) => {
-  return (
-    <div
-      className="bg-white border border-gray-200 shadow-sm hover:shadow-md p-6 rounded-lg transition-shadow"
-      style={{ borderRadius: '12px' }} // 12px border radius
-    >
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium text-gray-500" style={{ fontSize: '18px', color: BLACK }}>
-          {title}
-        </div>
-        <div className="p-2 rounded-full bg-gray-100 text-gray-600 h-12 w-12 flex items-center justify-center">
-          {icon}
-        </div>
-      </div>
-      <div className="mt-4">
-        <div className="text-3xl font-semibold" style={{ color: BLACK }}>
-          {value}
-        </div>
-        <p className="mt-1 text-sm text-gray-500" style={{ fontSize: '18px' }}>
-          {description}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant: 'primary' | 'secondary' | 'ghost';
-  children: React.ReactNode;
-}
-
-const Button: React.FC<ButtonProps> = ({ variant, children, className, ...props }) => {
-  const baseClasses = 'h-12 px-6 rounded-lg font-semibold transition-colors min-w-[48px] min-h-[48px]'; // Large touch targets (48px min)
-  let variantClasses = '';
-
-  switch (variant) {
-    case 'primary':
-      variantClasses = `bg-[${GOLD}] text-black hover:bg-opacity-90`;
-      break;
-    case 'secondary':
-      variantClasses = `bg-white border border-black text-black hover:bg-gray-50`;
-      break;
-    case 'ghost':
-      variantClasses = `bg-transparent text-black hover:bg-gray-100`;
-      break;
+// Status badge helper
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'compliant':
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Verified
+        </Badge>
+      );
+    case 'warning':
+      return (
+        <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+          <AlertTriangle className="h-3 w-3 mr-1" />
+          Attention
+        </Badge>
+      );
+    case 'pending':
+      return (
+        <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+          <Clock className="h-3 w-3 mr-1" />
+          Pending
+        </Badge>
+      );
+    case 'breach':
+      return (
+        <Badge className="bg-red-100 text-red-800 border-red-200">
+          <XCircle className="h-3 w-3 mr-1" />
+          Breach
+        </Badge>
+      );
+    default:
+      return <Badge variant="outline">{status}</Badge>;
   }
-
-  return (
-    <button className={`${baseClasses} ${variantClasses} ${className}`} {...props}>
-      {children}
-    </button>
-  );
 };
-
-// --- Main Component ---
 
 const LenderDashboard: React.FC = () => {
-  // Mock Data for Portfolio Overview (Max 3 metrics visible at once)
-  const portfolioMetrics = [
-    {
-      title: 'Total Portfolio Value',
-      value: '$1.2B',
-      description: 'Across 45 active borrowers',
-      icon: <BarChart2 size={24} />,
-    },
-    {
-      title: 'Average Risk Score',
-      value: 'B+',
-      description: 'Stable, low-to-moderate risk',
-      icon: <ShieldCheck size={24} />,
-    },
-    {
-      title: 'Breach Alerts (24h)',
-      value: '2',
-      description: 'Requires immediate attention',
-      icon: <AlertTriangle size={24} color="red" />,
-    },
-  ];
-
-  // Mock Data for Covenant Monitoring
-  const covenants = [
-    {
-      id: 1,
-      borrower: 'Alpha Corp',
-      covenant: 'Debt Service Coverage Ratio (DSCR)',
-      status: 'Verified',
-      value: '1.45x (Min 1.25x)',
-      lastCheck: '2025-12-20',
-    },
-    {
-      id: 2,
-      borrower: 'Beta Ltd',
-      covenant: 'Liquidity Ratio',
-      status: 'Attention',
-      value: '0.95x (Min 1.00x)',
-      lastCheck: '2025-12-26',
-    },
-    {
-      id: 3,
-      borrower: 'Gamma Inc',
-      covenant: 'Leverage Ratio',
-      status: 'Pending',
-      value: '2.5x (Max 3.0x)',
-      lastCheck: '2025-12-27',
-    },
-  ];
-
-  // Mock Data for Risk Matrix Visualization (Simplified)
-  const riskMatrixData = [
-    { risk: 'High', count: 5, color: 'bg-red-500' },
-    { risk: 'Medium', count: 12, color: 'bg-amber-500' },
-    { risk: 'Low', count: 28, color: 'bg-green-500' },
-  ];
-
-  // Status mapping for visual compliance
-  const StatusPill: React.FC<{ status: string }> = ({ status }) => {
-    let classes = '';
-    let icon = null;
-
-    switch (status) {
-      case 'Verified':
-        classes = `bg-[${GOLD}] text-black`;
-        icon = <CheckCircle size={16} className="mr-1" />;
-        break;
-      case 'Pending':
-        classes = 'bg-gray-200 text-black';
-        icon = <Clock size={16} className="mr-1" />;
-        break;
-      case 'Attention':
-        classes = 'bg-amber-500 text-black';
-        icon = <AlertTriangle size={16} className="mr-1" />;
-        break;
-      case 'Risk':
-        classes = 'bg-red-500 text-white';
-        icon = <XCircle size={16} className="mr-1" />;
-        break;
-      default:
-        classes = 'bg-gray-100 text-gray-600';
-    }
-
-    return (
-      <span
-        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${classes}`}
-        style={{ fontSize: '18px' }}
-      >
-        {icon}
-        {status}
-      </span>
-    );
-  };
-
   return (
-    <div className="p-8 bg-gray-50 min-h-screen" style={{ fontSize: '18px' }}>
-      {/* Header */}
-      <header className="flex justify-between items-center mb-8">
-        <H1 className="text-3xl" style={{ color: BLACK }}>
-          Lender Dashboard
-        </H1>
-        {/* One primary gold CTA per screen */}
-        <Button variant="primary">
-          <span className="flex items-center">
-            New Bankability Assessment
-            <ArrowRight size={20} className="ml-2" />
-          </span>
-        </Button>
-      </header>
-
-      {/* Portfolio Overview (Max 3 cards) */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        {portfolioMetrics.map((metric) => (
-          <MetricCard key={metric.title} {...metric} />
-        ))}
-      </section>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Covenant Monitoring */}
-        <section className="lg:col-span-2">
-          <H2 className="text-2xl mb-4" style={{ color: BLACK }}>
-            Covenant Monitoring
-          </H2>
-          {/* Cards-first design over tables */}
-          <div className="space-y-4">
-            {covenants.map((covenant) => (
-              <div
-                key={covenant.id}
-                className="bg-white border border-gray-200 shadow-sm hover:shadow-md p-6 rounded-lg flex justify-between items-center"
-                style={{ borderRadius: '12px' }}
-              >
-                <div>
-                  <p className="font-semibold" style={{ color: BLACK }}>
-                    {covenant.covenant}
-                  </p>
-                  <p className="text-gray-600" style={{ fontSize: '18px' }}>
-                    {covenant.borrower} - {covenant.value}
-                  </p>
+    <div className="min-h-screen bg-background">
+      {/* Quick Stats Bar */}
+      <div className="border-b bg-card/50">
+        <div className="container mx-auto px-4 py-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {QUICK_STATS.map((stat, index) => (
+              <div key={index} className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center">
+                  <stat.icon className={cn("h-5 w-5", stat.color)} />
                 </div>
-                <div className="flex items-center space-x-4">
-                  <StatusPill status={covenant.status} />
-                  <Button variant="ghost" className="h-12 w-12 p-0">
-                    <ArrowRight size={20} />
-                  </Button>
+                <div>
+                  <MetricValue size="md">{stat.value}</MetricValue>
+                  <DataLabel>{stat.label}</DataLabel>
                 </div>
               </div>
             ))}
           </div>
-        </section>
-
-        {/* Bankability Assessment Interface & Risk Matrix (Progressive Disclosure) */}
-        <section className="lg:col-span-1 space-y-6">
-          {/* Bankability Assessment Interface */}
-          <div
-            className="bg-white border border-gray-200 shadow-sm p-6 rounded-lg"
-            style={{ borderRadius: '12px' }}
-          >
-            <H2 className="text-2xl mb-4" style={{ color: BLACK }}>
-              Bankability Assessment
-            </H2>
-            <p className="text-gray-600 mb-4" style={{ fontSize: '18px' }}>
-              Initiate a new assessment for a potential or existing borrower.
-            </p>
-            <Button variant="primary" className="w-full">
-              <span className="flex items-center justify-center">
-                Start Assessment
-                <Activity size={20} className="ml-2" />
-              </span>
-            </Button>
-          </div>
-
-          {/* Risk Matrix Visualization (Simplified Card View) */}
-          <div
-            className="bg-white border border-gray-200 shadow-sm p-6 rounded-lg"
-            style={{ borderRadius: '12px' }}
-          >
-            <H2 className="text-2xl mb-4" style={{ color: BLACK }}>
-              Risk Matrix Overview
-            </H2>
-            <div className="space-y-3">
-              {riskMatrixData.map((item) => (
-                <div key={item.risk} className="flex justify-between items-center">
-                  <span className="font-medium" style={{ color: BLACK }}>
-                    {item.risk} Risk Borrowers
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <span className={`w-4 h-4 rounded-full ${item.color}`}></span>
-                    <span className="font-semibold" style={{ color: BLACK }}>
-                      {item.count}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button variant="ghost" className="mt-4 w-full justify-start px-0">
-              <span className="flex items-center">
-                View Full Risk Matrix
-                <ArrowRight size={20} className="ml-2" />
-              </span>
-            </Button>
-          </div>
-        </section>
+        </div>
       </div>
 
-      {/* Breach Alerts and Audit Trail Access */}
-      <section className="mt-10">
-        <H2 className="text-2xl mb-4" style={{ color: BLACK }}>
-          Breach Alerts & Audit Trail
-        </H2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Breach Alerts */}
-          <div
-            className="bg-white border border-gray-200 shadow-sm p-6 rounded-lg"
-            style={{ borderRadius: '12px' }}
-          >
-            <h3 className="text-xl font-semibold mb-3 flex items-center" style={{ color: BLACK }}>
-              <AlertTriangle size={20} className="mr-2 text-red-500" />
-              Recent Breach Alerts
-            </h3>
-            <ul className="space-y-3">
-              <li className="flex justify-between items-center border-b pb-2 last:border-b-0">
-                <p className="text-gray-600" style={{ fontSize: '18px' }}>
-                  Alpha Corp - DSCR Breach
-                </p>
-                <StatusPill status="Risk" />
-              </li>
-              <li className="flex justify-between items-center border-b pb-2 last:border-b-0">
-                <p className="text-gray-600" style={{ fontSize: '18px' }}>
-                  Beta Ltd - Liquidity Warning
-                </p>
-                <StatusPill status="Attention" />
-              </li>
-            </ul>
-            <Button variant="ghost" className="mt-4 w-full justify-start px-0">
-              <span className="flex items-center">
-                View All Alerts
-                <ArrowRight size={20} className="ml-2" />
-              </span>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+              <ShieldCheck className="h-6 w-6 text-[#D4AF37]" />
+            </div>
+            <div>
+              <H1 className="text-2xl">Lender Dashboard</H1>
+              <Body className="text-gray-600">Portfolio monitoring and covenant tracking</Body>
+            </div>
+          </div>
+          <Link href="/bankability/assessment">
+            <Button>
+              <Activity className="h-4 w-4 mr-2" />
+              New Assessment
             </Button>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Covenant Monitoring - 2 columns */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between">
+              <H3 className="flex items-center gap-2 !text-sm">
+                <TrendingUp className="h-4 w-4 text-blue-600" />
+                Covenant Monitoring
+              </H3>
+              <Badge variant="outline" className="text-xs">
+                {COVENANTS.length} covenants
+              </Badge>
+            </div>
+
+            <div className="space-y-3">
+              {COVENANTS.map((covenant) => (
+                <Card key={covenant.id} hover className="group">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Body className="font-medium text-sm truncate">
+                            {covenant.covenant}
+                          </Body>
+                          {getStatusBadge(covenant.status)}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <span>{covenant.borrower}</span>
+                          <span>|</span>
+                          <span className="font-mono">{covenant.value}</span>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" className="shrink-0">
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Breach Alerts Section */}
+            <Card className="mt-6">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  Recent Breach Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center p-3 rounded-lg bg-red-50 border border-red-100">
+                  <div>
+                    <Body className="text-sm font-medium">Alpha Corp - DSCR Breach</Body>
+                    <DataLabel className="text-xs">Requires immediate attention</DataLabel>
+                  </div>
+                  {getStatusBadge('breach')}
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-lg bg-amber-50 border border-amber-100">
+                  <div>
+                    <Body className="text-sm font-medium">Beta Ltd - Liquidity Warning</Body>
+                    <DataLabel className="text-xs">Below threshold</DataLabel>
+                  </div>
+                  {getStatusBadge('warning')}
+                </div>
+                <Link href="/audit-logs">
+                  <Button variant="ghost" size="sm" className="w-full justify-start">
+                    View All Alerts
+                    <ArrowRight className="h-4 w-4 ml-auto" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Audit Trail Access */}
-          <div
-            className="bg-white border border-gray-200 shadow-sm p-6 rounded-lg"
-            style={{ borderRadius: '12px' }}
-          >
-            <h3 className="text-xl font-semibold mb-3 flex items-center" style={{ color: BLACK }}>
-              <FileText size={20} className="mr-2" />
-              Audit Trail Access
-            </h3>
-            <p className="text-gray-600 mb-4" style={{ fontSize: '18px' }}>
-              Access a full history of all platform actions and data changes.
-            </p>
-            <Button variant="secondary" className="w-full">
-              <span className="flex items-center justify-center">
-                Go to Audit Log
-                <ArrowRight size={20} className="ml-2" />
-              </span>
-            </Button>
+          {/* Right Sidebar */}
+          <div className="space-y-6">
+            {/* Bankability Assessment Card */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Bankability Assessment</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Body className="text-sm text-gray-600 mb-4">
+                  Initiate a new assessment for a potential or existing borrower.
+                </Body>
+                <Link href="/bankability/assessment">
+                  <Button className="w-full">
+                    <Activity className="h-4 w-4 mr-2" />
+                    Start Assessment
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Risk Matrix Card */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <ShieldCheck className="h-4 w-4 text-purple-600" />
+                  Risk Matrix Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {RISK_MATRIX.map((item) => (
+                  <div key={item.risk} className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("w-3 h-3 rounded-full", item.color)} />
+                      <Body className="text-sm">{item.risk} Risk</Body>
+                    </div>
+                    <MetricValue size="sm">{item.count}</MetricValue>
+                  </div>
+                ))}
+                <Link href="/lender/risk-analytics">
+                  <Button variant="ghost" size="sm" className="w-full justify-start mt-2">
+                    View Full Matrix
+                    <ArrowRight className="h-4 w-4 ml-auto" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Audit Trail Card */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <FileText className="h-4 w-4" />
+                  Audit Trail
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Body className="text-sm text-gray-600 mb-4">
+                  Access a full history of all platform actions and data changes.
+                </Body>
+                <Link href="/audit-logs">
+                  <Button variant="outline" className="w-full">
+                    Go to Audit Log
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 };
