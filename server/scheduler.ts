@@ -24,6 +24,10 @@ import {
   hourlyWarningsCheck,
   weeklyClimateMetricsCalculation,
 } from "./bomIngestionJobs";
+import {
+  weeklySatelliteDataRefresh,
+  monthlyClimateDataCacheCleanup,
+} from "./climateHubJobs";
 
 // Track job status
 export const jobStatus = {
@@ -102,6 +106,19 @@ export const jobStatus = {
     lastResult: null as any,
   },
   bomClimateMetricsWeekly: {
+    lastRun: null as Date | null,
+    nextRun: null as Date | null,
+    status: "scheduled" as "scheduled" | "running" | "completed" | "failed",
+    lastResult: null as any,
+  },
+  // Climate Intelligence Hub Jobs
+  climateHubSatelliteWeekly: {
+    lastRun: null as Date | null,
+    nextRun: null as Date | null,
+    status: "scheduled" as "scheduled" | "running" | "completed" | "failed",
+    lastResult: null as any,
+  },
+  climateHubCacheCleanupMonthly: {
     lastRun: null as Date | null,
     nextRun: null as Date | null,
     status: "scheduled" as "scheduled" | "running" | "completed" | "failed",
@@ -500,6 +517,66 @@ const bomClimateMetricsWeeklyJob = cron.schedule(
 );
 
 /**
+ * Climate Hub Weekly Satellite Data Refresh
+ * Runs every Sunday at 1:00 AM
+ * Cron: 0 1 * * 0
+ */
+const climateHubSatelliteWeeklyJob = cron.schedule(
+  "0 1 * * 0",
+  async () => {
+    console.log(
+      "[Scheduler] Running climate hub satellite refresh at",
+      new Date().toISOString()
+    );
+    jobStatus.climateHubSatelliteWeekly.status = "running";
+
+    try {
+      const result = await weeklySatelliteDataRefresh();
+      jobStatus.climateHubSatelliteWeekly.lastRun = new Date();
+      jobStatus.climateHubSatelliteWeekly.status = "completed";
+      jobStatus.climateHubSatelliteWeekly.lastResult = result;
+      console.log("[Scheduler] Climate hub satellite refresh completed:", result);
+    } catch (error) {
+      jobStatus.climateHubSatelliteWeekly.status = "failed";
+      console.error("[Scheduler] Climate hub satellite refresh failed:", error);
+    }
+  },
+  {
+    timezone: "Australia/Sydney",
+  }
+);
+
+/**
+ * Climate Hub Monthly Cache Cleanup
+ * Runs on 15th of each month at 2:00 AM
+ * Cron: 0 2 15 * *
+ */
+const climateHubCacheCleanupMonthlyJob = cron.schedule(
+  "0 2 15 * *",
+  async () => {
+    console.log(
+      "[Scheduler] Running climate hub cache cleanup at",
+      new Date().toISOString()
+    );
+    jobStatus.climateHubCacheCleanupMonthly.status = "running";
+
+    try {
+      const result = await monthlyClimateDataCacheCleanup();
+      jobStatus.climateHubCacheCleanupMonthly.lastRun = new Date();
+      jobStatus.climateHubCacheCleanupMonthly.status = "completed";
+      jobStatus.climateHubCacheCleanupMonthly.lastResult = result;
+      console.log("[Scheduler] Climate hub cache cleanup completed:", result);
+    } catch (error) {
+      jobStatus.climateHubCacheCleanupMonthly.status = "failed";
+      console.error("[Scheduler] Climate hub cache cleanup failed:", error);
+    }
+  },
+  {
+    timezone: "Australia/Sydney",
+  }
+);
+
+/**
  * Initialize scheduler
  * Starts all cron jobs and logs their schedules
  */
@@ -524,6 +601,10 @@ export function initializeScheduler() {
   bomSeasonalMonthlyJob.start();
   bomWarningsHourlyJob.start();
   bomClimateMetricsWeeklyJob.start();
+
+  // Start Climate Intelligence Hub jobs
+  climateHubSatelliteWeeklyJob.start();
+  climateHubCacheCleanupMonthlyJob.start();
 
   logger.info("Scheduler", "Monitoring Jobs:");
   console.log(
@@ -567,6 +648,13 @@ export function initializeScheduler() {
   console.log(
     "  ✓ Weekly Climate Metrics scheduled for 3:30 AM Mondays (Australia/Sydney)"
   );
+  logger.info("Scheduler", "Climate Intelligence Hub Jobs:");
+  console.log(
+    "  ✓ Weekly Satellite Refresh scheduled for 1:00 AM Sundays (Australia/Sydney)"
+  );
+  console.log(
+    "  ✓ Monthly Cache Cleanup scheduled for 2:00 AM 15th of month (Australia/Sydney)"
+  );
   logger.info("Scheduler", "All jobs started successfully");
 }
 
@@ -592,6 +680,9 @@ export function stopScheduler() {
   bomSeasonalMonthlyJob.stop();
   bomWarningsHourlyJob.stop();
   bomClimateMetricsWeeklyJob.stop();
+  // Stop Climate Intelligence Hub jobs
+  climateHubSatelliteWeeklyJob.stop();
+  climateHubCacheCleanupMonthlyJob.stop();
   logger.info("Scheduler", "All jobs stopped");
 }
 
@@ -655,6 +746,15 @@ export function getJobStatus() {
     bomClimateMetricsWeekly: {
       ...jobStatus.bomClimateMetricsWeekly,
       schedule: "Every Monday at 3:30 AM (Australia/Sydney)",
+    },
+    // Climate Intelligence Hub Jobs
+    climateHubSatelliteWeekly: {
+      ...jobStatus.climateHubSatelliteWeekly,
+      schedule: "Every Sunday at 1:00 AM (Australia/Sydney)",
+    },
+    climateHubCacheCleanupMonthly: {
+      ...jobStatus.climateHubCacheCleanupMonthly,
+      schedule: "15th of each month at 2:00 AM (Australia/Sydney)",
     },
   };
 }

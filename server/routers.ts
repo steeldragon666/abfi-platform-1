@@ -26,6 +26,7 @@ import { earthEngineRouter } from "./earthEngineRouter";
 // ABFI v5.0 Project Registry & Climate Intelligence Routers
 import { projectRegistryRouter } from "./projectRegistryRouter";
 import { projectAssessmentRouter } from "./projectAssessmentRouter";
+import { climateIntelligenceHubRouter } from "./climateIntelligenceHubRouter";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
@@ -113,6 +114,7 @@ export const appRouter = router({
   // ============================================================================
   projectRegistry: projectRegistryRouter,
   projectAssessment: projectAssessmentRouter,
+  climateHub: climateIntelligenceHubRouter,
 
   // ============================================================================
   // AUDIT & COMPLIANCE (Phase 8)
