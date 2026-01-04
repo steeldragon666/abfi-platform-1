@@ -168,6 +168,9 @@ const Changelog = lazy(() => import("./pages/Changelog"));
 // Project Registry (Phase 3)
 const ProjectRegistry = lazy(() => import("./pages/ProjectRegistry"));
 const ProjectRegistryDetail = lazy(() => import("./pages/ProjectRegistryDetail"));
+
+// Climate Intelligence Hub (Phase 5)
+const ClimateIntelligenceHub = lazy(() => import("./pages/ClimateIntelligenceHub"));
 const ClaimProject = lazy(() => import("./pages/ClaimProject"));
 
 // Loading fallback component
@@ -235,6 +238,9 @@ function Router() {
         <Route path="/registry" component={ProjectRegistry} />
         <Route path="/registry/project/:slug" component={ProjectRegistryDetail} />
         <Route path="/registry/claim" component={ClaimProject} />
+
+        {/* Climate Intelligence Hub (Phase 5) */}
+        <Route path="/climate-hub" component={ClimateIntelligenceHub} />
 
         {/* Legacy home route -> redirect to landing */}
         <Route path="/home">
