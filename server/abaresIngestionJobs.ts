@@ -89,11 +89,10 @@ export async function dailyAbaresIngestion(): Promise<{
     const [ingestionRun] = await db
       .insert(abaresIngestionRuns)
       .values({
-        dataSource: "data.gov.au",
-        datasetId: "daily_comprehensive",
-        startTime: new Date(),
-        status: "running",
-        recordsProcessed: 0,
+        runType: "crop_report",
+        sourceUrl: "https://data.gov.au/abares",
+        startedAt: new Date(),
+        status: "started",
       })
       .$returningId();
 
@@ -180,9 +179,10 @@ export async function dailyAbaresIngestion(): Promise<{
     await db
       .update(abaresIngestionRuns)
       .set({
-        endTime: new Date(),
-        status: errors.length > 0 ? "partial" : "success",
-        recordsProcessed: cropForecasts + commodityPrices,
+        finishedAt: new Date(),
+        status: errors.length > 0 ? "partial" : "succeeded",
+        recordsIn: signalsDiscovered,
+        recordsOut: cropForecasts + commodityPrices,
         errorMessage: errors.length > 0 ? errors.join("; ") : null,
       })
       .where(eq(abaresIngestionRuns.id, ingestionRun.id));
