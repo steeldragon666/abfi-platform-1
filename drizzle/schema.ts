@@ -6712,3 +6712,244 @@ export const bomIngestionRuns = mysqlTable(
 
 export type BomIngestionRun = typeof bomIngestionRuns.$inferSelect;
 export type InsertBomIngestionRun = typeof bomIngestionRuns.$inferInsert;
+
+// ============================================================================
+// BIOENERGY PROJECT REGISTRY
+// ============================================================================
+
+/**
+ * Australian Bioenergy Projects Registry
+ * Public database of all announced/operational bioenergy projects
+ * Allows operators to claim and manage their project profiles
+ */
+export const bioenergyProjects = mysqlTable(
+  "bioenergyProjects",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    slug: varchar("slug", { length: 100 }).notNull().unique(), // URL-friendly ID like "licella-swift"
+
+    // Core identification
+    name: varchar("name", { length: 255 }).notNull(),
+    company: varchar("company", { length: 255 }).notNull(),
+    parentCompany: varchar("parentCompany", { length: 255 }),
+    projectCode: varchar("projectCode", { length: 100 }), // "Project Swift", "Project Ulysses"
+
+    // Location
+    location: varchar("location", { length: 255 }).notNull(),
+    state: mysqlEnum("state", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]),
+    latitude: decimal("latitude", { precision: 10, scale: 6 }),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }),
+
+    // Capacity & output
+    capacity: varchar("capacity", { length: 100 }), // "113 ML/yr", "95 TJ/yr"
+    capacityValue: int("capacityValue"),
+    capacityUnit: varchar("capacityUnit", { length: 20 }),
+    products: json("products").$type<string[]>(), // ["SAF", "Renewable Diesel"]
+
+    // Technology & feedstock
+    technology: varchar("technology", { length: 100 }), // "ATJ", "HEFA", "HTL", "Gasification"
+    technologyProvider: varchar("technologyProvider", { length: 255 }),
+    feedstock: varchar("feedstock", { length: 255 }),
+    secondaryFeedstocks: json("secondaryFeedstocks").$type<string[]>(),
+
+    // Biomass availability (tonnes/year)
+    biomass50km: int("biomass50km"),
+    biomass100km: int("biomass100km"),
+
+    // Status & timeline
+    status: mysqlEnum("projectStatus", [
+      "announced",
+      "feasibility",
+      "development",
+      "construction",
+      "operational",
+      "halted",
+      "cancelled",
+    ]).default("announced").notNull(),
+    announcementDate: date("announcementDate"),
+    targetCOD: date("targetCOD"),
+    actualCOD: date("actualCOD"),
+
+    // 6-Dimension Ratings
+    bankabilityRating: varchar("bankabilityRating", { length: 10 }), // AAA, AA, A, BBB, BB, B, CCC, D, N/R
+    growerContractRating: varchar("growerContractRating", { length: 10 }), // GC1, GC2, GC3, GC4, N/A
+    techReadinessRating: varchar("techReadinessRating", { length: 10 }), // TR1, TR2, TR3, TR4
+    carbonIntensityRating: varchar("carbonIntensityRating", { length: 10 }), // CI-A, CI-B, CI-C, CI-D
+    carbonIntensityValue: decimal("carbonIntensityValue", { precision: 5, scale: 1 }), // gCO2e/MJ
+    offtakeRating: varchar("offtakeRating", { length: 10 }), // OQ1, OQ2, OQ3, OQ4
+    govSupportRating: varchar("govSupportRating", { length: 10 }), // GS1, GS2, GS3, GS4
+
+    // Market signal
+    signal: mysqlEnum("signal", [
+      "BULLISH",
+      "NEUTRAL-BULLISH",
+      "NEUTRAL",
+      "NEUTRAL-BEARISH",
+      "BEARISH",
+      "ON HOLD",
+      "MOTHBALLED",
+      "CANCELLED",
+    ]).default("NEUTRAL"),
+    assessmentNotes: text("assessmentNotes"),
+
+    // Funding information
+    totalCapex: decimal("totalCapex", { precision: 12, scale: 2 }), // AUD millions
+    fundingSecured: decimal("fundingSecured", { precision: 12, scale: 2 }),
+    grantFunding: decimal("grantFunding", { precision: 12, scale: 2 }),
+    grantSource: varchar("grantSource", { length: 255 }), // "ARENA", "CEFC", "QLD QNIDS"
+
+    // Offtake information
+    primaryOfftaker: varchar("primaryOfftaker", { length: 255 }),
+    offtakeType: varchar("offtakeType", { length: 100 }), // "Binding HOA", "LOI", "MOU"
+    offtakeVolume: varchar("offtakeVolume", { length: 100 }),
+
+    // Source & verification
+    dataSource: varchar("dataSource", { length: 255 }), // "Public announcement", "ARENA", "Industry report"
+    sourceUrl: varchar("sourceUrl", { length: 500 }),
+    lastVerifiedAt: timestamp("lastVerifiedAt"),
+    verifiedBy: int("verifiedBy").references(() => users.id),
+
+    // Claim status
+    claimedByUserId: int("claimedByUserId").references(() => users.id),
+    claimedBySupplierId: int("claimedBySupplierId").references(() => suppliers.id),
+    claimStatus: mysqlEnum("claimStatus", ["unclaimed", "pending", "verified", "rejected"]).default("unclaimed"),
+    claimedAt: timestamp("claimedAt"),
+    claimVerifiedAt: timestamp("claimVerifiedAt"),
+
+    // Link to internal project if claimed
+    linkedProjectId: int("linkedProjectId").references(() => projects.id),
+
+    // Public profile information
+    publicDescription: text("publicDescription"),
+    publicContactEmail: varchar("publicContactEmail", { length: 320 }),
+    publicWebsite: varchar("publicWebsite", { length: 255 }),
+    logoUrl: varchar("logoUrl", { length: 500 }),
+
+    // Metadata
+    isPublic: boolean("isPublic").default(true).notNull(),
+    viewCount: int("viewCount").default(0),
+    lastUpdatedBy: int("lastUpdatedBy").references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    slugIdx: index("bioenergyProjects_slug_idx").on(table.slug),
+    stateIdx: index("bioenergyProjects_state_idx").on(table.state),
+    statusIdx: index("bioenergyProjects_status_idx").on(table.status),
+    claimStatusIdx: index("bioenergyProjects_claimStatus_idx").on(table.claimStatus),
+    bankabilityIdx: index("bioenergyProjects_bankability_idx").on(table.bankabilityRating),
+  })
+);
+
+export type BioenergyProject = typeof bioenergyProjects.$inferSelect;
+export type InsertBioenergyProject = typeof bioenergyProjects.$inferInsert;
+
+/**
+ * Project Claims
+ * Tracks claims from operators wanting to manage their project profiles
+ */
+export const projectClaims = mysqlTable(
+  "projectClaims",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    projectId: int("projectId").notNull().references(() => bioenergyProjects.id),
+    userId: int("userId").notNull().references(() => users.id),
+    supplierId: int("supplierId").references(() => suppliers.id),
+
+    // Claim details
+    claimType: mysqlEnum("claimType", ["owner", "operator", "developer", "representative"]).notNull(),
+    companyName: varchar("companyName", { length: 255 }).notNull(),
+    abn: varchar("abn", { length: 11 }),
+    contactName: varchar("contactName", { length: 255 }).notNull(),
+    contactEmail: varchar("contactEmail", { length: 320 }).notNull(),
+    contactPhone: varchar("contactPhone", { length: 20 }),
+    position: varchar("position", { length: 100 }), // Job title
+
+    // Verification
+    verificationDocuments: json("verificationDocuments").$type<string[]>(), // S3 URLs
+    verificationNotes: text("verificationNotes"),
+
+    // Status
+    status: mysqlEnum("claimRequestStatus", ["pending", "under_review", "verified", "rejected"]).default("pending").notNull(),
+    reviewedBy: int("reviewedBy").references(() => users.id),
+    reviewedAt: timestamp("reviewedAt"),
+    rejectionReason: text("rejectionReason"),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    projectIdIdx: index("projectClaims_projectId_idx").on(table.projectId),
+    userIdIdx: index("projectClaims_userId_idx").on(table.userId),
+    statusIdx: index("projectClaims_status_idx").on(table.status),
+  })
+);
+
+export type ProjectClaim = typeof projectClaims.$inferSelect;
+export type InsertProjectClaim = typeof projectClaims.$inferInsert;
+
+/**
+ * Climate Location Data Cache
+ * Stores unified GEE + BOM climate data for locations to avoid API rate limits
+ */
+export const climateLocationData = mysqlTable(
+  "climateLocationData",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    // Location reference
+    latitude: decimal("latitude", { precision: 10, scale: 6 }).notNull(),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }).notNull(),
+    locationHash: varchar("locationHash", { length: 64 }).notNull().unique(), // SHA256 of lat,lng for deduplication
+
+    // Nearest region
+    nearestRegion: varchar("nearestRegion", { length: 100 }),
+    state: mysqlEnum("climateState", ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"]),
+
+    // Cached satellite data (from Google Earth Engine)
+    ndviMean: decimal("ndviMean", { precision: 5, scale: 4 }),
+    ndviMin: decimal("ndviMin", { precision: 5, scale: 4 }),
+    ndviMax: decimal("ndviMax", { precision: 5, scale: 4 }),
+    ndviCategory: mysqlEnum("ndviCategory", ["excellent", "good", "moderate", "poor", "bare"]),
+    vegetationHealthScore: int("vegetationHealthScore"), // 0-100
+    vegetationEVI: decimal("vegetationEVI", { precision: 5, scale: 4 }),
+    vegetationLAI: decimal("vegetationLAI", { precision: 5, scale: 2 }),
+    vegetationTrend: mysqlEnum("vegetationTrend", ["improving", "stable", "declining"]),
+    soilMoistureSurface: decimal("soilMoistureSurface", { precision: 4, scale: 3 }), // 0-1
+    soilMoistureRootZone: decimal("soilMoistureRootZone", { precision: 4, scale: 3 }), // 0-1
+    droughtRisk: mysqlEnum("droughtRisk", ["low", "moderate", "high", "severe"]),
+
+    // Land cover percentages
+    landCoverCrops: decimal("landCoverCrops", { precision: 5, scale: 2 }),
+    landCoverTrees: decimal("landCoverTrees", { precision: 5, scale: 2 }),
+    landCoverGrass: decimal("landCoverGrass", { precision: 5, scale: 2 }),
+    landCoverBare: decimal("landCoverBare", { precision: 5, scale: 2 }),
+
+    // Cached BOM data
+    rainfallLast30Days: decimal("rainfallLast30Days", { precision: 6, scale: 1 }),
+    rainfallLast90Days: decimal("rainfallLast90Days", { precision: 6, scale: 1 }),
+    rainfallYTD: decimal("rainfallYTD", { precision: 7, scale: 1 }),
+    tempMaxAvg30Days: decimal("tempMaxAvg30Days", { precision: 4, scale: 1 }),
+    tempMinAvg30Days: decimal("tempMinAvg30Days", { precision: 4, scale: 1 }),
+    growingDegreeDays: int("growingDegreeDays"),
+    frostDaysLast30: int("frostDaysLast30"),
+    heatStressDaysLast30: int("heatStressDaysLast30"),
+    frostRisk: mysqlEnum("frostRisk", ["low", "moderate", "high"]),
+    heatStressRisk: mysqlEnum("heatStressRisk", ["low", "moderate", "high"]),
+
+    // Data freshness
+    satelliteDataUpdatedAt: timestamp("satelliteDataUpdatedAt"),
+    bomDataUpdatedAt: timestamp("bomDataUpdatedAt"),
+
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    locationHashIdx: index("climateLocationData_hash_idx").on(table.locationHash),
+    stateIdx: index("climateLocationData_state_idx").on(table.state),
+    coordsIdx: index("climateLocationData_coords_idx").on(table.latitude, table.longitude),
+  })
+);
+
+export type ClimateLocationData = typeof climateLocationData.$inferSelect;
+export type InsertClimateLocationData = typeof climateLocationData.$inferInsert;

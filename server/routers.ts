@@ -23,6 +23,9 @@ import { priceIntelligenceRouter } from "./priceIntelligenceRouter";
 import { transportRouter } from "./transportRouter";
 import { unifiedMapRouter } from "./unifiedMapRouter";
 import { earthEngineRouter } from "./earthEngineRouter";
+// ABFI v5.0 Project Registry & Climate Intelligence Routers
+import { projectRegistryRouter } from "./projectRegistryRouter";
+import { projectAssessmentRouter } from "./projectAssessmentRouter";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
@@ -104,6 +107,12 @@ export const appRouter = router({
   // SATELLITE INTELLIGENCE (Earth Engine)
   // ============================================================================
   earthEngine: earthEngineRouter,
+
+  // ============================================================================
+  // ABFI v5.0 PROJECT REGISTRY & CLIMATE INTELLIGENCE
+  // ============================================================================
+  projectRegistry: projectRegistryRouter,
+  projectAssessment: projectAssessmentRouter,
 
   // ============================================================================
   // AUDIT & COMPLIANCE (Phase 8)
