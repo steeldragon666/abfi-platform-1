@@ -165,6 +165,11 @@ const SupplierDirectory = lazy(() => import("./pages/SupplierDirectory"));
 const QuoteRequest = lazy(() => import("./pages/QuoteRequest"));
 const Changelog = lazy(() => import("./pages/Changelog"));
 
+// Project Registry (Phase 3)
+const ProjectRegistry = lazy(() => import("./pages/ProjectRegistry"));
+const ProjectRegistryDetail = lazy(() => import("./pages/ProjectRegistryDetail"));
+const ClaimProject = lazy(() => import("./pages/ClaimProject"));
+
 // Loading fallback component
 function PageLoader() {
   return (
@@ -225,6 +230,11 @@ function Router() {
         <Route path="/supplier-directory" component={SupplierDirectory} />
         <Route path="/quote-request" component={QuoteRequest} />
         <Route path="/changelog" component={Changelog} />
+
+        {/* Project Registry (Phase 3) */}
+        <Route path="/registry" component={ProjectRegistry} />
+        <Route path="/registry/project/:slug" component={ProjectRegistryDetail} />
+        <Route path="/registry/claim" component={ClaimProject} />
 
         {/* Legacy home route -> redirect to landing */}
         <Route path="/home">
