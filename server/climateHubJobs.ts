@@ -6,7 +6,7 @@
 import { getDb } from "./db";
 import { eq, lt, and, isNotNull } from "drizzle-orm";
 import { climateLocationData, bioenergyProjects } from "../drizzle/schema";
-import { earthEngineService } from "./services/earthEngineService";
+import { getVegetationHealth } from "./services/earthEngine";
 
 /**
  * Weekly Satellite Data Refresh
@@ -74,7 +74,7 @@ export async function weeklySatelliteDataRefresh(): Promise<{
         // Fetch fresh satellite data from Earth Engine
         console.log(`[Climate Hub] Refreshing satellite data for ${project.name}...`);
 
-        const satelliteData = await earthEngineService.getVegetationHealth(lat, lng);
+        const satelliteData = await getVegetationHealth(lat, lng);
 
         if (satelliteData) {
           // Update or insert cache record
