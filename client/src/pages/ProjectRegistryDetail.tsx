@@ -6,11 +6,11 @@
  * - Project hero with key info
  * - 6-dimension rating visualization
  * - Gap analysis for missing information
- * - Climate data section (placeholder for future integration)
+ * - Climate intelligence section with unified satellite + weather data
  * - Claim button for unclaimed projects
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/Button";
@@ -35,12 +35,14 @@ import {
   Info,
   Loader2,
   BarChart3,
+  Satellite,
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { RatingBadge, BankabilityBadge, SignalBadge, RatingBadgesRow } from "@/components/registry/RatingBadges";
 import { H1, H2, H3, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { cn } from "@/lib/utils";
+import { UnifiedClimatePanel } from "@/components/climate/UnifiedClimatePanel";
 
 // Status colors
 const STATUS_COLORS: Record<string, string> = {
@@ -125,6 +127,15 @@ export default function ProjectRegistryDetail() {
     { projectId: project?.id || 0 },
     { enabled: !!project?.id }
   );
+
+  // Compute coordinates for climate panel
+  const projectCoordinates = useMemo(() => {
+    if (!project?.latitude || !project?.longitude) return null;
+    const lat = parseFloat(project.latitude);
+    const lng = parseFloat(project.longitude);
+    if (isNaN(lat) || isNaN(lng)) return null;
+    return { lat, lng };
+  }, [project?.latitude, project?.longitude]);
 
   if (projectLoading) {
     return (
@@ -499,22 +510,34 @@ export default function ProjectRegistryDetail() {
         </div>
       </div>
 
-      {/* Climate Data Placeholder */}
+      {/* Climate Intelligence Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Location Climate Intelligence</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Satellite className="h-5 w-5 text-primary" />
+            Location Climate Intelligence
+          </CardTitle>
           <CardDescription>
             Satellite and weather data for this project location
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Climate intelligence data coming soon</p>
-            <p className="text-sm">
-              Will include NDVI, soil moisture, rainfall, and growing conditions
-            </p>
-          </div>
+          {projectCoordinates ? (
+            <div className="flex justify-center">
+              <UnifiedClimatePanel
+                coordinates={projectCoordinates}
+                className="w-full max-w-lg"
+              />
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Location coordinates not available</p>
+              <p className="text-sm">
+                Climate intelligence requires project latitude and longitude
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
