@@ -3,7 +3,8 @@
  * Run with: npx tsx server/seedBioenergyProjects.ts
  */
 
-import { db } from "./db";
+import "dotenv/config";
+import { getDb } from "./db";
 import { bioenergyProjects } from "../drizzle/schema";
 
 // Signal type as defined in schema
@@ -468,6 +469,12 @@ async function seedBioenergyProjects() {
   console.log("🌱 Starting bioenergy projects seed...");
 
   try {
+    // Get database connection
+    const db = await getDb();
+    if (!db) {
+      throw new Error("Failed to connect to database");
+    }
+
     // Check existing count
     const existingProjects = await db.select().from(bioenergyProjects);
     console.log(`📊 Found ${existingProjects.length} existing projects in database`);
