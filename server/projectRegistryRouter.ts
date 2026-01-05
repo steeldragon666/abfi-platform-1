@@ -538,6 +538,42 @@ export const projectRegistryRouter = router({
       return { message: "Project updated successfully" };
     }),
 
+  // List projects optimized for map display
+  listForMap: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+    const projects = await db
+      .select({
+        id: bioenergyProjects.id,
+        slug: bioenergyProjects.slug,
+        name: bioenergyProjects.name,
+        company: bioenergyProjects.company,
+        location: bioenergyProjects.location,
+        latitude: bioenergyProjects.latitude,
+        longitude: bioenergyProjects.longitude,
+        status: bioenergyProjects.status,
+        products: bioenergyProjects.products,
+        capacity: bioenergyProjects.capacity,
+        technology: bioenergyProjects.technology,
+        feedstock: bioenergyProjects.feedstock,
+        biomass50km: bioenergyProjects.biomass50km,
+        bankabilityRating: bioenergyProjects.bankabilityRating,
+        growerContractRating: bioenergyProjects.growerContractRating,
+        techReadinessRating: bioenergyProjects.techReadinessRating,
+        carbonIntensityRating: bioenergyProjects.carbonIntensityRating,
+        carbonIntensityValue: bioenergyProjects.carbonIntensityValue,
+        offtakeRating: bioenergyProjects.offtakeRating,
+        govSupportRating: bioenergyProjects.govSupportRating,
+        signal: bioenergyProjects.signal,
+        description: bioenergyProjects.description,
+      })
+      .from(bioenergyProjects)
+      .where(eq(bioenergyProjects.isPublic, true));
+
+    return projects;
+  }),
+
   // Get statistics
   getStats: publicProcedure.query(async () => {
     const db = await getDb();

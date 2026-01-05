@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { cn } from "@/lib/utils";
+import { trpc } from "@/lib/trpc";
 
 // Fix Leaflet default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -562,6 +563,45 @@ export function BiomassMap({
     currentOutputMW: number;
   } | null>(null);
 
+  // Fetch projects from database
+  const { data: dbProjects } = trpc.projectRegistry.listForMap.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
+  // Convert database projects to BiofuelProject format
+  const biofuelProjects: BiofuelProject[] = useMemo(() => {
+    if (!dbProjects || dbProjects.length === 0) {
+      // Fallback to hardcoded data if DB is empty (for development)
+      return BIOFUEL_PROJECTS;
+    }
+    return dbProjects.map((p) => ({
+      id: p.slug,
+      name: p.name,
+      company: p.company,
+      location: p.location,
+      lat: parseFloat(p.latitude || "0"),
+      lng: parseFloat(p.longitude || "0"),
+      capacity: p.capacity || "TBD",
+      status: (p.status === "announced" || p.status === "construction" || p.status === "cancelled"
+        ? "development"
+        : p.status) as BiofuelProject["status"],
+      products: (p.products || []) as string[],
+      biomass50km: p.biomass50km || 0,
+      technology: p.technology || "Unknown",
+      bankability: p.bankabilityRating || "N/R",
+      growerContract: p.growerContractRating || "N/A",
+      techReadiness: p.techReadinessRating || "N/A",
+      carbonIntensity: p.carbonIntensityRating || "N/A",
+      ciValue: p.carbonIntensityValue ? `~${p.carbonIntensityValue}` : "N/A",
+      offtake: p.offtakeRating || "N/A",
+      govSupport: p.govSupportRating || "N/A",
+      signal: p.signal || "NEUTRAL",
+      feedstock: p.feedstock || "Unknown",
+      notes: p.description || "",
+    }));
+  }, [dbProjects]);
+
   // Initialize map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -792,7 +832,7 @@ export function BiomassMap({
 
     const map = mapRef.current;
 
-    BIOFUEL_PROJECTS.forEach((project) => {
+    biofuelProjects.forEach((project) => {
       // Create custom icon
       const icon = L.divIcon({
         className: "custom-project-marker",
@@ -950,7 +990,7 @@ export function BiomassMap({
         circlesRef.current.push(circle);
       }
     });
-  }, [isReady, showProjects, showCatchments, catchmentRadius, onProjectClick]);
+  }, [isReady, showProjects, showCatchments, catchmentRadius, onProjectClick, biofuelProjects]);
 
   // Handle WMS layers
   useEffect(() => {
