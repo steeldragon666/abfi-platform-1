@@ -17,3 +17,16 @@ export {
   LenderPortalLayout,
   GovernmentPortalLayout,
 } from "./PortalLayout";
+export {
+  CollapsibleSection,
+  CollapsibleSectionGroup,
+  useCollapsibleState,
+} from "./CollapsibleSection";
+export {
+  DenseGrid,
+  DenseStatsGrid,
+  DenseList,
+  DenseFlex,
+  AutoGrid,
+  MasonryGrid,
+} from "./DenseGrid";

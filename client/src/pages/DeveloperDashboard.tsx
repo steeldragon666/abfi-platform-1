@@ -61,6 +61,9 @@ import { UnifiedMap } from "@/components/maps/UnifiedMap";
 import { MapControlsProvider } from "@/contexts/MapControlsContext";
 import { MapControlsPanel } from "@/components/layout/MapControlsPanel";
 import { H1, H2, H3, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { CompactCard } from "@/components/ui/CompactCard";
+import { CollapsibleSection } from "@/components/layout/CollapsibleSection";
+import { DenseStatsGrid, DenseGrid } from "@/components/layout/DenseGrid";
 
 // Pipeline stages
 const PIPELINE_STAGES = [
@@ -162,22 +165,22 @@ export default function DeveloperDashboard() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-65px)] bg-background overflow-hidden">
-      {/* Quick Stats Bar */}
+      {/* Quick Stats Bar - Dense layout */}
       <div className="border-b bg-card/50 shrink-0">
         <div className="container mx-auto px-4 py-2">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <DenseStatsGrid variant="compact">
             {QUICK_STATS.map((stat, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center">
-                  <stat.icon className={cn("h-5 w-5", stat.color)} />
+              <div key={index} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center flex-shrink-0">
+                  <stat.icon className={cn("h-4 w-4", stat.color)} />
                 </div>
-                <div>
-                  <MetricValue>{stat.value}</MetricValue>
-                  <DataLabel>{stat.label}</DataLabel>
+                <div className="min-w-0">
+                  <MetricValue className="text-base">{stat.value}</MetricValue>
+                  <DataLabel className="text-xs truncate">{stat.label}</DataLabel>
                 </div>
               </div>
             ))}
-          </div>
+          </DenseStatsGrid>
         </div>
       </div>
 
@@ -235,149 +238,147 @@ export default function DeveloperDashboard() {
                 </Button>
               </div>
 
-              {/* Deal Pipeline */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <H3 className="flex items-center gap-2 !text-sm">
-                    <Target className="h-4 w-4 text-blue-600" />
-                    Deal Pipeline
-                  </H3>
-                  <Badge variant="outline" className="text-xs">
-                    {DEAL_PIPELINE.length} deals
-                  </Badge>
-                </div>
-
-                {/* Pipeline Stages Summary */}
-                <div className="grid grid-cols-4 gap-1 mb-4">
+              {/* Deal Pipeline - Collapsible */}
+              <CollapsibleSection
+                id="developer-deal-pipeline"
+                title="Deal Pipeline"
+                icon={<Target className="h-4 w-4 text-blue-600" />}
+                badge={{ label: `${DEAL_PIPELINE.length} deals` }}
+                defaultOpen={true}
+                variant="minimal"
+                size="sm"
+              >
+                {/* Pipeline Stages Summary - Dense grid */}
+                <DenseGrid cols={4} gap="xs" className="mb-3">
                   {PIPELINE_STAGES.map((stage) => {
                     const count = getDealsForStage(stage.id).length;
                     return (
-                      <div key={stage.id} className="text-center">
-                        <div
-                          className={cn(
-                            "h-1.5 rounded-full mb-1",
-                            stage.color
-                          )}
-                        />
-                        <DataLabel>{stage.label}</DataLabel>
-                        <MetricValue className="text-lg">{count}</MetricValue>
+                      <div key={stage.id} className="text-center p-1">
+                        <div className={cn("h-1 rounded-full mb-1", stage.color)} />
+                        <DataLabel className="text-[10px]">{stage.label}</DataLabel>
+                        <MetricValue className="text-sm">{count}</MetricValue>
                       </div>
                     );
                   })}
-                </div>
+                </DenseGrid>
 
-                {/* Deal Cards */}
-                <div className="space-y-2">
+                {/* Deal Cards - Using CompactCard */}
+                <div className="space-y-1.5">
                   {DEAL_PIPELINE.map((deal) => {
                     const stage = PIPELINE_STAGES.find((s) => s.id === deal.stage);
                     return (
-                      <div
+                      <CompactCard
                         key={deal.id}
+                        title={deal.name}
+                        subtitle={`${deal.location.label} · ${deal.type}`}
+                        value={deal.value}
+                        badge={{
+                          label: stage?.label || '',
+                          variant: deal.stage === 'contracted' ? 'success' : 'secondary',
+                        }}
+                        icon={<MapPin className="h-3 w-3" />}
+                        size="xs"
+                        variant={selectedDeal === deal.id ? 'outlined' : 'default'}
                         className={cn(
-                          "p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm",
-                          selectedDeal === deal.id
-                            ? "border-primary ring-1 ring-primary/20"
-                            : "hover:border-primary/30"
+                          "cursor-pointer",
+                          selectedDeal === deal.id && "ring-1 ring-primary"
                         )}
                         onClick={() => setSelectedDeal(deal.id)}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-sm truncate">{deal.name}</p>
-                              <Badge
-                                className={cn("text-xs shrink-0", stage?.color, "text-black")}
-                              >
-                                {stage?.label}
-                              </Badge>
+                        expandable
+                        expandedContent={
+                          <div className="text-xs space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Probability:</span>
+                              <span className="font-medium">{deal.probability}%</span>
                             </div>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-600">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                {deal.location.label}
-                              </span>
-                              <span>|</span>
-                              <span>{deal.type}</span>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Rating:</span>
+                              <Badge variant="outline" className="text-[10px] h-4">{deal.rating}</Badge>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Next:</span>
+                              <span>{deal.nextAction}</span>
                             </div>
                           </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-sm font-bold text-[#D4AF37]">{deal.value}</p>
-                            <p className="text-xs text-gray-600">{deal.probability}%</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t text-xs">
-                          <span className="text-gray-600">{deal.nextAction}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {deal.dueDate}
-                          </Badge>
-                        </div>
-                      </div>
+                        }
+                      />
                     );
                   })}
                 </div>
-              </div>
+              </CollapsibleSection>
 
-              {/* Intelligence Feeds */}
-              <div>
-                <H3 className="mb-3 flex items-center gap-2 !text-sm">
-                  <BarChart3 className="h-4 w-4 text-purple-600" />
-                  Intelligence Feeds
-                </H3>
-                <div className="space-y-2">
+              {/* Intelligence Feeds - Collapsible */}
+              <CollapsibleSection
+                id="developer-intelligence-feeds"
+                title="Intelligence Feeds"
+                icon={<BarChart3 className="h-4 w-4 text-purple-600" />}
+                badge={{ label: `${INTELLIGENCE_FEEDS.length}` }}
+                defaultOpen={true}
+                variant="minimal"
+                size="sm"
+              >
+                <div className="space-y-1">
                   {INTELLIGENCE_FEEDS.map((feed) => (
                     <Link key={feed.id} href={feed.href}>
                       <div className="p-2 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            {feed.type === "price" && <TrendingUp className="h-4 w-4 text-[#D4AF37]" />}
-                            {feed.type === "policy" && <FileText className="h-4 w-4 text-blue-500" />}
-                            {feed.type === "signal" && <Eye className="h-4 w-4 text-[#D4AF37]" />}
-                            <span className="text-sm">{feed.title}</span>
+                            {feed.type === "price" && <TrendingUp className="h-3 w-3 text-[#D4AF37]" />}
+                            {feed.type === "policy" && <FileText className="h-3 w-3 text-blue-500" />}
+                            {feed.type === "signal" && <Eye className="h-3 w-3 text-[#D4AF37]" />}
+                            <span className="text-xs">{feed.title}</span>
                           </div>
-                          <span className="text-xs text-gray-600">{feed.time}</span>
+                          <span className="text-[10px] text-muted-foreground">{feed.time}</span>
                         </div>
                       </div>
                     </Link>
                   ))}
                 </div>
-              </div>
+              </CollapsibleSection>
 
-              {/* Quick Actions */}
-              <div>
-                <H3 className="mb-3 !text-sm">Quick Actions</H3>
-                <div className="grid grid-cols-2 gap-2">
+              {/* Quick Actions - Collapsible */}
+              <CollapsibleSection
+                id="developer-quick-actions"
+                title="Quick Actions"
+                icon={<Zap className="h-4 w-4 text-amber-600" />}
+                badge={{ label: "5" }}
+                defaultOpen={true}
+                variant="minimal"
+                size="sm"
+              >
+                <DenseGrid cols={2} gap="xs">
                   <Link href="/browse">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <Search className="h-4 w-4 mr-2" />
+                    <Button variant="outline" size="sm" className="w-full justify-start h-8 text-xs">
+                      <Search className="h-3 w-3 mr-1.5" />
                       Browse Registry
                     </Button>
                   </Link>
                   <Link href="/procurement-scenarios">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <Shield className="h-4 w-4 mr-2" />
+                    <Button variant="outline" size="sm" className="w-full justify-start h-8 text-xs">
+                      <Shield className="h-3 w-3 mr-1.5" />
                       Confidence Tool
                     </Button>
                   </Link>
                   <Link href="/feedstock-prices">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <BarChart3 className="h-4 w-4 mr-2" />
+                    <Button variant="outline" size="sm" className="w-full justify-start h-8 text-xs">
+                      <BarChart3 className="h-3 w-3 mr-1.5" />
                       Price Charts
                     </Button>
                   </Link>
                   <Link href="/policy-carbon">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <Clock className="h-4 w-4 mr-2" />
+                    <Button variant="outline" size="sm" className="w-full justify-start h-8 text-xs">
+                      <Clock className="h-3 w-3 mr-1.5" />
                       Policy Timeline
                     </Button>
                   </Link>
                   <Link href="/stress-testing">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <Zap className="h-4 w-4 mr-2" />
+                    <Button variant="outline" size="sm" className="w-full justify-start h-8 text-xs">
+                      <Zap className="h-3 w-3 mr-1.5" />
                       Stress Testing
                     </Button>
                   </Link>
-                </div>
-              </div>
+                </DenseGrid>
+              </CollapsibleSection>
             </div>
           </ScrollArea>
         </div>
