@@ -141,6 +141,7 @@ const FeedstockPriceDashboard = lazy(() => import("./pages/FeedstockPriceDashboa
 const PolicyCarbonDashboard = lazy(() => import("./pages/PolicyCarbonDashboard"));
 const StealthDiscovery = lazy(() => import("./pages/StealthDiscovery"));
 const MarketIntelligence = lazy(() => import("./pages/MarketIntelligence"));
+const DesignVision = lazy(() => import("./pages/DesignVision"));
 
 // Bankability Rating Framework v3.0
 const BankabilityRatings = lazy(() => import("./pages/BankabilityRatings"));
@@ -193,6 +194,7 @@ function Router() {
         {/* Core Routes */}
         <Route path="/" component={Landing} />
         <Route path="/explore" component={Explore} />
+        <Route path="/design-vision" component={DesignVision} />
         <Route path="/welcome" component={SimplifiedDashboard} />
         <Route path="/unified" component={Dashboard} />
 
