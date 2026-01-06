@@ -150,21 +150,21 @@ export default function Explore() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-lg">
           <CardHeader className="text-center">
-            <div className="h-16 w-16 rounded-full bg-[#D4AF37]/10 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="h-8 w-8 text-[#D4AF37]" />
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="h-8 w-8 text-foreground" />
             </div>
             <H2 className="text-2xl">Your Recommended Path</H2>
             <Body className="text-muted-foreground">Based on your responses, we recommend starting here</Body>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="p-4 rounded-lg border-2 border-emerald-200 bg-emerald-50/50">
+            <div className="p-4 rounded-lg border border-border bg-muted/30">
               <H3 className="text-lg mb-1">{recommendation.title}</H3>
-              <Body size="sm" className="text-gray-600">{recommendation.description}</Body>
+              <Body size="sm" className="text-muted-foreground">{recommendation.description}</Body>
             </div>
 
             <div className="space-y-3">
               <Link href={recommendation.path}>
-                <Button className="w-full bg-[#D4AF37] hover:bg-emerald-700">
+                <Button className="w-full">
                   Go to {recommendation.title}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -234,7 +234,7 @@ export default function Explore() {
         {/* Progress */}
         <div className="mb-8">
           <Progress value={progress} className="h-2" />
-          <p className="text-sm text-gray-600 mt-2 text-center">
+          <p className="text-sm text-muted-foreground mt-2 text-center">
             {Math.round(progress)}% complete
           </p>
         </div>
@@ -242,8 +242,8 @@ export default function Explore() {
         {/* Question */}
         <Card>
           <CardHeader className="text-center">
-            <div className="h-12 w-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center mx-auto mb-4">
-              <Compass className="h-6 w-6 text-[#D4AF37]" />
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <Compass className="h-6 w-6 text-foreground" />
             </div>
             <H3 className="text-xl">{currentQuestion.question}</H3>
             <Body className="text-muted-foreground">Select the option that best fits your situation</Body>
@@ -261,11 +261,11 @@ export default function Explore() {
               >
                 <div className="flex items-start gap-4">
                   <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                    <option.icon className="h-5 w-5 text-gray-600" />
+                    <option.icon className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
                     <p className="font-medium">{option.label}</p>
-                    <p className="text-sm text-gray-600">{option.description}</p>
+                    <p className="text-sm text-muted-foreground">{option.description}</p>
                   </div>
                 </div>
               </button>
@@ -282,7 +282,7 @@ export default function Explore() {
 
         {/* Skip option */}
         <div className="text-center mt-6">
-          <p className="text-sm text-gray-600 mb-2">Already know where you want to go?</p>
+          <p className="text-sm text-muted-foreground mb-2">Already know where you want to go?</p>
           <div className="flex justify-center gap-2">
             <Link href="/grower/dashboard">
               <Button variant="outline" size="sm">Grower</Button>

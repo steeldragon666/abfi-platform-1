@@ -39,18 +39,18 @@ import {
 } from "@/components/ui/motion";
 import { H1, H2, H5, Body, MetricValue } from "@/components/Typography";
 
-// Intent pathway cards configuration - Navy + Gold Corporate Theme
+// Intent pathway cards configuration - ABFI Sovereign Theme
 const INTENT_PATHWAYS = [
   {
     id: "grower",
     title: "Sell/Certify Feedstock",
     description: "Register your feedstock, get certified, and connect with verified buyers",
     icon: Leaf,
-    color: "navy",
-    bgColor: "bg-[#D4AF37]/10",
-    borderColor: "border-primary/30",
-    iconColor: "text-[#D4AF37]",
-    hoverBg: "hover:bg-primary/15",
+    color: "graphite",
+    bgColor: "bg-muted",
+    borderColor: "border-border",
+    iconColor: "text-foreground",
+    hoverBg: "hover:bg-muted/70",
     href: "/for-growers",
     features: ["Feedstock registration", "Certification tracking", "Contract management"],
   },
@@ -59,11 +59,11 @@ const INTENT_PATHWAYS = [
     title: "Secure Supply",
     description: "Find verified feedstock suppliers and secure long-term supply agreements",
     icon: Factory,
-    color: "navy",
-    bgColor: "bg-[#D4AF37]/10",
-    borderColor: "border-primary/30",
-    iconColor: "text-[#D4AF37]",
-    hoverBg: "hover:bg-primary/15",
+    color: "graphite",
+    bgColor: "bg-muted",
+    borderColor: "border-border",
+    iconColor: "text-foreground",
+    hoverBg: "hover:bg-muted/70",
     href: "/for-developers",
     features: ["Registry explorer", "Supply confidence", "Price signals"],
   },
@@ -72,11 +72,11 @@ const INTENT_PATHWAYS = [
     title: "Evaluate Risk & Price",
     description: "Access market intelligence, risk scoring, and stealth discovery tools",
     icon: TrendingUp,
-    color: "navy",
-    bgColor: "bg-[#D4AF37]/10",
-    borderColor: "border-primary/30",
-    iconColor: "text-[#D4AF37]",
-    hoverBg: "hover:bg-primary/15",
+    color: "graphite",
+    bgColor: "bg-muted",
+    borderColor: "border-border",
+    iconColor: "text-foreground",
+    hoverBg: "hover:bg-muted/70",
     href: "/for-lenders",
     features: ["Stealth Discovery", "Lending Sentiment", "Price Intelligence"],
   },
@@ -85,11 +85,11 @@ const INTENT_PATHWAYS = [
     title: "Just Exploring",
     description: "Not sure where you fit? Take a quick assessment to find your path",
     icon: Compass,
-    color: "gold",
-    bgColor: "bg-accent/10",
-    borderColor: "border-accent/40",
-    iconColor: "text-accent",
-    hoverBg: "hover:bg-accent/20",
+    color: "graphite",
+    bgColor: "bg-muted",
+    borderColor: "border-border",
+    iconColor: "text-foreground",
+    hoverBg: "hover:bg-muted/70",
     href: "/explore",
     features: ["Personalized guidance", "Feature preview", "Tailored onboarding"],
   },
@@ -134,72 +134,80 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section - Pure Black + Gold (Figma Design) */}
-      <section className="relative overflow-hidden bg-black text-white">
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-950 to-black" />
+      {/* Hero Section - Sovereign Market Foundation */}
+      <section className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-16 lg:py-20">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div className="space-y-6">
+              <FadeInUp>
+                <Badge variant="outline" className="border-border text-muted-foreground">
+                  <Zap className="h-3 w-3 mr-1.5" />
+                  Sovereign market infrastructure
+                </Badge>
+              </FadeInUp>
 
-        {/* Animated gradient orbs - Gold accent */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#D4AF37]/15 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#D4AF37]/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+              <FadeInUp delay={0.1}>
+                <H1 className="text-3xl sm:text-4xl lg:text-5xl leading-tight text-foreground">
+                  Registry-grade clarity for commodity, credit, and compliance decisions.
+                </H1>
+              </FadeInUp>
 
-        <div className="container mx-auto px-4 py-20 lg:py-32 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <FadeInUp>
-              <Badge
-                variant="outline"
-                className="border-white/20 text-white/90 bg-white/5 mb-6"
-              >
-                <Zap className="h-3 w-3 mr-1.5" />
-                Australia's Biofuels Intelligence Platform
-              </Badge>
-            </FadeInUp>
+              <FadeInUp delay={0.2}>
+                <Body size="lg" className="text-base text-muted-foreground max-w-2xl">
+                  Verified feedstock registry, real-time market intelligence, and cryptographic
+                  audit trails. Finance-ready workflows designed for auditors, regulators, and
+                  underwriting teams.
+                </Body>
+              </FadeInUp>
 
-            <FadeInUp delay={0.1}>
-              <H1 className="text-4xl sm:text-5xl lg:text-6xl mb-6 leading-tight text-white">
-                Transform Biofuel
-                <span className="block bg-gradient-to-r from-[#D4AF37] to-[#F4CF67] bg-clip-text text-transparent">
-                  Supply Chain Risk
-                </span>
-                Into Strategic Advantage
-              </H1>
-            </FadeInUp>
+              <FadeInUp delay={0.3}>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button asChild>
+                    <Link href="/explore">
+                      Start market assessment
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link href="/methodology">
+                      View methodology
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              </FadeInUp>
+            </div>
 
             <FadeInUp delay={0.2}>
-              <Body size="lg" className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
-                Verified feedstock registry, real-time market intelligence, and
-                cryptographic audit trails. The infrastructure powering Australia's
-                bioenergy transition.
-              </Body>
-            </FadeInUp>
-
-            <FadeInUp delay={0.3}>
-              <div className="flex flex-col items-center gap-4">
-                <p className="text-lg font-medium text-white">
-                  What do you want to do?
-                </p>
-                <div className="flex items-center gap-2 text-sm text-white/70">
-                  <Lock className="h-4 w-4" />
-                  <span>Free access to all intelligence features</span>
+              <div className="rounded border border-border bg-background px-6 py-5">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <Lock className="h-4 w-4" />
+                    Immutable registry coverage and regulator-ready audit trails.
+                  </div>
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <div className="flex items-center justify-between">
+                      <span>Registry coverage</span>
+                      <span className="tabular-nums text-foreground">86%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Risk confidence</span>
+                      <span className="tabular-nums text-foreground">0.87</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Compliance status</span>
+                      <span className="text-foreground">Verified</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </FadeInUp>
           </div>
         </div>
-
-        {/* Wave transition */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 100" fill="none" className="w-full">
-            <path
-              d="M0 100V50C240 10 480 0 720 20C960 40 1200 80 1440 50V100H0Z"
-              className="fill-background"
-            />
-          </svg>
-        </div>
       </section>
 
-      {/* Intent Selection - Inline */}
-      <section className="py-16 bg-background -mt-8 relative z-20">
+      {/* Intent Selection */}
+      <section className="py-12 bg-background">
         <div className="container mx-auto px-4">
           <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {INTENT_PATHWAYS.map((pathway, index) => (
@@ -207,10 +215,10 @@ export default function Landing() {
                 <Link href={pathway.href}>
                   <Card
                     className={cn(
-                      "h-full cursor-pointer transition-all duration-300 border-2",
+                      "h-full cursor-pointer transition-all duration-300 border",
                       pathway.borderColor,
                       pathway.hoverBg,
-                      hoveredPathway === pathway.id && "scale-[1.02] shadow-lg"
+                      hoveredPathway === pathway.id && "scale-[1.01]"
                     )}
                     onMouseEnter={() => setHoveredPathway(pathway.id)}
                     onMouseLeave={() => setHoveredPathway(null)}
@@ -228,7 +236,7 @@ export default function Landing() {
                     <CardContent>
                       <ul className="space-y-2">
                         {pathway.features.map((feature, i) => (
-                          <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                          <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                             <CheckCircle2 className={cn("h-4 w-4", pathway.iconColor)} />
                             {feature}
                           </li>
@@ -251,17 +259,17 @@ export default function Landing() {
       </section>
 
       {/* Pre-auth Intelligence Teasers (Tiered) */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <FadeInUp className="text-center mb-12">
-            <Badge variant="outline" className="mb-4">
+            <Badge variant="outline" className="mb-4 border-border text-muted-foreground">
               <BarChart3 className="h-3 w-3 mr-1.5" />
               Live Market Intelligence
             </Badge>
             <H2 className="text-3xl mb-4">
               Real-Time Market Signals
             </H2>
-            <p className="text-gray-600 max-w-xl mx-auto">
+            <p className="text-muted-foreground max-w-xl mx-auto">
               Sample of our intelligence feeds. Sign up for full access including
               absolute pricing and confidence bands.
             </p>
@@ -278,17 +286,17 @@ export default function Landing() {
                   <CardContent>
                     <div className="flex items-center justify-center gap-2">
                       <MetricValue size="lg" className={cn(
-                        teaser.direction === "up" && "text-[#D4AF37]",
-                        teaser.direction === "down" && "text-red-600",
-                        teaser.direction === "neutral" && "text-blue-600"
+                        teaser.direction === "up" && "text-foreground",
+                        teaser.direction === "down" && "text-muted-foreground",
+                        teaser.direction === "neutral" && "text-muted-foreground"
                       )}>
                         {teaser.change}
                       </MetricValue>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-border text-muted-foreground">
                         {teaser.period}
                       </Badge>
                     </div>
-                    <p className="text-xs text-gray-600 mt-2">
+                    <p className="text-xs text-muted-foreground mt-2">
                       <Lock className="h-3 w-3 inline mr-1" />
                       Register for absolute values
                     </p>
@@ -310,14 +318,14 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Trust Bar - Pure Black */}
-      <section className="py-16 bg-black text-white">
+      {/* Trust Bar */}
+      <section className="py-12 bg-card border-y border-border">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             {TRUST_STATS.map((stat, index) => (
               <FadeInUp key={index} delay={index * 0.1}>
                 <div>
-                  <MetricValue size="xl" className="text-white mb-2">
+                  <MetricValue size="xl" className="text-foreground mb-2">
                     {stat.prefix}
                     <AnimatedCounter
                       value={stat.value}
@@ -325,7 +333,7 @@ export default function Landing() {
                       suffix={stat.suffix}
                     />
                   </MetricValue>
-                  <Body size="sm" className="text-white/60">{stat.label}</Body>
+                  <Body size="sm" className="text-muted-foreground">{stat.label}</Body>
                 </div>
               </FadeInUp>
             ))}
@@ -340,7 +348,7 @@ export default function Landing() {
             <H2 className="text-3xl mb-4">
               Built for the Bioenergy Ecosystem
             </H2>
-            <Body className="text-gray-600 max-w-2xl mx-auto">
+            <Body className="text-muted-foreground max-w-2xl mx-auto">
               Every feature designed with regulatory compliance, financial due diligence,
               and supply chain integrity in mind.
             </Body>
@@ -367,13 +375,13 @@ export default function Landing() {
               <StaggerItem key={index}>
                 <Card className="h-full">
                   <CardHeader>
-                    <div className="h-12 w-12 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center mb-4">
-                      <item.icon className="h-6 w-6 text-[#D4AF37]" />
+                    <div className="h-12 w-12 rounded border border-border bg-muted flex items-center justify-center mb-4">
+                      <item.icon className="h-6 w-6 text-foreground" />
                     </div>
                     <CardTitle className="text-lg">{item.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-gray-600">{item.description}</p>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
                   </CardContent>
                 </Card>
               </StaggerItem>
@@ -382,26 +390,26 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Final CTA - Pure Black + Gold */}
-      <section className="py-20 bg-gradient-to-br from-black to-zinc-900 text-white">
+      {/* Final CTA */}
+      <section className="py-16 bg-card border-t border-border">
         <div className="container mx-auto px-4 text-center">
           <FadeInUp>
-            <H2 className="text-3xl md:text-4xl mb-6 text-white">
+            <H2 className="text-3xl md:text-4xl mb-6 text-foreground">
               Ready to Transform Your Supply Chain?
             </H2>
-            <Body size="lg" className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+            <Body size="lg" className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join Australia's leading biofuels platform. Free access to all
               intelligence features during early access.
             </Body>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-[#D4AF37] text-black hover:bg-[#E5C158] font-semibold" asChild>
+              <Button size="lg" asChild>
                 <Link href="/explore">
                   <Compass className="h-5 w-5 mr-2" />
                   Find Your Path
                   <ArrowRight className="h-5 w-5 ml-2" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-[#D4AF37]/50 text-white hover:bg-[#D4AF37]/10 bg-transparent" asChild>
+              <Button size="lg" variant="outline" asChild>
                 <Link href="/browse">
                   Explore Marketplace
                 </Link>
