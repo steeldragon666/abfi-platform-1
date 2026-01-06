@@ -4,6 +4,7 @@
  */
 
 import { getDb } from "./db";
+import { logger } from "./utils/logger";
 import {
   projects,
   supplyAgreements,
@@ -25,7 +26,7 @@ export async function dailyCovenantCheck(): Promise<{
   breachesDetected: number;
   notificationsSent: number;
 }> {
-  console.log("[MonitoringJob] Starting daily covenant check...");
+  logger.info("Monitoring", Starting daily covenant check...");
 
   try {
     const db = await getDb();
@@ -111,7 +112,7 @@ export async function dailyCovenantCheck(): Promise<{
       notificationsSent,
     };
   } catch (error) {
-    console.error("[MonitoringJob] Error in daily covenant check:", error);
+    logger.error("Monitoring", Error in daily covenant check:", error);
     throw error;
   }
 }
@@ -125,7 +126,7 @@ export async function weeklySupplyRecalculation(): Promise<{
   agreementsUpdated: number;
   scoresRecalculated: number;
 }> {
-  console.log("[MonitoringJob] Starting weekly supply recalculation...");
+  logger.info("Monitoring", Starting weekly supply recalculation...");
 
   try {
     const db = await getDb();
@@ -233,7 +234,7 @@ export async function contractRenewalAlerts(): Promise<{
   contractsChecked: number;
   alertsGenerated: number;
 }> {
-  console.log("[MonitoringJob] Starting contract renewal alert check...");
+  logger.info("Monitoring", Starting contract renewal alert check...");
 
   try {
     const db = await getDb();
@@ -333,7 +334,7 @@ export async function contractRenewalAlerts(): Promise<{
  * Run all monitoring jobs (for manual trigger or testing)
  */
 export async function runAllMonitoringJobs() {
-  console.log("[MonitoringJob] Running all monitoring jobs...");
+  logger.info("Monitoring", Running all monitoring jobs...");
 
   const results = {
     covenantCheck: await dailyCovenantCheck(),
@@ -341,6 +342,6 @@ export async function runAllMonitoringJobs() {
     renewalAlerts: await contractRenewalAlerts(),
   };
 
-  console.log("[MonitoringJob] All monitoring jobs complete:", results);
+  logger.info("Monitoring", All monitoring jobs complete:", results);
   return results;
 }

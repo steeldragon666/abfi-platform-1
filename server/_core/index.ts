@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import { logger } from "../utils/logger";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -157,11 +158,11 @@ async function startServer() {
   const port = await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
+    logger.info("Server", `Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
   server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+    logger.info("Server", `Running on http://localhost:${port}/`);
 
     // Initialize automated job scheduler
     initializeScheduler();

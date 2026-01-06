@@ -10,6 +10,7 @@
  */
 
 import express from "express";
+import { logger } from "../utils/logger";
 import { getNotificationsByUserId } from "../db";
 
 interface SSEClient {
@@ -143,7 +144,7 @@ async function handleSSEConnection(req: express.Request, res: express.Response) 
   };
   clients.set(clientId, client);
 
-  console.log(
+  logger.debug("SSE",
     `[SSE] Client ${clientId} connected for user ${userId} (${clients.size} total connections)`
   );
 
@@ -183,7 +184,7 @@ async function handleSSEConnection(req: express.Request, res: express.Response) 
   req.on("close", () => {
     clearInterval(heartbeatInterval);
     clients.delete(clientId);
-    console.log(
+    logger.debug("SSE",
       `[SSE] Client ${clientId} disconnected (${clients.size} total connections)`
     );
   });

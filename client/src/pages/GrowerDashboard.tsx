@@ -47,14 +47,13 @@ import {
   Shield,
   Star,
   ExternalLink,
-} from"lucide-react";
-import { Link } from"wouter";
-import { cn } from"@/lib/utils";
-import { UnifiedMap } from"@/components/maps/UnifiedMap";
-import { MapControlsProvider } from"@/contexts/MapControlsContext";
-import { MapControlsPanel } from"@/components/layout/MapControlsPanel";
-import { H3, H4, Body, MetricValue } from"@/components/Typography";
-import { OnboardingModal } from"@/components/OnboardingModal";
+} from "lucide-react";
+import { Link } from "wouter";
+import { cn } from "@/lib/utils";
+import { UnifiedMap } from "@/components/maps/UnifiedMap";
+import { MapControlsProvider } from "@/contexts/MapControlsContext";
+import { H3, Body, MetricValue } from "@/components/Typography";
+import { OnboardingModal } from "@/components/OnboardingModal";
 
 // Onboarding checklist items
 const ONBOARDING_CHECKLIST = [
@@ -179,29 +178,23 @@ export default function GrowerDashboard() {
         onClose={() => setShowOnboarding(false)}
         userRole="grower"
       />
-      {/* Quick Stats Bar */}
-      <div className="border-b bg-card/50">
-        <div className="container mx-auto px-4 py-3">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {QUICK_STATS.map((stat, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center">
-                  <stat.icon className={cn("h-5 w-5", stat.color)} />
-                </div>
-                <div>
-                  <MetricValue size="md">{stat.value}</MetricValue>
-                  <Body size="sm" className="text-gray-600">{stat.label}</Body>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Compact Stats Bar */}
+      <div className="border-b bg-card/50 py-1.5 px-4">
+        <div className="flex items-center justify-center gap-6 text-xs">
+          {QUICK_STATS.map((stat, index) => (
+            <div key={index} className="flex items-center gap-1.5">
+              <stat.icon className={cn("h-3.5 w-3.5", stat.color)} />
+              <span className="font-medium">{stat.value}</span>
+              <span className="text-muted-foreground">{stat.label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-120px)]">
-        {/* Left Sidebar - Listings & Actions */}
-        <div className="w-full lg:w-96 border-r bg-card/50 flex flex-col">
+      {/* Main Content - Map Centered */}
+      <div className="flex flex-col h-[calc(100vh-100px)]">
+        {/* Collapsible Sidebar - Hidden by default */}
+        <div className="hidden">
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-4">
               {/* Onboarding Progress (if incomplete) */}
@@ -478,46 +471,40 @@ export default function GrowerDashboard() {
           </ScrollArea>
         </div>
 
-        {/* Map Area */}
+        {/* Map Area - Full Width Centered */}
         <MapControlsProvider userRole="supplier">
-          <div className="flex-1 relative min-h-[400px] lg:min-h-0 flex">
-            {/* Layer Controls Panel */}
-            <MapControlsPanel className="hidden lg:flex" />
+          <div className="flex-1 relative">
+            {/* Full Screen Map */}
+            <UnifiedMap
+              className="w-full h-full"
+              onEntitySelect={(entity) => {
+              }}
+            />
 
-            {/* Map */}
-            <div className="flex-1 relative">
-              <UnifiedMap
-                className="w-full h-full"
-                onEntitySelect={(entity) => {
-                  }}
-              />
-
-              {/* Map Legend */}
-              <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur p-3 rounded-lg shadow-lg border">
-                <H4 className="text-xs  mb-2">My Feedstocks</H4>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-xs">
-                    <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                    <span>Active ({MY_LISTINGS.filter((l) => l.status ==="active").length})</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <div className="h-3 w-3 rounded-full bg-amber-500" />
-                    <span>Pending ({MY_LISTINGS.filter((l) => l.status ==="pending").length})</span>
-                  </div>
+            {/* Minimal Map Legend - Bottom Left */}
+            <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm p-2 rounded-lg shadow-md border text-xs">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                  <span>Active</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                  <span>Pending</span>
                 </div>
               </div>
-
-              {/* Quick Add Button */}
-              <Link href="/feedstock/create">
-                <Button
-                  className="absolute bottom-4 right-4 shadow-lg"
-                  size="lg"
-                >
-                  <Plus className="h-5 w-5 mr-2" />
-                  Add Feedstock
-                </Button>
-              </Link>
             </div>
+
+            {/* Quick Add Button - Bottom Right */}
+            <Link href="/feedstock/create">
+              <Button
+                className="absolute bottom-4 right-4 shadow-lg"
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Feedstock
+              </Button>
+            </Link>
           </div>
         </MapControlsProvider>
       </div>

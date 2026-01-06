@@ -405,12 +405,12 @@ function App() {
             <Toaster />
             <NotificationProvider />
             <Router />
-            {/* Lazy load non-critical overlays - they load after main content */}
-            <Suspense fallback={null}>
+            {/* Overlays disabled for cleaner UI - can be re-enabled in settings */}
+            {/* <Suspense fallback={null}>
               <HeyGenTour />
               <AvatarAssistant />
               <HelpWidget />
-            </Suspense>
+            </Suspense> */}
             <Analytics />
           </TooltipProvider>
         </UserRoleProvider>

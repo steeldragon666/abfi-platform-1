@@ -26,14 +26,14 @@ export const NavItem = memo(function NavItem({ item, collapsed = false, onClick,
       href={item.href}
       onClick={onClick}
       className={cn(
-        // Base styles - WCAG 2.2 AA compliant touch target
-        "flex items-center gap-3 rounded-lg transition-colors",
-        "min-h-[44px] px-3", // 44px minimum touch target
+        // Base styles - compact touch target
+        "flex items-center gap-2 rounded-md transition-colors",
+        "min-h-[36px] px-2.5 text-sm", // Smaller, more compact
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        // State styles
+        // State styles with better contrast
         isActive
-          ? "bg-primary/10 text-primary font-medium"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          ? "bg-primary text-primary-foreground font-medium"
+          : "text-foreground/80 hover:bg-accent hover:text-foreground",
         // Collapsed styles
         collapsed && "justify-center px-2",
         className
@@ -42,15 +42,15 @@ export const NavItem = memo(function NavItem({ item, collapsed = false, onClick,
     >
       <Icon
         className={cn(
-          "h-5 w-5 shrink-0",
-          isActive && "text-primary"
+          "h-4 w-4 shrink-0", // Smaller icons
+          isActive ? "text-primary-foreground" : "text-foreground"
         )}
         aria-hidden="true"
       />
 
       {!collapsed && (
         <>
-          <span className="flex-1 truncate">{item.label}</span>
+          <span className="flex-1 truncate text-sm">{item.label}</span>
 
           {item.badge && (
             <Badge
@@ -104,14 +104,14 @@ interface NavSectionProps {
 
 export const NavSection = memo(function NavSection({ label, collapsed, children, className }: NavSectionProps) {
   return (
-    <div className={cn("space-y-1", className)}>
+    <div className={cn("space-y-0.5", className)}>
       {!collapsed && (
-        <h3 className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <h3 className="px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
           {label}
         </h3>
       )}
-      {collapsed && <div className="h-px bg-border mx-2 my-2" />}
-      <nav className="space-y-1" role="navigation" aria-label={label}>
+      {collapsed && <div className="h-px bg-border mx-2 my-1" />}
+      <nav className="space-y-0.5" role="navigation" aria-label={label}>
         {children}
       </nav>
     </div>

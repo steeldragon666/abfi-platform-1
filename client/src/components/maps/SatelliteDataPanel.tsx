@@ -116,8 +116,8 @@ export function SatelliteDataPanel({
   }
 
   return (
-    <Card className={cn('w-80 max-h-[calc(100vh-200px)] overflow-auto', className)}>
-      <CardHeader className="pb-3 sticky top-0 bg-card z-10">
+    <Card className={cn('w-80 max-h-[calc(100vh-200px)] overflow-auto bg-background border shadow-lg', className)}>
+      <CardHeader className="pb-3 sticky top-0 bg-background z-10 border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Satellite className="h-5 w-5 text-primary" />

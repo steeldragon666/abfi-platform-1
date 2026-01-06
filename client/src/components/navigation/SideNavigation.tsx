@@ -145,7 +145,7 @@ export function MobileSideNavigation({ className }: MobileSideNavigationProps) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+        className="fixed inset-0 z-40 bg-black/50"
         onClick={() => setMobileMenuOpen(false)}
         aria-hidden="true"
       />
@@ -154,9 +154,9 @@ export function MobileSideNavigation({ className }: MobileSideNavigationProps) {
       <TooltipProvider>
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-72 shadow-xl lg:hidden",
-            "bg-white dark:bg-gray-950", // Solid background for legibility
-            "animate-in slide-in-from-left duration-300",
+            "fixed inset-y-0 left-0 z-50 w-64 shadow-xl",
+            "bg-white dark:bg-gray-950 border-r", // Solid background for legibility
+            "animate-in slide-in-from-left duration-200",
             className
           )}
           role="dialog"

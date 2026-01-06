@@ -33,12 +33,7 @@ function PortalLayoutInner({ children, className }: PortalLayoutProps) {
       <TopBar />
 
       <div className="flex h-[calc(100vh-4rem)]">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
-          <SideNavigation />
-        </div>
-
-        {/* Mobile Sidebar Overlay */}
+        {/* Sidebar Overlay - Always use hamburger menu */}
         <MobileSideNavigation />
 
         {/* Main Content Area */}

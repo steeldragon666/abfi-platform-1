@@ -4,6 +4,7 @@
  */
 
 import { getDb } from "./db";
+import { logger } from "./utils/logger";
 import { eq, and, gte, lte, isNotNull } from "drizzle-orm";
 import {
   siloClimateData,
@@ -33,7 +34,7 @@ export async function dailySiloIngestion(): Promise<{
   regions: number;
   errors: string[];
 }> {
-  console.log("[BOM Ingestion] Starting daily SILO ingestion...");
+  logger.info("BOM", Starting daily SILO ingestion...");
 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -141,7 +142,7 @@ export async function hourlyObservationsIngestion(): Promise<{
   observationsIngested: number;
   errors: string[];
 }> {
-  console.log("[BOM Ingestion] Starting hourly observations ingestion...");
+  logger.info("BOM", Starting hourly observations ingestion...");
 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -232,7 +233,7 @@ export async function dailyForecastIngestion(): Promise<{
   forecastsIngested: number;
   errors: string[];
 }> {
-  console.log("[BOM Ingestion] Starting daily forecast ingestion...");
+  logger.info("BOM", Starting daily forecast ingestion...");
 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -324,7 +325,7 @@ export async function monthlySeasonalOutlookIngestion(): Promise<{
   outlooksIngested: number;
   errors: string[];
 }> {
-  console.log("[BOM Ingestion] Starting monthly seasonal outlook ingestion...");
+  logger.info("BOM", Starting monthly seasonal outlook ingestion...");
 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -417,7 +418,7 @@ export async function hourlyWarningsCheck(): Promise<{
   expiredWarnings: number;
   errors: string[];
 }> {
-  console.log("[BOM Ingestion] Starting hourly warnings check...");
+  logger.info("BOM", Starting hourly warnings check...");
 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -526,7 +527,7 @@ export async function weeklyClimateMetricsCalculation(): Promise<{
   metricsGenerated: number;
   errors: string[];
 }> {
-  console.log("[BOM Ingestion] Starting weekly climate metrics calculation...");
+  logger.info("BOM", Starting weekly climate metrics calculation...");
 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -628,7 +629,7 @@ export async function runAllBomJobs(): Promise<{
   warnings: Awaited<ReturnType<typeof hourlyWarningsCheck>>;
   climateMetrics: Awaited<ReturnType<typeof weeklyClimateMetricsCalculation>>;
 }> {
-  console.log("[BOM Ingestion] Running all BOM ingestion jobs...");
+  logger.info("BOM", Running all BOM ingestion jobs...");
 
   const [silo, observations, forecasts, seasonalOutlook, warnings, climateMetrics] = await Promise.all([
     dailySiloIngestion().catch(e => ({ success: false, recordsIngested: 0, regions: 0, errors: [e.message] })),
@@ -639,7 +640,7 @@ export async function runAllBomJobs(): Promise<{
     weeklyClimateMetricsCalculation().catch(e => ({ success: false, propertiesProcessed: 0, metricsGenerated: 0, errors: [e.message] })),
   ]);
 
-  console.log("[BOM Ingestion] All jobs complete.");
+  logger.info("BOM", All jobs complete.");
 
   return {
     silo,

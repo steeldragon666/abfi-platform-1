@@ -10,6 +10,7 @@
 import { Router } from "express";
 import { randomBytes, createHash } from "crypto";
 import axios from "axios";
+import { logger } from "../utils/logger";
 import { COOKIE_NAME, SESSION_TIMEOUT_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
@@ -139,7 +140,7 @@ export function createMyGovIdRouter(): Router {
 
     const authUrl = `${ENV.myGovIdAuthEndpoint}?${authParams.toString()}`;
 
-    console.log("[myGovID] Initiating authorization flow");
+    logger.info("myGovID", Initiating authorization flow");
     res.redirect(authUrl);
   });
 
@@ -206,7 +207,7 @@ export function createMyGovIdRouter(): Router {
       });
 
       const userInfo = userInfoResponse.data;
-      console.log("[myGovID] User authenticated:", userInfo.sub);
+      logger.info("myGovID", User authenticated:", userInfo.sub);
 
       // Create or update user in database
       const openId = `mygovid:${userInfo.sub}`;
@@ -231,7 +232,7 @@ export function createMyGovIdRouter(): Router {
         maxAge: SESSION_TIMEOUT_MS,
       });
 
-      console.log("[myGovID] Session created for user:", openId);
+      logger.info("myGovID", Session created for user:", openId);
       res.redirect(returnUrl);
     } catch (error: any) {
       console.error("[myGovID] Token exchange failed:", error.response?.data || error.message);

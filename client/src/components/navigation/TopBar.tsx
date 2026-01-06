@@ -34,15 +34,15 @@ export function TopBar({ className }: TopBarProps) {
       )}
       role="banner"
     >
-      {/* Mobile Menu Button */}
+      {/* Menu Button - Always visible */}
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden min-h-[44px] min-w-[44px]"
+        className="min-h-[40px] min-w-[40px]"
         onClick={() => setMobileMenuOpen(true)}
         aria-label="Open navigation menu"
       >
-        <Menu className="h-5 w-5" aria-hidden="true" />
+        <Menu className="h-5 w-5 text-foreground" aria-hidden="true" />
       </Button>
 
       {/* Logo - Links to current portal dashboard */}

@@ -11,7 +11,8 @@ import { MapControlsProvider } from "@/contexts/MapControlsContext";
 import { TopNavigation } from "@/components/layout/TopNavigation";
 import { MapControlsPanel } from "@/components/layout/MapControlsPanel";
 import { useIsMobile } from "@/hooks/useMobile";
-import { FloatingSecurityIndicator, TrustFooter } from "@/components/Trust";
+// Trust indicators removed for cleaner UI - can be re-enabled in settings
+// import { FloatingSecurityIndicator, TrustFooter } from "@/components/Trust";
 import { OfflineToast, ConnectionStatus } from "@/components/Offline";
 import { useLocation } from "wouter";
 import { PortalLayout } from "@/components/layout/PortalLayout";
@@ -70,10 +71,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <PortalLayout>
         {children}
-        {/* Trust Footer - visible on all pages */}
-        <TrustFooter />
-        {/* Floating Security Indicator */}
-        <FloatingSecurityIndicator />
         {/* Offline Toast Notification */}
         <OfflineToast
           isVisible={showOfflineToast}
@@ -116,12 +113,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
-
-        {/* Trust Footer - visible on all pages */}
-        <TrustFooter />
-
-        {/* Floating Security Indicator */}
-        <FloatingSecurityIndicator />
 
         {/* Offline Toast Notification */}
         <OfflineToast
