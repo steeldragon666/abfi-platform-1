@@ -49,8 +49,14 @@ const registryRows = [
 
 export default function DesignVision() {
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-4 rounded border border-border bg-card/80 px-6 py-5 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]">
+    <div className="relative space-y-6">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-3xl">
+        <div className="absolute -left-24 top-6 h-72 w-72 rounded-full bg-[radial-gradient(circle_at_center,rgba(47,74,96,0.45),transparent_65%)] blur-2xl" />
+        <div className="absolute right-0 top-32 h-80 w-80 rounded-full bg-[radial-gradient(circle_at_center,rgba(58,95,82,0.45),transparent_60%)] blur-2xl" />
+        <div className="absolute bottom-0 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(154,123,63,0.35),transparent_70%)] blur-2xl" />
+      </div>
+
+      <header className="flex flex-col gap-4 rounded-3xl border border-border bg-card/80 px-6 py-5 shadow-[0_18px_40px_rgba(0,0,0,0.35)] backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
@@ -61,20 +67,20 @@ export default function DesignVision() {
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-gradient-to-r from-background/80 via-background/50 to-transparent px-3 py-2 text-xs text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
               <Search className="h-4 w-4" />
               <span>Search registry, pricing, or assets</span>
             </div>
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-gradient-to-r from-background/80 via-background/50 to-transparent px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
             >
               <Bell className="h-4 w-4" />
               Alerts
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-primary px-3 py-2 text-xs uppercase tracking-wide text-primary-foreground"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-gradient-to-r from-primary via-primary to-[#2f4a60] px-3 py-2 text-xs uppercase tracking-wide text-primary-foreground shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
             >
               <TrendingUp className="h-4 w-4" />
               Launch Market
@@ -86,22 +92,22 @@ export default function DesignVision() {
           market visibility, credit-style risk evaluation, and a registry-first audit trail.
         </p>
         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1.5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1.5 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
             <BadgeCheck className="h-4 w-4 text-foreground" />
             Verified data plane
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1.5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1.5 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
             <ShieldAlert className="h-4 w-4 text-foreground" />
             Regulator-ready
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1.5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1.5 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
             <CircleDot className="h-4 w-4 text-foreground" />
             Live market state
           </span>
         </div>
       </header>
 
-      <section className="rounded border border-border bg-card/80 px-6 py-4 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]">
+      <section className="rounded-3xl border border-border bg-card/80 px-6 py-4 shadow-[0_18px_40px_rgba(0,0,0,0.35)] backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -114,14 +120,14 @@ export default function DesignVision() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
             >
               <LineChart className="h-4 w-4" />
               Analytics
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
             >
               <CloudDownload className="h-4 w-4" />
               Export
@@ -132,7 +138,7 @@ export default function DesignVision() {
           {marketSignals.map((signal) => (
             <div
               key={signal.label}
-              className="space-y-2 rounded-2xl border border-border bg-gradient-to-br from-background via-transparent to-black/30 px-4 py-4"
+              className="space-y-2 rounded-2xl border border-border bg-gradient-to-br from-background via-transparent to-black/40 px-4 py-4 shadow-[0_12px_24px_rgba(0,0,0,0.25)]"
             >
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 {signal.label}
@@ -148,7 +154,7 @@ export default function DesignVision() {
 
       <section className="grid gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7">
-          <div className="rounded-2xl border border-border bg-card/80 px-6 py-5 shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
+          <div className="rounded-3xl border border-border bg-card/80 px-6 py-5 shadow-[0_20px_45px_rgba(0,0,0,0.45)] backdrop-blur">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Market Explorer</h2>
@@ -159,14 +165,14 @@ export default function DesignVision() {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
                 >
                   <Filter className="h-4 w-4" />
                   Filters
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   Finance Mode
@@ -177,7 +183,7 @@ export default function DesignVision() {
               {["Heatmap", "Forward Curve", "Risk Bands", "Supply Coverage"].map((item) => (
                 <div
                   key={item}
-                  className="flex h-28 items-center justify-center rounded-2xl border border-dashed border-border bg-gradient-to-br from-background/40 via-transparent to-black/30 text-xs uppercase tracking-wide text-muted-foreground"
+                  className="flex h-28 items-center justify-center rounded-2xl border border-dashed border-border bg-gradient-to-br from-background/40 via-transparent to-black/40 text-xs uppercase tracking-wide text-muted-foreground"
                 >
                   {item}
                 </div>
@@ -185,7 +191,7 @@ export default function DesignVision() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card/80 px-6 py-5 shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
+          <div className="rounded-3xl border border-border bg-card/80 px-6 py-5 shadow-[0_20px_45px_rgba(0,0,0,0.45)] backdrop-blur">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Registry Table</h2>
@@ -196,14 +202,14 @@ export default function DesignVision() {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
                 >
                   <Search className="h-4 w-4" />
                   Search
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
                 >
                   <ListFilter className="h-4 w-4" />
                   Sort
@@ -231,7 +237,7 @@ export default function DesignVision() {
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{row.range}</td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex rounded-full border border-border bg-background/60 px-2 py-1 text-xs text-muted-foreground">
+                        <span className="inline-flex rounded-full border border-border bg-background/60 px-2 py-1 text-xs text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
                           {row.status}
                         </span>
                       </td>
@@ -247,7 +253,7 @@ export default function DesignVision() {
               </span>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
               >
                 View full registry
                 <ArrowUpRight className="h-4 w-4" />
@@ -257,12 +263,12 @@ export default function DesignVision() {
         </div>
 
         <div className="space-y-4 lg:col-span-5">
-          <div className="rounded-2xl border border-border bg-card/80 px-6 py-5 shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
+          <div className="rounded-3xl border border-border bg-card/80 px-6 py-5 shadow-[0_20px_45px_rgba(0,0,0,0.45)] backdrop-blur">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">Risk Panel</h2>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
               >
                 <Filter className="h-4 w-4" />
                 Scenario
@@ -281,12 +287,12 @@ export default function DesignVision() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card/80 px-6 py-5 shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
+          <div className="rounded-3xl border border-border bg-card/80 px-6 py-5 shadow-[0_20px_45px_rgba(0,0,0,0.45)] backdrop-blur">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">Export &amp; Print</h2>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:text-foreground"
               >
                 <Settings2 className="h-4 w-4" />
                 Configure
@@ -297,14 +303,14 @@ export default function DesignVision() {
               <div className="flex gap-3">
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-primary px-4 py-2 text-xs uppercase tracking-wide text-primary-foreground"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-gradient-to-r from-primary via-primary to-[#2f4a60] px-4 py-2 text-xs uppercase tracking-wide text-primary-foreground shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
                 >
                   <CloudDownload className="h-4 w-4" />
                   Export A4
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.04)]"
                 >
                   <ArrowUpRight className="h-4 w-4" />
                   Print View
