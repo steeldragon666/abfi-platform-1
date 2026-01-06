@@ -114,7 +114,7 @@ const RATING_DESCRIPTIONS: Record<string, Record<string, string>> = {
 };
 
 interface RatingBadgeProps {
-  rating: string | null;
+  rating: string | null | undefined;
   type: "bankability" | "growerContract" | "techReadiness" | "carbonIntensity" | "offtake" | "govSupport" | "signal";
   size?: "sm" | "md" | "lg";
   showTooltip?: boolean;
@@ -234,7 +234,7 @@ export function RatingBadgesRow({
 }
 
 interface SignalBadgeProps {
-  signal: string | null;
+  signal: string | null | undefined;
   size?: "sm" | "md" | "lg";
 }
 
@@ -244,7 +244,7 @@ export function SignalBadge({ signal, size = "md" }: SignalBadgeProps) {
 }
 
 interface BankabilityBadgeProps {
-  rating: string | null;
+  rating: string | null | undefined;
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
 }

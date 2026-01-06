@@ -86,7 +86,7 @@ export default function ClimateIntelligenceHub() {
   });
 
   // Fetch climate alerts
-  const { data: alertsData, isLoading: alertsLoading } = trpc.climateHub.getClimateAlerts.useQuery();
+  const { data: alertsData, isLoading: alertsLoading } = trpc.climateHub.getClimateAlerts.useQuery({});
 
   // Fetch bioenergy projects for map markers
   const { data: projectsData } = trpc.projectRegistry.list.useQuery({
@@ -94,9 +94,9 @@ export default function ClimateIntelligenceHub() {
     status: undefined,
   });
 
-  // Fetch regional overview
+  // Fetch regional overview (default to NSW)
   const { data: regionalData } = trpc.climateHub.getRegionalOverview.useQuery({
-    state: 'ALL',
+    state: 'NSW',
   });
 
   // Fetch data status
@@ -116,7 +116,8 @@ export default function ClimateIntelligenceHub() {
   };
 
   const projects = projectsData?.projects || [];
-  const alerts = alertsData?.alerts || [];
+  // Flatten alerts from byType structure
+  const alerts = alertsData?.byType?.flatMap(t => t.alerts) || [];
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
@@ -135,8 +136,8 @@ export default function ClimateIntelligenceHub() {
               </div>
               <H1>Climate Intelligence Hub</H1>
               {statusData && (
-                <Badge variant={statusData.earthEngine ? 'default' : 'secondary'}>
-                  {statusData.earthEngine && statusData.bom ? 'Live Data' : 'Partial Data'}
+                <Badge variant={statusData.services.earthEngine.available ? 'default' : 'secondary'}>
+                  {statusData.services.earthEngine.available && statusData.services.bomClimate.available ? 'Live Data' : 'Partial Data'}
                 </Badge>
               )}
             </div>
@@ -283,15 +284,15 @@ export default function ClimateIntelligenceHub() {
                     <>
                       <div className="text-center min-w-[100px]">
                         <MetricValue className="text-xl">
-                          {regionalData.avgNdvi?.toFixed(2) || 'N/A'}
+                          {regionalData.summary.projectCount}
                         </MetricValue>
-                        <DataLabel>Avg NDVI</DataLabel>
+                        <DataLabel>Monitored</DataLabel>
                       </div>
                       <div className="text-center min-w-[100px]">
-                        <MetricValue className="text-xl">
-                          {regionalData.avgTemp?.toFixed(1) || 'N/A'}°C
+                        <MetricValue className="text-xl capitalize">
+                          {regionalData.summary.dominantDroughtRisk}
                         </MetricValue>
-                        <DataLabel>Avg Temp</DataLabel>
+                        <DataLabel>Drought Risk</DataLabel>
                       </div>
                     </>
                   )}

@@ -20,8 +20,8 @@ import {
   CheckCircle2,
   Eye,
   Clock,
-} from"lucide-react";
-import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from"@/components/Typography";
+} from "lucide-react";
+import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
 
 export default function BankabilityExplainer() {
   const verificationSteps = [

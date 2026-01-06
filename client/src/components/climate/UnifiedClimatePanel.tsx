@@ -56,8 +56,8 @@ export function UnifiedClimatePanel({
     error,
   } = trpc.climateHub.getLocationIntelligence.useQuery(
     {
-      latitude: coordinates?.lat || 0,
-      longitude: coordinates?.lng || 0,
+      lat: coordinates?.lat || 0,
+      lng: coordinates?.lng || 0,
       includeHistorical: false,
     },
     { enabled: !!coordinates }
@@ -178,13 +178,13 @@ export function UnifiedClimatePanel({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-bold">
-                    {climateData.satellite?.ndvi?.toFixed(2) || 'N/A'}
+                    {climateData.satellite?.ndvi?.mean?.toFixed(2) || 'N/A'}
                   </span>
-                  <NDVIBadge value={climateData.satellite?.ndvi || 0} />
+                  <NDVIBadge value={climateData.satellite?.ndvi?.mean || 0} />
                 </div>
-                {climateData.satellite?.ndvi !== undefined && (
+                {climateData.satellite?.ndvi?.mean !== undefined && (
                   <Progress
-                    value={Math.max(0, climateData.satellite.ndvi) * 100}
+                    value={Math.max(0, climateData.satellite.ndvi.mean) * 100}
                     className="h-2"
                   />
                 )}
@@ -201,11 +201,11 @@ export function UnifiedClimatePanel({
                 <div className="grid grid-cols-2 gap-3">
                   <MetricCard
                     label="EVI"
-                    value={climateData.satellite?.evi?.toFixed(3) || 'N/A'}
+                    value={climateData.satellite?.vegetationHealth?.evi?.toFixed(3) || 'N/A'}
                   />
                   <MetricCard
                     label="Health Index"
-                    value={climateData.satellite?.vegetationHealthIndex?.toFixed(0) || 'N/A'}
+                    value={climateData.satellite?.vegetationHealth?.healthScore?.toFixed(0) || 'N/A'}
                     suffix="/100"
                   />
                 </div>
@@ -222,13 +222,13 @@ export function UnifiedClimatePanel({
                 <div className="grid grid-cols-2 gap-3">
                   <MetricCard
                     label="Surface"
-                    value={`${((climateData.satellite?.soilMoisture || 0) * 100).toFixed(1)}%`}
+                    value={`${((climateData.satellite?.soilMoisture?.surfaceMoisture || 0) * 100).toFixed(1)}%`}
                   />
                   <MetricCard
                     label="Drought Risk"
-                    value={climateData.satellite?.droughtRisk || 'N/A'}
+                    value={climateData.satellite?.soilMoisture?.droughtRisk || 'N/A'}
                     badge
-                    badgeVariant={getDroughtRiskVariant(climateData.satellite?.droughtRisk)}
+                    badgeVariant={getDroughtRiskVariant(climateData.satellite?.soilMoisture?.droughtRisk)}
                   />
                 </div>
               </div>
@@ -252,9 +252,14 @@ export function UnifiedClimatePanel({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <MetricCard
-                    label="Temperature"
-                    value={`${climateData.climate?.current?.temperature?.toFixed(1) || 'N/A'}°C`}
+                    label="Max Temp"
+                    value={`${climateData.climate?.current?.maxTemp?.toFixed(1) || 'N/A'}°C`}
                     icon={<Thermometer className="h-3 w-3 text-red-500" />}
+                  />
+                  <MetricCard
+                    label="Min Temp"
+                    value={`${climateData.climate?.current?.minTemp?.toFixed(1) || 'N/A'}°C`}
+                    icon={<Thermometer className="h-3 w-3 text-blue-500" />}
                   />
                   <MetricCard
                     label="Humidity"
@@ -262,12 +267,7 @@ export function UnifiedClimatePanel({
                     icon={<Droplets className="h-3 w-3 text-blue-500" />}
                   />
                   <MetricCard
-                    label="Wind"
-                    value={`${climateData.climate?.current?.windSpeed?.toFixed(0) || 'N/A'} km/h`}
-                    icon={<Wind className="h-3 w-3 text-gray-500" />}
-                  />
-                  <MetricCard
-                    label="Rain Today"
+                    label="Rainfall"
                     value={`${climateData.climate?.current?.rainfall?.toFixed(1) || '0'} mm`}
                     icon={<CloudRain className="h-3 w-3 text-blue-500" />}
                   />
@@ -276,28 +276,28 @@ export function UnifiedClimatePanel({
 
               <Separator />
 
-              {/* Climate Metrics */}
+              {/* Forecast Metrics */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <TrendingUp className="h-4 w-4 text-primary" />
-                  30-Day Climate
+                  {climateData.climate?.forecast?.days || 7}-Day Forecast
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <MetricCard
-                    label="Total Rainfall"
-                    value={`${climateData.climate?.monthly?.totalRainfall?.toFixed(1) || 'N/A'} mm`}
+                    label="Rainfall Total"
+                    value={`${climateData.climate?.forecast?.rainfallTotal?.toFixed(1) || 'N/A'} mm`}
                   />
                   <MetricCard
-                    label="Avg Max Temp"
-                    value={`${climateData.climate?.monthly?.avgMaxTemp?.toFixed(1) || 'N/A'}°C`}
-                  />
-                  <MetricCard
-                    label="Growing Days"
-                    value={`${climateData.climate?.monthly?.growingDegreeDays?.toFixed(0) || 'N/A'}`}
+                    label="Temp Range"
+                    value={`${climateData.climate?.forecast?.tempRange?.min?.toFixed(0) || 'N/A'}-${climateData.climate?.forecast?.tempRange?.max?.toFixed(0) || 'N/A'}°C`}
                   />
                   <MetricCard
                     label="Frost Days"
-                    value={`${climateData.climate?.monthly?.frostDays || 0}`}
+                    value={`${climateData.climate?.forecast?.frostDays || 0}`}
+                  />
+                  <MetricCard
+                    label="Heat Stress Days"
+                    value={`${climateData.climate?.forecast?.heatStressDays || 0}`}
                   />
                 </div>
               </div>
@@ -333,15 +333,15 @@ export function UnifiedClimatePanel({
                 <div className="space-y-2">
                   <RiskRow
                     label="Drought Risk"
-                    risk={climateData.satellite?.droughtRisk || 'unknown'}
+                    risk={climateData.satellite?.soilMoisture?.droughtRisk || 'unknown'}
                   />
                   <RiskRow
                     label="Frost Risk"
-                    risk={getFrostRisk(climateData.climate?.monthly?.frostDays)}
+                    risk={getFrostRisk(climateData.climate?.forecast?.frostDays)}
                   />
                   <RiskRow
                     label="Heat Stress"
-                    risk={getHeatRisk(climateData.climate?.monthly?.avgMaxTemp)}
+                    risk={getHeatRisk(climateData.climate?.forecast?.tempRange?.max)}
                   />
                 </div>
               </div>

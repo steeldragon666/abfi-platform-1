@@ -84,7 +84,7 @@ interface FormData {
 
 export default function ClaimProject() {
   const [, navigate] = useLocation();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [search, setSearch] = useState("");
   const [formData, setFormData] = useState<FormData>({
