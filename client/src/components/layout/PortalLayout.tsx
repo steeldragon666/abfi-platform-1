@@ -1,10 +1,12 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PortalProvider, usePortal } from "@/contexts/PortalContext";
 import { TopBar } from "@/components/navigation/TopBar";
-import { SideNavigation, MobileSideNavigation } from "@/components/navigation/SideNavigation";
+import { MobileSideNavigation } from "@/components/navigation/SideNavigation";
 import { QuickActions } from "@/components/navigation/QuickActions";
-import type { Portal } from "@/config/navigation";
+import { TrustHeader } from "@/components/layout/TrustHeader";
+import { IntelligenceRail } from "@/components/layout/IntelligenceRail";
+import { ProvenanceFooter } from "@/components/layout/ProvenanceFooter";
 
 interface PortalLayoutProps {
   children: ReactNode;
@@ -12,7 +14,8 @@ interface PortalLayoutProps {
 }
 
 function PortalLayoutInner({ children, className }: PortalLayoutProps) {
-  const { sidebarCollapsed, portalConfig } = usePortal();
+  const { portalConfig } = usePortal();
+  const [railCollapsed, setRailCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,8 +50,31 @@ function PortalLayoutInner({ children, className }: PortalLayoutProps) {
           role="main"
           aria-label={`${portalConfig.label} portal content`}
         >
-          <div className="container mx-auto px-4 py-6 lg:px-6 lg:py-8">
-            {children}
+          <div className="mx-auto flex h-full w-full max-w-[1440px] flex-col px-8 py-6">
+            <TrustHeader />
+            <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-12">
+              <section
+                className={cn(
+                  "min-w-0",
+                  railCollapsed ? "lg:col-span-11" : "lg:col-span-9"
+                )}
+                aria-label="Primary content"
+              >
+                {children}
+              </section>
+              <div
+                className={cn(
+                  "lg:col-span-3",
+                  railCollapsed && "lg:col-span-1"
+                )}
+              >
+                <IntelligenceRail
+                  collapsed={railCollapsed}
+                  onToggle={() => setRailCollapsed((prev) => !prev)}
+                />
+              </div>
+            </div>
+            <ProvenanceFooter />
           </div>
         </main>
       </div>

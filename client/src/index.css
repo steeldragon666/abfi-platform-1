@@ -1,26 +1,16 @@
 /* ==========================================================================
-   ABFI Platform - Professional Finance Typography System
-   Fonts: Inter (body), JetBrains Mono (financial data), Poppins (display)
+   ABFI Platform - Sovereign Market Infrastructure Typography System
+   Fonts: Inter (UI + numeric, tabular figures)
    ========================================================================== */
 
 /* Import Fontsource packages - Latin-only for smaller bundle (~70% reduction)
    Includes font-display: swap by default for faster rendering */
-@import '@fontsource/inter/latin-300.css';
 @import '@fontsource/inter/latin-400.css';
 @import '@fontsource/inter/latin-500.css';
 @import '@fontsource/inter/latin-600.css';
 @import '@fontsource/inter/latin-700.css';
-@import '@fontsource/inter/latin-800.css';
-@import '@fontsource/inter/latin-ext-400.css';  /* Extended chars for European names */
+@import '@fontsource/inter/latin-ext-400.css';
 @import '@fontsource/inter/latin-ext-600.css';
-
-@import '@fontsource/jetbrains-mono/latin-400.css';
-@import '@fontsource/jetbrains-mono/latin-500.css';
-@import '@fontsource/jetbrains-mono/latin-600.css';
-
-@import '@fontsource/poppins/latin-600.css';
-@import '@fontsource/poppins/latin-700.css';
-@import '@fontsource/poppins/latin-800.css';
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -28,148 +18,89 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================
-   ABFI DESIGN SYSTEM - Implementation Guide v3.4
-   Professional Government/Finance Ready
+   ABFI DESIGN SYSTEM - Sovereign Market Infrastructure v1.0
+   Commodity exchange × credit rating agency × registry
    ============================================ */
 
 @theme inline {
   /* ============================================
-     COLOR SYSTEM - Professional Palette
-     Primary: Blue (Government/Finance trust)
-     Secondary: Green (Sustainability/Agriculture)
-     Accent: Amber (Warnings, highlights)
+     COLOR SYSTEM - Sovereign Market Palette
      ============================================ */
 
-  /* Primary - Professional Blue */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  --color-primary-950: #172554;
+  /* Graphite Base */
+  --color-graphite-950: #0B0E11;
+  --color-graphite-900: #12161B;
+  --color-graphite-800: #1A2026;
 
-  /* Secondary - Green (Sustainability) */
-  --color-secondary-50: #f0fdf4;
-  --color-secondary-100: #dcfce7;
-  --color-secondary-200: #bbf7d0;
-  --color-secondary-300: #86efac;
-  --color-secondary-400: #4ade80;
-  --color-secondary-500: #22c55e;
-  --color-secondary-600: #16a34a;
-  --color-secondary-700: #15803d;
-  --color-secondary-800: #166534;
-  --color-secondary-900: #14532d;
-  --color-secondary-950: #052e16;
+  /* Slate Neutrals */
+  --color-slate-600: #6B7280;
+  --color-slate-300: #CBD5E1;
 
-  /* Accent - Amber */
-  --color-accent-50: #fffbeb;
-  --color-accent-100: #fef3c7;
-  --color-accent-200: #fde68a;
-  --color-accent-300: #fcd34d;
-  --color-accent-400: #fbbf24;
-  --color-accent-500: #f59e0b;
-  --color-accent-600: #d97706;
-  --color-accent-700: #b45309;
-  --color-accent-800: #92400e;
-  --color-accent-900: #78350f;
+  /* White */
+  --color-white-100: #F8FAFC;
 
-  /* Neutrals */
-  --color-neutral-50: #fafafa;
-  --color-neutral-100: #f4f4f5;
-  --color-neutral-200: #e4e4e7;
-  --color-neutral-300: #d4d4d8;
-  --color-neutral-400: #a1a1aa;
-  --color-neutral-500: #71717a;
-  --color-neutral-600: #52525b;
-  --color-neutral-700: #3f3f46;
-  --color-neutral-800: #27272a;
-  --color-neutral-900: #18181b;
-  --color-neutral-950: #09090b;
-
-  /* Semantic Colors */
-  --color-success: #22c55e;
-  --color-success-light: #dcfce7;
-  --color-warning: #f59e0b;
-  --color-warning-light: #fef3c7;
-  --color-error: #ef4444;
-  --color-error-light: #fee2e2;
-  --color-info: #3b82f6;
-  --color-info-light: #dbeafe;
+  /* Signal Colors (Muted, institutional) */
+  --color-oxide-green: #3A5F52;
+  --color-steel-blue: #2F4A60;
+  --color-amber: #9A7B3F;
+  --color-risk-red: #7A2E2E;
 
   /* ============================================
      RADIUS SYSTEM
      ============================================ */
-  --radius: 0.5rem;
+  --radius: 0.25rem;
   --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.25rem;
+  --radius-2xl: 0.25rem;
   --radius-full: 9999px;
 
   /* ============================================
-     SPACING SYSTEM - 4px base
+     SPACING SYSTEM - Token-Only
      ============================================ */
-  --space-0: 0;
-  --space-1: 0.25rem;   /* 4px */
-  --space-2: 0.5rem;    /* 8px */
-  --space-3: 0.75rem;   /* 12px */
-  --space-4: 1rem;      /* 16px */
-  --space-5: 1.25rem;   /* 20px */
-  --space-6: 1.5rem;    /* 24px */
-  --space-8: 2rem;      /* 32px */
-  --space-10: 2.5rem;   /* 40px */
-  --space-12: 3rem;     /* 48px */
-  --space-16: 4rem;     /* 64px */
-  --space-20: 5rem;     /* 80px */
-  --space-24: 6rem;     /* 96px */
+  --space-2: 0.25rem;  /* 4px */
+  --space-4: 0.5rem;   /* 8px */
+  --space-8: 1rem;     /* 16px */
+  --space-12: 1.5rem;  /* 24px */
+  --space-16: 2rem;    /* 32px */
+  --space-24: 3rem;    /* 48px */
 
   /* ============================================
-     TYPOGRAPHY - Professional Finance Stack
-     Inter: Gold standard for fintech (Stripe, Coinbase)
-     JetBrains Mono: Optimized for financial data
-     Poppins: Strong display font for headings
+     TYPOGRAPHY - Inter Only
      ============================================ */
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
-  --font-heading: "Poppins", "Inter", system-ui, sans-serif;
-  --font-display: "Poppins", "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", Monaco, ui-monospace, monospace;
-  --font-numeric: "JetBrains Mono", monospace;
+  --font-heading: "Inter", system-ui, sans-serif;
+  --font-display: "Inter", system-ui, sans-serif;
+  --font-mono: "Inter", system-ui, sans-serif;
+  --font-numeric: "Inter", system-ui, sans-serif;
 
-  /* Fluid Type Scale */
-  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
-  --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
-  --text-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
-  --text-lg: clamp(1.125rem, 1rem + 0.6vw, 1.25rem);
-  --text-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
-  --text-2xl: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
-  --text-3xl: clamp(1.875rem, 1.5rem + 1.875vw, 2.5rem);
-  --text-4xl: clamp(2.25rem, 1.75rem + 2.5vw, 3rem);
-  --text-5xl: clamp(3rem, 2.5rem + 2.5vw, 4rem);
+  /* Type Scale */
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 0.875rem;  /* 14px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.375rem;    /* 22px */
+  --text-2xl: 1.75rem;    /* 28px */
 
   /* ============================================
-     SHADOWS
+     SHADOWS (Reserved, not used by default)
      ============================================ */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
 
   /* ============================================
      ANIMATIONS
      ============================================ */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --duration-fast: 150ms;
-  --duration-normal: 200ms;
-  --duration-slow: 300ms;
+  --duration-fast: 120ms;
+  --duration-normal: 160ms;
+  --duration-slow: 180ms;
 }
 
 /* ============================================
@@ -178,64 +109,64 @@
 
 :root {
   /* Surfaces */
-  --background: 0 0% 100%;
-  --foreground: 240 10% 4%;
+  --background: 216 32% 5%;
+  --foreground: 210 40% 98%;
 
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 4%;
+  --card: 216 28% 8%;
+  --card-foreground: 210 40% 98%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 4%;
+  --popover: 216 28% 8%;
+  --popover-foreground: 210 40% 98%;
 
   /* Primary - Blue */
-  --primary: 221 83% 53%;
-  --primary-foreground: 0 0% 100%;
+  --primary: 203 34% 28%;
+  --primary-foreground: 210 40% 98%;
 
   /* Secondary - Green */
-  --secondary: 142 76% 36%;
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 157 24% 30%;
+  --secondary-foreground: 210 40% 98%;
 
   /* Muted */
-  --muted: 240 5% 96%;
-  --muted-foreground: 240 4% 46%;
+  --muted: 214 28% 12%;
+  --muted-foreground: 220 9% 46%;
 
   /* Accent - Amber */
-  --accent: 38 92% 50%;
-  --accent-foreground: 0 0% 0%;
+  --accent: 40 43% 42%;
+  --accent-foreground: 210 40% 98%;
 
   /* Destructive */
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive: 0 45% 33%;
+  --destructive-foreground: 210 40% 98%;
 
   /* Borders & Inputs */
-  --border: 240 6% 90%;
-  --input: 240 6% 90%;
-  --ring: 221 83% 53%;
+  --border: 213 20% 16%;
+  --input: 213 20% 16%;
+  --ring: 220 14% 80%;
 
   /* Semantic */
-  --success: 142 76% 36%;
-  --success-foreground: 0 0% 100%;
-  --warning: 38 92% 50%;
-  --warning-foreground: 0 0% 0%;
-  --info: 221 83% 53%;
-  --info-foreground: 0 0% 100%;
+  --success: 157 24% 30%;
+  --success-foreground: 210 40% 98%;
+  --warning: 40 43% 42%;
+  --warning-foreground: 210 40% 98%;
+  --info: 203 34% 28%;
+  --info-foreground: 210 40% 98%;
 
   /* Charts */
-  --chart-1: 221 83% 53%;
-  --chart-2: 142 76% 36%;
-  --chart-3: 38 92% 50%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 340 75% 55%;
+  --chart-1: 203 34% 28%;
+  --chart-2: 157 24% 30%;
+  --chart-3: 40 43% 42%;
+  --chart-4: 220 9% 46%;
+  --chart-5: 210 40% 98%;
 
   /* Sidebar */
-  --sidebar: 0 0% 98%;
-  --sidebar-foreground: 240 10% 4%;
-  --sidebar-primary: 221 83% 53%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 5% 96%;
-  --sidebar-accent-foreground: 240 10% 4%;
-  --sidebar-border: 240 6% 90%;
-  --sidebar-ring: 221 83% 53%;
+  --sidebar: 216 28% 8%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-primary: 203 34% 28%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 214 28% 12%;
+  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-border: 213 20% 16%;
+  --sidebar-ring: 220 14% 80%;
 }
 
 /* ============================================
@@ -243,42 +174,42 @@
    ============================================ */
 
 .dark {
-  --background: 240 10% 4%;
-  --foreground: 0 0% 98%;
+  --background: 216 32% 5%;
+  --foreground: 210 40% 98%;
 
-  --card: 240 10% 6%;
-  --card-foreground: 0 0% 98%;
+  --card: 216 28% 8%;
+  --card-foreground: 210 40% 98%;
 
-  --popover: 240 10% 6%;
-  --popover-foreground: 0 0% 98%;
+  --popover: 216 28% 8%;
+  --popover-foreground: 210 40% 98%;
 
-  --primary: 217 91% 60%;
-  --primary-foreground: 0 0% 100%;
+  --primary: 203 34% 28%;
+  --primary-foreground: 210 40% 98%;
 
-  --secondary: 142 71% 45%;
-  --secondary-foreground: 0 0% 100%;
+  --secondary: 157 24% 30%;
+  --secondary-foreground: 210 40% 98%;
 
-  --muted: 240 4% 16%;
-  --muted-foreground: 240 5% 65%;
+  --muted: 214 28% 12%;
+  --muted-foreground: 220 9% 46%;
 
-  --accent: 38 92% 50%;
-  --accent-foreground: 0 0% 0%;
+  --accent: 40 43% 42%;
+  --accent-foreground: 210 40% 98%;
 
-  --destructive: 0 63% 31%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive: 0 45% 33%;
+  --destructive-foreground: 210 40% 98%;
 
-  --border: 240 4% 16%;
-  --input: 240 4% 16%;
-  --ring: 217 91% 60%;
+  --border: 213 20% 16%;
+  --input: 213 20% 16%;
+  --ring: 220 14% 80%;
 
-  --sidebar: 240 10% 4%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-primary: 217 91% 60%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 4% 16%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-border: 240 4% 16%;
-  --sidebar-ring: 217 91% 60%;
+  --sidebar: 216 28% 8%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-primary: 203 34% 28%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 214 28% 12%;
+  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-border: 213 20% 16%;
+  --sidebar-ring: 220 14% 80%;
 }
 
 /* ============================================
@@ -296,7 +227,7 @@ html {
 body {
   font-family: var(--font-sans);
   font-size: var(--text-base);
-  line-height: 1.6;
+  line-height: 1.5;
   color: hsl(var(--foreground));
   background-color: hsl(var(--background));
   -webkit-font-smoothing: antialiased;
@@ -308,7 +239,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 /* Financial data - tabular numbers */
@@ -323,7 +254,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .text-currency {
