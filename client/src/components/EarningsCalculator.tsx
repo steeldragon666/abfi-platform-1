@@ -74,7 +74,7 @@ export default function EarningsCalculator() {
         <h3
           className="text-3xl mb-2"
           style={{
-            fontFamily: "'DM Serif Display', serif",
+            fontFamily: 'var(--font-display)',
             fontWeight: 400,
             color: "#1a2e1a",
           }}
@@ -138,7 +138,7 @@ export default function EarningsCalculator() {
                 background: "#f5f0e6",
                 border: "2px solid #dcfce7",
                 color: "#1a2e1a",
-                fontFamily: "'IBM Plex Mono', monospace",
+                fontFamily: 'var(--font-numeric)',
               }}
             />
           </div>
@@ -162,7 +162,7 @@ export default function EarningsCalculator() {
               background: "#f5f0e6",
               border: "2px solid #dcfce7",
               color: "#1a2e1a",
-              fontFamily: "'IBM Plex Mono', monospace",
+              fontFamily: 'var(--font-numeric)',
             }}
           />
         </div>
@@ -189,7 +189,7 @@ export default function EarningsCalculator() {
               className="text-3xl font-bold mb-1"
               style={{
                 color: "#dc2626",
-                fontFamily: "'IBM Plex Mono', monospace",
+                fontFamily: 'var(--font-numeric)',
               }}
             >
               {formatCurrency(results.currentRevenue)}
@@ -218,7 +218,7 @@ export default function EarningsCalculator() {
               className="text-3xl font-bold mb-1"
               style={{
                 color: "#22c55e",
-                fontFamily: "'IBM Plex Mono', monospace",
+                fontFamily: 'var(--font-numeric)',
               }}
             >
               {formatCurrency(results.directRevenue)}
@@ -250,7 +250,7 @@ export default function EarningsCalculator() {
             className="text-5xl font-bold mb-2"
             style={{
               color: "#b8860b",
-              fontFamily: "'IBM Plex Mono', monospace",
+              fontFamily: 'var(--font-numeric)',
             }}
           >
             {formatCurrency(results.increase)}
@@ -280,7 +280,7 @@ export default function EarningsCalculator() {
             className="text-2xl font-bold"
             style={{
               color: "#2d5a27",
-              fontFamily: "'IBM Plex Mono', monospace",
+              fontFamily: 'var(--font-numeric)',
             }}
           >
             $
@@ -302,7 +302,7 @@ export default function EarningsCalculator() {
             className="text-2xl font-bold"
             style={{
               color: "#2d5a27",
-              fontFamily: "'IBM Plex Mono', monospace",
+              fontFamily: 'var(--font-numeric)',
             }}
           >
             {formatCurrency(results.increase / 12)}
@@ -323,7 +323,7 @@ export default function EarningsCalculator() {
             className="text-2xl font-bold"
             style={{
               color: "#2d5a27",
-              fontFamily: "'IBM Plex Mono', monospace",
+              fontFamily: 'var(--font-numeric)',
             }}
           >
             {formatCurrency(results.increase * 5)}

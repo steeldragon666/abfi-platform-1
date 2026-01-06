@@ -294,7 +294,7 @@ export default function BrowseDemandSignals() {
     <PageLayout>
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 text-black">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
+        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-30" />
         <PageContainer size="xl" padding="lg" className="relative">
           <div className="max-w-3xl">
             {showingMockData && (

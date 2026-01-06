@@ -51,7 +51,7 @@ const INTENT_PATHWAYS = [
     borderColor: "border-primary/30",
     iconColor: "text-[#D4AF37]",
     hoverBg: "hover:bg-primary/15",
-    href: "/grower/dashboard",
+    href: "/for-growers",
     features: ["Feedstock registration", "Certification tracking", "Contract management"],
   },
   {
@@ -64,7 +64,7 @@ const INTENT_PATHWAYS = [
     borderColor: "border-primary/30",
     iconColor: "text-[#D4AF37]",
     hoverBg: "hover:bg-primary/15",
-    href: "/developer/dashboard",
+    href: "/for-developers",
     features: ["Registry explorer", "Supply confidence", "Price signals"],
   },
   {
@@ -77,7 +77,7 @@ const INTENT_PATHWAYS = [
     borderColor: "border-primary/30",
     iconColor: "text-[#D4AF37]",
     hoverBg: "hover:bg-primary/15",
-    href: "/finance/dashboard",
+    href: "/for-lenders",
     features: ["Stealth Discovery", "Lending Sentiment", "Price Intelligence"],
   },
   {
@@ -178,7 +178,7 @@ export default function Landing() {
                 <p className="text-lg font-medium text-white">
                   What do you want to do?
                 </p>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-white/70">
                   <Lock className="h-4 w-4" />
                   <span>Free access to all intelligence features</span>
                 </div>
@@ -300,9 +300,9 @@ export default function Landing() {
 
           <FadeInUp delay={0.3} className="text-center mt-8">
             <Button variant="outline" size="lg" asChild>
-              <Link href="/finance/dashboard">
+              <Link href="/browse">
                 <TrendingUp className="h-4 w-4 mr-2" />
-                Access Full Intelligence Suite
+                Browse Verified Feedstocks
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
@@ -325,7 +325,7 @@ export default function Landing() {
                       suffix={stat.suffix}
                     />
                   </MetricValue>
-                  <Body size="sm" className="text-gray-400">{stat.label}</Body>
+                  <Body size="sm" className="text-white/60">{stat.label}</Body>
                 </div>
               </FadeInUp>
             ))}
@@ -402,8 +402,8 @@ export default function Landing() {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-[#D4AF37]/50 text-white hover:bg-[#D4AF37]/10 bg-transparent" asChild>
-                <Link href="/finance/dashboard">
-                  View Intelligence Suite
+                <Link href="/browse">
+                  Explore Marketplace
                 </Link>
               </Button>
             </div>

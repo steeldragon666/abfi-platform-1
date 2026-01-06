@@ -121,7 +121,7 @@ export default function Explainers() {
           <H1
             className="text-4xl mb-3"
             style={{
-              fontFamily:"'DM Serif Display', serif",
+              fontFamily: 'var(--font-display)',
               color:"var(--text-[#D4AF37])"
             }}
           >

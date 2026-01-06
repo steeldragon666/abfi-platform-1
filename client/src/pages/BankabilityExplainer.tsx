@@ -195,7 +195,7 @@ export default function BankabilityExplainer() {
             <H1
               className="text-2xl"
               style={{
-                fontFamily:"'DM Serif Display', serif",
+                fontFamily: 'var(--font-display)',
                 color:"var(--text-[#D4AF37])",
               }}
             >
@@ -205,7 +205,7 @@ export default function BankabilityExplainer() {
           <H1
             className="text-4xl mb-3"
             style={{
-              fontFamily:"'DM Serif Display', serif",
+              fontFamily: 'var(--font-display)',
               fontWeight: 400,
               letterSpacing:"-0.5px",
             }}
@@ -288,7 +288,7 @@ export default function BankabilityExplainer() {
             <H2
               className="text-3xl mb-2"
               style={{
-                fontFamily:"'DM Serif Display', serif",
+                fontFamily: 'var(--font-display)',
                 fontWeight: 400,
               }}
             >
@@ -332,7 +332,7 @@ export default function BankabilityExplainer() {
                           background:"var(--bg-primary)",
                           border: `2px solid ${step.color}`,
                           color: step.color,
-                          fontFamily:"'IBM Plex Mono', monospace",
+                          fontFamily: 'var(--font-numeric)',
                         }}
                       >
                         {idx + 1}
@@ -473,7 +473,7 @@ export default function BankabilityExplainer() {
               <H2
                 className="text-2xl mb-1"
                 style={{
-                  fontFamily:"'DM Serif Display', serif",
+                  fontFamily: 'var(--font-display)',
                   fontWeight: 400,
                 }}
               >
@@ -527,7 +527,7 @@ export default function BankabilityExplainer() {
             <H2
               className="text-3xl mb-2"
               style={{
-                fontFamily:"'DM Serif Display', serif",
+                fontFamily: 'var(--font-display)',
                 fontWeight: 400,
               }}
             >
@@ -550,7 +550,7 @@ export default function BankabilityExplainer() {
               }}
             >
               <div
-                className="absolute top-4 right-4 w-16 h-16 rounded-full opacity-10"
+                className="absolute top-4 right-4 w-16 h-16 rounded-full opacity-30"
                 style={{
                   background:"var(--gradient-gold)",
                 }}
@@ -572,7 +572,7 @@ export default function BankabilityExplainer() {
                 </div>
                 <span
                   style={{
-                    fontFamily:"'DM Serif Display', serif",
+                    fontFamily: 'var(--font-display)',
                     fontSize:"18px",
                   }}
                 >
@@ -618,7 +618,7 @@ export default function BankabilityExplainer() {
                     </span>
                     <span
                       style={{
-                        fontFamily:"'IBM Plex Mono', monospace",
+                        fontFamily: 'var(--font-numeric)',
                         fontSize:"12px",
                         color:"var(--text-secondary)",
                       }}
@@ -647,7 +647,7 @@ export default function BankabilityExplainer() {
                 </div>
                 <div
                   style={{
-                    fontFamily:"'IBM Plex Mono', monospace",
+                    fontFamily: 'var(--font-numeric)',
                     fontSize:"11px",
                     color:"var(--accent-gold)",
                     wordBreak:"break-all",
@@ -705,7 +705,7 @@ export default function BankabilityExplainer() {
         >
           <H2
             className="text-2xl mb-3"
-            style={{ fontFamily:"'DM Serif Display', serif", fontWeight: 400 }}
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 400 }}
           >
             Ready to De-Risk Your Bioenergy Portfolio?
           </H2>

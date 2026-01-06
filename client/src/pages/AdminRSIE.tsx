@@ -395,7 +395,7 @@ function WeatherApiPanel() {
             <GridCellMap cells={gridCells} />
           ) : (
             <div className="text-center py-8 text-gray-600">
-              <MapPin className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <MapPin className="h-12 w-12 mx-auto mb-4 opacity-40" />
               <p>No grid cells configured</p>
             </div>
           )}
@@ -572,7 +572,7 @@ function DataSourcesPanel() {
             </Table>
           ) : (
             <div className="text-center py-12 text-gray-600">
-              <Database className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <Database className="h-12 w-12 mx-auto mb-4 opacity-40" />
               <p className="font-medium">No data sources configured</p>
               <p className="text-sm mt-1">
                 Click"Seed Data Sources" above to add Australian data sources
@@ -887,7 +887,7 @@ export default function AdminRSIE() {
                   </div>
                 ) : (
                   <div className="text-center py-12 text-gray-600">
-                    <CheckCircle2 className="h-12 w-12 mx-auto mb-4 opacity-20 text-green-500" />
+                    <CheckCircle2 className="h-12 w-12 mx-auto mb-4 opacity-40 text-green-500" />
                     <p className="font-medium">No active risk events</p>
                     <p className="text-sm">
                       Risk events will appear here when detected
@@ -986,7 +986,7 @@ export default function AdminRSIE() {
                   </Table>
                 ) : (
                   <div className="text-center py-12 text-gray-600">
-                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-40" />
                     <p className="font-medium">No ingestion runs yet</p>
                     <p className="text-sm">
                       Runs will appear here when data pipelines execute
@@ -1073,7 +1073,7 @@ export default function AdminRSIE() {
                   </div>
                 ) : (
                   <div className="text-center py-12 text-gray-600">
-                    <Newspaper className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                    <Newspaper className="h-12 w-12 mx-auto mb-4 opacity-40" />
                     <p className="font-medium">No intelligence items yet</p>
                     <p className="text-sm">
                       News and policy updates will appear here

@@ -423,7 +423,7 @@ export default function GrowerBenefits() {
                 <MetricValue
                   className="text-4xl font-bold mb-2"
                   style={{
-                    fontFamily:"'IBM Plex Mono', monospace",
+                    fontFamily: 'var(--font-numeric)',
                     color: item.color,
                   }}
                 >

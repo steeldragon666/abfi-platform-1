@@ -51,7 +51,7 @@ export default function ProducerRegistrationSuccess() {
           <H1
             className="text-4xl md:text-5xl font-normal mb-4"
             style={{
-              fontFamily:"'DM Serif Display', serif",
+              fontFamily: 'var(--font-display)',
               color:"#1a2e1a",
             }}
           >
@@ -113,7 +113,7 @@ export default function ProducerRegistrationSuccess() {
           <H2
             className="text-2xl font-normal mb-6 text-center"
             style={{
-              fontFamily:"'DM Serif Display', serif",
+              fontFamily: 'var(--font-display)',
               color:"#1a2e1a",
             }}
           >
@@ -192,7 +192,7 @@ export default function ProducerRegistrationSuccess() {
               <H3
                 className="text-xl font-normal mb-4 text-center"
                 style={{
-                  fontFamily:"'DM Serif Display', serif",
+                  fontFamily: 'var(--font-display)',
                   color:"#1a2e1a",
                 }}
               >

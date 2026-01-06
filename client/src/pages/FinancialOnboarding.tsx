@@ -144,7 +144,7 @@ export default function FinancialOnboarding() {
             <H1
               className="text-3xl"
               style={{
-                fontFamily:"'DM Serif Display', serif",
+                fontFamily: 'var(--font-display)',
                 color:"var(--text-[#D4AF37])",
               }}
             >
@@ -155,7 +155,7 @@ export default function FinancialOnboarding() {
             <H2
               className="text-2xl mb-2"
               style={{
-                fontFamily:"'DM Serif Display', serif",
+                fontFamily: 'var(--font-display)',
                 color:"var(--text-[#D4AF37])",
               }}
             >
@@ -262,7 +262,7 @@ export default function FinancialOnboarding() {
                             ?"var(--accent-green)"
                             :"var(--bg-tertiary)"
                       }`,
-                      fontFamily:"'IBM Plex Mono', monospace",
+                      fontFamily: 'var(--font-numeric)',
                     }}
                   >
                     {step.id < currentStep ?"✓" : step.id}
@@ -299,7 +299,7 @@ export default function FinancialOnboarding() {
                 <div>
                   <H3
                     className="text-2xl mb-2"
-                    style={{ fontFamily:"'DM Serif Display', serif" }}
+                    style={{ fontFamily: 'var(--font-display)' }}
                   >
                     Institution Details
                   </H3>
@@ -365,7 +365,7 @@ export default function FinancialOnboarding() {
                         background:"var(--bg-tertiary)",
                         border:"1px solid var(--border-subtle)",
                         color:"var(--text-[#D4AF37])",
-                        fontFamily:"'IBM Plex Mono', monospace",
+                        fontFamily: 'var(--font-numeric)',
                       }}
                     />
                   </div>
@@ -483,7 +483,7 @@ export default function FinancialOnboarding() {
                         background:"var(--bg-tertiary)",
                         border:"1px solid var(--border-subtle)",
                         color:"var(--text-[#D4AF37])",
-                        fontFamily:"'IBM Plex Mono', monospace",
+                        fontFamily: 'var(--font-numeric)',
                       }}
                     />
                   </div>
@@ -497,7 +497,7 @@ export default function FinancialOnboarding() {
                 <div>
                   <H3
                     className="text-2xl mb-2"
-                    style={{ fontFamily:"'DM Serif Display', serif" }}
+                    style={{ fontFamily: 'var(--font-display)' }}
                   >
                     Authorized Representative
                   </H3>
@@ -660,7 +660,7 @@ export default function FinancialOnboarding() {
                 <div>
                   <H3
                     className="text-2xl mb-2"
-                    style={{ fontFamily:"'DM Serif Display', serif" }}
+                    style={{ fontFamily: 'var(--font-display)' }}
                   >
                     Data Access Tier
                   </H3>
@@ -748,7 +748,7 @@ export default function FinancialOnboarding() {
                       </div>
                       <H4
                         className="text-xl mb-2"
-                        style={{ fontFamily:"'DM Serif Display', serif" }}
+                        style={{ fontFamily: 'var(--font-display)' }}
                       >
                         {tier.name}
                       </H4>
@@ -786,7 +786,7 @@ export default function FinancialOnboarding() {
                 <div>
                   <H3
                     className="text-2xl mb-2"
-                    style={{ fontFamily:"'DM Serif Display', serif" }}
+                    style={{ fontFamily: 'var(--font-display)' }}
                   >
                     Compliance & Declarations
                   </H3>
