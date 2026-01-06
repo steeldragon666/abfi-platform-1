@@ -236,8 +236,8 @@ function Router() {
 
         {/* Project Registry (Phase 3) */}
         <Route path="/registry" component={ProjectRegistry} />
-        <Route path="/registry/project/:slug" component={ProjectRegistryDetail} />
         <Route path="/registry/claim" component={ClaimProject} />
+        <Route path="/registry/project/:slug" component={ProjectRegistryDetail} />
 
         {/* Climate Intelligence Hub (Phase 5) */}
         <Route path="/climate-hub" component={ClimateIntelligenceHub} />
