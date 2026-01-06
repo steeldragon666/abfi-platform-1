@@ -570,12 +570,12 @@ export class ClimateIntelligenceService {
         date: row.date,
         latitude: row.latitude,
         longitude: row.longitude,
-        dailyRain: row.dailyRain ? parseFloat(row.dailyRain) : null,
-        maxTemp: row.maxTemp ? parseFloat(row.maxTemp) : null,
-        minTemp: row.minTemp ? parseFloat(row.minTemp) : null,
-        radiation: row.radiation ? parseFloat(row.radiation) : null,
-        evaporation: row.evaporation ? parseFloat(row.evaporation) : null,
-        vpDeficit: row.vpDeficit ? parseFloat(row.vpDeficit) : null,
+        dailyRain: row.dailyRainMm ? parseFloat(row.dailyRainMm) : null,
+        maxTemp: row.maxTempC ? parseFloat(row.maxTempC) : null,
+        minTemp: row.minTempC ? parseFloat(row.minTempC) : null,
+        radiation: row.solarRadiationMJ ? parseFloat(row.solarRadiationMJ) : null,
+        evaporation: row.evapPanMm ? parseFloat(row.evapPanMm) : null,
+        vpDeficit: row.vpDeficitHPa ? parseFloat(row.vpDeficitHPa) : null,
       }));
     }
   }
