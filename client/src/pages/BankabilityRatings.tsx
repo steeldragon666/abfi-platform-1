@@ -40,7 +40,7 @@ import {
   BarChart3,
   Info,
 } from"lucide-react";
-import { H1, H2, H3, Body, MetricValue, DataLabel } from"@/components/Typography";
+import { H1, H2, H3, Body, MetricValue, DataLabel, H4 } from"@/components/Typography";
 
 // Rating color schemes
 const getRatingColor = (rating: string) => {

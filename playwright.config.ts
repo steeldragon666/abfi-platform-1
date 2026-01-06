@@ -14,14 +14,14 @@ export default defineConfig({
   reporter: [["html"], ["list"]],
   timeout: 60000,
   use: {
-    baseURL: "http://localhost:5174",
+    baseURL: "http://localhost:3002",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:5174",
+    url: "http://localhost:3002",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

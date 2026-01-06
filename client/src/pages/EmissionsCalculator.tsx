@@ -61,7 +61,7 @@ import {
 } from"@/components/ui/motion";
 import DashboardLayout from"@/components/DashboardLayout";
 import { useState, useMemo } from"react";
-import { H1, H2, Body, MetricValue, DataLabel } from"@/components/Typography";
+import { H1, H2, Body, MetricValue, DataLabel, H4 } from"@/components/Typography";
 
 // Transport mode icons
 function getTransportIcon(mode: string) {

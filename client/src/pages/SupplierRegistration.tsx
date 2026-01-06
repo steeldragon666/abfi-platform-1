@@ -44,7 +44,7 @@ import { useState } from"react";
 import { Link, useLocation } from"wouter";
 import { toast } from"sonner";
 import { cn } from"@/lib/utils";
-import { H1, H3, Body } from"@/components/Typography";
+import { H1, H3, Body, H4 } from"@/components/Typography";
 
 type Step = 1 | 2 | 3;
 

@@ -43,7 +43,7 @@ import {
 import { trpc } from"@/lib/trpc";
 import { formatDate } from"@/const";
 import { PageLayout, PageContainer } from"@/components/layout";
-import { H1, H2, H3, Body, MetricValue, DataLabel } from"@/components/Typography";
+import { H1, H2, H3, Body, MetricValue, DataLabel, H4 } from"@/components/Typography";
 import {
   ArrowLeft,
   Calendar,

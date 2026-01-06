@@ -33,7 +33,7 @@ import {
 import { Link } from"wouter";
 import { cn } from"@/lib/utils";
 import { PageLayout } from"@/components/layout";
-import { H1, H2, H3, Body, MetricValue, DataLabel } from"@/components/Typography";
+import { H1, H2, H3, Body, MetricValue, DataLabel, H4 } from"@/components/Typography";
 
 // Grower Qualification Tier Component
 function GQTierCard({

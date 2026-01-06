@@ -39,7 +39,7 @@ import {
   ClipboardCheck,
 } from"lucide-react";
 import { cn } from"@/lib/utils";
-import { H1, H3, Body, MetricValue, DataLabel } from"@/components/Typography";
+import { H1, H3, Body, MetricValue, DataLabel, H4 } from"@/components/Typography";
 
 // Quick stats for top bar
 const QUICK_STATS = [

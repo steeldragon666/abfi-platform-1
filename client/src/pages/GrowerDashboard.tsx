@@ -53,7 +53,7 @@ import { cn } from"@/lib/utils";
 import { UnifiedMap } from"@/components/maps/UnifiedMap";
 import { MapControlsProvider } from"@/contexts/MapControlsContext";
 import { MapControlsPanel } from"@/components/layout/MapControlsPanel";
-import { H3, Body, MetricValue } from"@/components/Typography";
+import { H3, H4, Body, MetricValue } from"@/components/Typography";
 import { OnboardingModal } from"@/components/OnboardingModal";
 
 // Onboarding checklist items

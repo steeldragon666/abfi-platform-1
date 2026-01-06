@@ -32,7 +32,7 @@ import { Skeleton } from"@/components/ui/skeleton";
 import { PageLayout } from"@/components/layout";
 import { AUSTRALIAN_STATES } from"@/const";
 import { trpc } from"@/lib/trpc";
-import { H1, H2, H3, Body, MetricValue, DataLabel } from"@/components/Typography";
+import { H1, H2, H3, Body, MetricValue, DataLabel, H4 } from"@/components/Typography";
 import {
   ArrowLeft,
   ArrowRight,

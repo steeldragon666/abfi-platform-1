@@ -24,7 +24,7 @@ import {
   Check,
 } from"lucide-react";
 import EarningsCalculator from"@/components/EarningsCalculator";
-import { H1, H2, H3, Body, MetricValue, DataLabel } from"@/components/Typography";
+import { H1, H2, H3, Body, MetricValue, DataLabel, H4 } from"@/components/Typography";
 
 export default function GrowerBenefits() {
   const problems = [

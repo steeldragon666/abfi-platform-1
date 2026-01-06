@@ -32,7 +32,7 @@ import { ArrowLeft, Package } from"lucide-react";
 import { useState } from"react";
 import { Link, Redirect, useLocation } from"wouter";
 import { toast } from"sonner";
-import { H1, H3, Body } from"@/components/Typography";
+import { H1, H3, Body, H4 } from"@/components/Typography";
 
 export default function FeedstockCreate() {
   const { user, isAuthenticated } = useAuth();
