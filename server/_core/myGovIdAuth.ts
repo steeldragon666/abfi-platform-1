@@ -140,7 +140,7 @@ export function createMyGovIdRouter(): Router {
 
     const authUrl = `${ENV.myGovIdAuthEndpoint}?${authParams.toString()}`;
 
-    logger.info("myGovID", Initiating authorization flow");
+    logger.info("myGovID", "Initiating authorization flow");
     res.redirect(authUrl);
   });
 
@@ -207,7 +207,7 @@ export function createMyGovIdRouter(): Router {
       });
 
       const userInfo = userInfoResponse.data;
-      logger.info("myGovID", User authenticated:", userInfo.sub);
+      logger.info("myGovID", "User authenticated:", userInfo.sub);
 
       // Create or update user in database
       const openId = `mygovid:${userInfo.sub}`;
@@ -232,7 +232,7 @@ export function createMyGovIdRouter(): Router {
         maxAge: SESSION_TIMEOUT_MS,
       });
 
-      logger.info("myGovID", Session created for user:", openId);
+      logger.info("myGovID", "Session created for user:", openId);
       res.redirect(returnUrl);
     } catch (error: any) {
       console.error("[myGovID] Token exchange failed:", error.response?.data || error.message);

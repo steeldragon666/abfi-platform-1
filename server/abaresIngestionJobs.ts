@@ -71,7 +71,7 @@ export async function dailyAbaresIngestion(): Promise<{
   signalsDiscovered: number;
   errors: string[];
 }> {
-  logger.info("ABARES", Starting daily ABARES data ingestion...");
+  logger.info("ABARES", "Starting daily ABARES data ingestion...");
 
   const startTime = Date.now();
   const errors: string[] = [];
@@ -195,7 +195,7 @@ export async function dailyAbaresIngestion(): Promise<{
 
     return { cropForecasts, commodityPrices, signalsDiscovered, errors };
   } catch (error) {
-    logger.error("ABARES", Critical error in daily ingestion:", error);
+    logger.error("ABARES", "Critical error in daily ingestion:", error);
     throw error;
   }
 }
@@ -211,7 +211,7 @@ export async function weeklyYieldPredictions(): Promise<{
   cropsProcessed: number;
   errors: string[];
 }> {
-  logger.info("ABARES", Starting weekly yield prediction generation...");
+  logger.info("ABARES", "Starting weekly yield prediction generation...");
 
   const startTime = Date.now();
   const errors: string[] = [];
@@ -277,7 +277,7 @@ export async function weeklyYieldPredictions(): Promise<{
       errors,
     };
   } catch (error) {
-    logger.error("ABARES", Critical error in yield predictions:", error);
+    logger.error("ABARES", "Critical error in yield predictions:", error);
     throw error;
   }
 }
@@ -292,7 +292,7 @@ export async function weeklySupplyForecasts(): Promise<{
   regionsProcessed: number;
   errors: string[];
 }> {
-  logger.info("ABARES", Starting weekly supply forecast generation...");
+  logger.info("ABARES", "Starting weekly supply forecast generation...");
 
   const startTime = Date.now();
   const errors: string[] = [];
@@ -414,7 +414,7 @@ export async function weeklySupplyForecasts(): Promise<{
       errors,
     };
   } catch (error) {
-    logger.error("ABARES", Critical error in supply forecasts:", error);
+    logger.error("ABARES", "Critical error in supply forecasts:", error);
     throw error;
   }
 }
@@ -429,7 +429,7 @@ export async function monthlyFarmBenchmarks(): Promise<{
   statesProcessed: number;
   errors: string[];
 }> {
-  logger.info("ABARES", Starting monthly farm benchmark update...");
+  logger.info("ABARES", "Starting monthly farm benchmark update...");
 
   const startTime = Date.now();
   const errors: string[] = [];
@@ -469,7 +469,7 @@ export async function monthlyFarmBenchmarks(): Promise<{
       errors,
     };
   } catch (error) {
-    logger.error("ABARES", Critical error in farm benchmarks:", error);
+    logger.error("ABARES", "Critical error in farm benchmarks:", error);
     throw error;
   }
 }
@@ -677,7 +677,7 @@ export async function runAllAbaresJobs(): Promise<{
   supplyForecasts: Awaited<ReturnType<typeof weeklySupplyForecasts>>;
   farmBenchmarks: Awaited<ReturnType<typeof monthlyFarmBenchmarks>>;
 }> {
-  logger.info("ABARES", Running all ABARES ingestion jobs...");
+  logger.info("ABARES", "Running all ABARES ingestion jobs...");
 
   const results = {
     dailyIngestion: await dailyAbaresIngestion(),
@@ -686,6 +686,6 @@ export async function runAllAbaresJobs(): Promise<{
     farmBenchmarks: await monthlyFarmBenchmarks(),
   };
 
-  logger.info("ABARES", All ABARES jobs complete:", results);
+  logger.info("ABARES", "All ABARES jobs complete:", results);
   return results;
 }

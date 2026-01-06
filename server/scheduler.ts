@@ -128,10 +128,10 @@ const dailyCovenantCheckJob = cron.schedule(
       jobStatus.covenantCheck.lastRun = new Date();
       jobStatus.covenantCheck.status = "completed";
       jobStatus.covenantCheck.lastResult = result;
-      logger.info("Scheduler", Daily covenant check completed:", result);
+      logger.info("Scheduler", "Daily covenant check completed:", result);
     } catch (error) {
       jobStatus.covenantCheck.status = "failed";
-      logger.error("Scheduler", Daily covenant check failed:", error);
+      logger.error("Scheduler", "Daily covenant check failed:", error);
     }
   },
   {
@@ -158,10 +158,10 @@ const weeklySupplyRecalcJob = cron.schedule(
       jobStatus.supplyRecalc.lastRun = new Date();
       jobStatus.supplyRecalc.status = "completed";
       jobStatus.supplyRecalc.lastResult = result;
-      logger.info("Scheduler", Weekly supply recalculation completed:", result);
+      logger.info("Scheduler", "Weekly supply recalculation completed:", result);
     } catch (error) {
       jobStatus.supplyRecalc.status = "failed";
-      logger.error("Scheduler", Weekly supply recalculation failed:", error);
+      logger.error("Scheduler", "Weekly supply recalculation failed:", error);
     }
   },
   {
@@ -188,10 +188,10 @@ const contractRenewalAlertsJob = cron.schedule(
       jobStatus.renewalAlerts.lastRun = new Date();
       jobStatus.renewalAlerts.status = "completed";
       jobStatus.renewalAlerts.lastResult = result;
-      logger.info("Scheduler", Contract renewal alerts completed:", result);
+      logger.info("Scheduler", "Contract renewal alerts completed:", result);
     } catch (error) {
       jobStatus.renewalAlerts.status = "failed";
-      logger.error("Scheduler", Contract renewal alerts failed:", error);
+      logger.error("Scheduler", "Contract renewal alerts failed:", error);
     }
   },
   {
@@ -218,10 +218,10 @@ const abaresDailyIngestionJob = cron.schedule(
       jobStatus.abaresDaily.lastRun = new Date();
       jobStatus.abaresDaily.status = "completed";
       jobStatus.abaresDaily.lastResult = result;
-      logger.info("Scheduler", ABARES daily ingestion completed:", result);
+      logger.info("Scheduler", "ABARES daily ingestion completed:", result);
     } catch (error) {
       jobStatus.abaresDaily.status = "failed";
-      logger.error("Scheduler", ABARES daily ingestion failed:", error);
+      logger.error("Scheduler", "ABARES daily ingestion failed:", error);
     }
   },
   {
@@ -248,10 +248,10 @@ const abaresYieldPredictionsJob = cron.schedule(
       jobStatus.abaresYieldPredictions.lastRun = new Date();
       jobStatus.abaresYieldPredictions.status = "completed";
       jobStatus.abaresYieldPredictions.lastResult = result;
-      logger.info("Scheduler", ABARES yield predictions completed:", result);
+      logger.info("Scheduler", "ABARES yield predictions completed:", result);
     } catch (error) {
       jobStatus.abaresYieldPredictions.status = "failed";
-      logger.error("Scheduler", ABARES yield predictions failed:", error);
+      logger.error("Scheduler", "ABARES yield predictions failed:", error);
     }
   },
   {
@@ -278,10 +278,10 @@ const abaresSupplyForecastsJob = cron.schedule(
       jobStatus.abaresSupplyForecasts.lastRun = new Date();
       jobStatus.abaresSupplyForecasts.status = "completed";
       jobStatus.abaresSupplyForecasts.lastResult = result;
-      logger.info("Scheduler", ABARES supply forecasts completed:", result);
+      logger.info("Scheduler", "ABARES supply forecasts completed:", result);
     } catch (error) {
       jobStatus.abaresSupplyForecasts.status = "failed";
-      logger.error("Scheduler", ABARES supply forecasts failed:", error);
+      logger.error("Scheduler", "ABARES supply forecasts failed:", error);
     }
   },
   {
@@ -308,10 +308,10 @@ const abaresFarmBenchmarksJob = cron.schedule(
       jobStatus.abaresFarmBenchmarks.lastRun = new Date();
       jobStatus.abaresFarmBenchmarks.status = "completed";
       jobStatus.abaresFarmBenchmarks.lastResult = result;
-      logger.info("Scheduler", ABARES farm benchmarks completed:", result);
+      logger.info("Scheduler", "ABARES farm benchmarks completed:", result);
     } catch (error) {
       jobStatus.abaresFarmBenchmarks.status = "failed";
-      logger.error("Scheduler", ABARES farm benchmarks failed:", error);
+      logger.error("Scheduler", "ABARES farm benchmarks failed:", error);
     }
   },
   {
@@ -338,10 +338,10 @@ const bomSiloDailyJob = cron.schedule(
       jobStatus.bomSiloDaily.lastRun = new Date();
       jobStatus.bomSiloDaily.status = "completed";
       jobStatus.bomSiloDaily.lastResult = result;
-      logger.info("Scheduler", BOM SILO daily ingestion completed:", result);
+      logger.info("Scheduler", "BOM SILO daily ingestion completed:", result);
     } catch (error) {
       jobStatus.bomSiloDaily.status = "failed";
-      logger.error("Scheduler", BOM SILO daily ingestion failed:", error);
+      logger.error("Scheduler", "BOM SILO daily ingestion failed:", error);
     }
   },
   {
@@ -368,10 +368,10 @@ const bomObservationsHourlyJob = cron.schedule(
       jobStatus.bomObservationsHourly.lastRun = new Date();
       jobStatus.bomObservationsHourly.status = "completed";
       jobStatus.bomObservationsHourly.lastResult = result;
-      logger.info("Scheduler", BOM observations completed:", result);
+      logger.info("Scheduler", "BOM observations completed:", result);
     } catch (error) {
       jobStatus.bomObservationsHourly.status = "failed";
-      logger.error("Scheduler", BOM observations failed:", error);
+      logger.error("Scheduler", "BOM observations failed:", error);
     }
   },
   {
@@ -398,10 +398,10 @@ const bomForecastsDailyJob = cron.schedule(
       jobStatus.bomForecastsDaily.lastRun = new Date();
       jobStatus.bomForecastsDaily.status = "completed";
       jobStatus.bomForecastsDaily.lastResult = result;
-      logger.info("Scheduler", BOM forecasts completed:", result);
+      logger.info("Scheduler", "BOM forecasts completed:", result);
     } catch (error) {
       jobStatus.bomForecastsDaily.status = "failed";
-      logger.error("Scheduler", BOM forecasts failed:", error);
+      logger.error("Scheduler", "BOM forecasts failed:", error);
     }
   },
   {
@@ -428,10 +428,10 @@ const bomSeasonalMonthlyJob = cron.schedule(
       jobStatus.bomSeasonalMonthly.lastRun = new Date();
       jobStatus.bomSeasonalMonthly.status = "completed";
       jobStatus.bomSeasonalMonthly.lastResult = result;
-      logger.info("Scheduler", BOM seasonal outlook completed:", result);
+      logger.info("Scheduler", "BOM seasonal outlook completed:", result);
     } catch (error) {
       jobStatus.bomSeasonalMonthly.status = "failed";
-      logger.error("Scheduler", BOM seasonal outlook failed:", error);
+      logger.error("Scheduler", "BOM seasonal outlook failed:", error);
     }
   },
   {
@@ -458,10 +458,10 @@ const bomWarningsHourlyJob = cron.schedule(
       jobStatus.bomWarningsHourly.lastRun = new Date();
       jobStatus.bomWarningsHourly.status = "completed";
       jobStatus.bomWarningsHourly.lastResult = result;
-      logger.info("Scheduler", BOM warnings check completed:", result);
+      logger.info("Scheduler", "BOM warnings check completed:", result);
     } catch (error) {
       jobStatus.bomWarningsHourly.status = "failed";
-      logger.error("Scheduler", BOM warnings check failed:", error);
+      logger.error("Scheduler", "BOM warnings check failed:", error);
     }
   },
   {
@@ -488,10 +488,10 @@ const bomClimateMetricsWeeklyJob = cron.schedule(
       jobStatus.bomClimateMetricsWeekly.lastRun = new Date();
       jobStatus.bomClimateMetricsWeekly.status = "completed";
       jobStatus.bomClimateMetricsWeekly.lastResult = result;
-      logger.info("Scheduler", Climate metrics calculation completed:", result);
+      logger.info("Scheduler", "Climate metrics calculation completed:", result);
     } catch (error) {
       jobStatus.bomClimateMetricsWeekly.status = "failed";
-      logger.error("Scheduler", Climate metrics calculation failed:", error);
+      logger.error("Scheduler", "Climate metrics calculation failed:", error);
     }
   },
   {
@@ -504,7 +504,7 @@ const bomClimateMetricsWeeklyJob = cron.schedule(
  * Starts all cron jobs and logs their schedules
  */
 export function initializeScheduler() {
-  logger.info("Scheduler", Initializing automated job scheduler...");
+  logger.info("Scheduler", "Initializing automated job scheduler...");
 
   // Start all monitoring jobs
   dailyCovenantCheckJob.start();
@@ -525,7 +525,7 @@ export function initializeScheduler() {
   bomWarningsHourlyJob.start();
   bomClimateMetricsWeeklyJob.start();
 
-  logger.info("Scheduler", Monitoring Jobs:");
+  logger.info("Scheduler", "Monitoring Jobs:");
   console.log(
     "  ✓ Daily Covenant Check scheduled for 6:00 AM daily (Australia/Sydney)"
   );
@@ -535,7 +535,7 @@ export function initializeScheduler() {
   console.log(
     "  ✓ Contract Renewal Alerts scheduled for 7:00 AM daily (Australia/Sydney)"
   );
-  logger.info("Scheduler", ABARES Intelligence Jobs:");
+  logger.info("Scheduler", "ABARES Intelligence Jobs:");
   console.log(
     "  ✓ Daily ABARES Ingestion scheduled for 5:00 AM daily (Australia/Sydney)"
   );
@@ -548,7 +548,7 @@ export function initializeScheduler() {
   console.log(
     "  ✓ Monthly Farm Benchmarks scheduled for 2:00 AM 1st of month (Australia/Sydney)"
   );
-  logger.info("Scheduler", BOM Climate Jobs:");
+  logger.info("Scheduler", "BOM Climate Jobs:");
   console.log(
     "  ✓ Daily SILO Ingestion scheduled for 4:30 AM daily (Australia/Sydney)"
   );
@@ -567,7 +567,7 @@ export function initializeScheduler() {
   console.log(
     "  ✓ Weekly Climate Metrics scheduled for 3:30 AM Mondays (Australia/Sydney)"
   );
-  logger.info("Scheduler", All jobs started successfully");
+  logger.info("Scheduler", "All jobs started successfully");
 }
 
 /**
@@ -575,7 +575,7 @@ export function initializeScheduler() {
  * Useful for graceful shutdown
  */
 export function stopScheduler() {
-  logger.info("Scheduler", Stopping all scheduled jobs...");
+  logger.info("Scheduler", "Stopping all scheduled jobs...");
   // Stop monitoring jobs
   dailyCovenantCheckJob.stop();
   weeklySupplyRecalcJob.stop();
@@ -592,7 +592,7 @@ export function stopScheduler() {
   bomSeasonalMonthlyJob.stop();
   bomWarningsHourlyJob.stop();
   bomClimateMetricsWeeklyJob.stop();
-  logger.info("Scheduler", All jobs stopped");
+  logger.info("Scheduler", "All jobs stopped");
 }
 
 /**
