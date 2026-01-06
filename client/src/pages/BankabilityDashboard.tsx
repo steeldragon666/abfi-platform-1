@@ -214,7 +214,7 @@ export default function BankabilityDashboard() {
   return (
     <PageLayout>
       {/* Hero Section */}
-      <section className="bg-black text-black py-16 lg:py-20 relative overflow-hidden">
+      <section className="bg-black text-white py-16 lg:py-20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-1/4 -right-1/4 w-[600px] h-[600px] rounded-full bg-blue-500/10 blur-[100px]" />
           <div className="absolute -bottom-1/4 -left-1/4 w-[400px] h-[400px] rounded-full bg-indigo-500/10 blur-[80px]" />

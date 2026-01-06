@@ -159,7 +159,7 @@ export default function AuditLogs() {
   return (
     <PageLayout>
       {/* Hero Section */}
-      <section className="bg-black text-black py-12 lg:py-16 relative overflow-hidden">
+      <section className="bg-black text-white py-12 lg:py-16 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-1/4 -right-1/4 w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[100px]" />
         </div>

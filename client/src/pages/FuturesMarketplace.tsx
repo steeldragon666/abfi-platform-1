@@ -257,7 +257,7 @@ export default function FuturesMarketplace() {
   return (
     <PageLayout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-black py-16 lg:py-20 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-white py-16 lg:py-20 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-1/4 -right-1/4 w-[600px] h-[600px] rounded-full bg-[#D4AF37]/10 blur-[100px]" />
           <div className="absolute -bottom-1/4 -left-1/4 w-[400px] h-[400px] rounded-full bg-[#D4AF37]/10 blur-[80px]" />
@@ -286,22 +286,22 @@ export default function FuturesMarketplace() {
             <H1 className="mb-4">
               Futures Marketplace
             </H1>
-            <Body className="text-xl text-gray-600 mb-8 leading-relaxed">
+            <Body className="text-xl text-gray-300 mb-8 leading-relaxed">
               Secure long-term supply of sustainable perennial biomass. Browse
               verified futures listings and express interest in multi-year
               contracts with qualified growers.
             </Body>
 
             <div className="flex flex-wrap gap-3">
-              <Badge className="bg-white/10 text-black border-white/20 py-2 px-4">
+              <Badge className="bg-white/10 text-white border-white/20 py-2 px-4">
                 <TreeDeciduous className="h-4 w-4 mr-2" />
                 Perennial Crops
               </Badge>
-              <Badge className="bg-white/10 text-black border-white/20 py-2 px-4">
+              <Badge className="bg-white/10 text-white border-white/20 py-2 px-4">
                 <Calendar className="h-4 w-4 mr-2" />
                 Up to 25 Year Contracts
               </Badge>
-              <Badge className="bg-white/10 text-black border-white/20 py-2 px-4">
+              <Badge className="bg-white/10 text-white border-white/20 py-2 px-4">
                 <ShieldCheck className="h-4 w-4 mr-2" />
                 GQ1-GQ4 Verified
               </Badge>
@@ -310,30 +310,30 @@ export default function FuturesMarketplace() {
 
           <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 text-center">
-              <MetricValue className="text-black">
+              <MetricValue className="text-white">
                 {totalListings}
               </MetricValue>
-              <DataLabel className="text-gray-500 mt-1">Active Listings</DataLabel>
+              <DataLabel className="text-gray-400 mt-1">Active Listings</DataLabel>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 text-center">
               <MetricValue className="text-[#D4AF37]">
                 {(totalVolume / 1000).toFixed(0)}k
               </MetricValue>
-              <DataLabel className="text-gray-500 mt-1">
+              <DataLabel className="text-gray-400 mt-1">
                 Tonnes Available
               </DataLabel>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 text-center">
-              <MetricValue className="text-black">
+              <MetricValue className="text-white">
                 ${avgPrice.toFixed(0)}
               </MetricValue>
-              <DataLabel className="text-gray-500 mt-1">Avg Price/Tonne</DataLabel>
+              <DataLabel className="text-gray-400 mt-1">Avg Price/Tonne</DataLabel>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 text-center">
-              <MetricValue className="text-black">
+              <MetricValue className="text-white">
                 {(totalHectares / 1000).toFixed(1)}k
               </MetricValue>
-              <DataLabel className="text-gray-500 mt-1">Hectares</DataLabel>
+              <DataLabel className="text-gray-400 mt-1">Hectares</DataLabel>
             </div>
           </div>
         </PageContainer>
