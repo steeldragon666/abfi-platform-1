@@ -36,7 +36,7 @@ export default function FinancialOnboardingSuccess() {
 
         {/* Success Message */}
         <div className="text-center mb-12">
-          <H1 className="text-4xl md:text-5xl font-serif  mb-4">
+          <H1 className="text-4xl md:text-5xl font-[var(--font-display)]  mb-4">
             Institution Onboarding Complete
           </H1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
@@ -81,7 +81,7 @@ export default function FinancialOnboardingSuccess() {
 
         {/* Next Steps */}
         <div className="max-w-3xl mx-auto mb-12">
-          <H2 className="text-2xl font-serif  mb-6 text-center">
+          <H2 className="text-2xl font-[var(--font-display)]  mb-6 text-center">
             Onboarding Process
           </H2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -134,7 +134,7 @@ export default function FinancialOnboardingSuccess() {
         <div className="max-w-3xl mx-auto mb-12">
           <Card className="bg-[#111820]/80 border-[#c9a962]/20">
             <CardContent className="p-8">
-              <H3 className="text-xl font-serif font-bold mb-4 text-center">
+              <H3 className="text-xl font-[var(--font-display)] font-bold mb-4 text-center">
                 Your Data Access Benefits
               </H3>
               <div className="grid md:grid-cols-2 gap-4">

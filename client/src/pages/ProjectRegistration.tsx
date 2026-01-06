@@ -32,9 +32,9 @@ export default function ProjectRegistration() {
         <header className="text-center mb-12 pb-8 border-b border-[#c9a962]/20">
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="w-11 h-11 bg-gradient-to-br from-[#c9a962] to-[#8a7443] rounded-xl flex items-center justify-center">
-              <span className="font-serif text-xl text-[#0a0f14]">B</span>
+              <span className="font-[var(--font-display)] text-xl text-[#0a0f14]">B</span>
             </div>
-            <span className="font-serif text-2xl">
+            <span className="font-[var(--font-display)] text-2xl">
               BioFeed<span className="text-[#c9a962]">AU</span>
             </span>
           </div>
@@ -43,7 +43,7 @@ export default function ProjectRegistration() {
             Project Developer Portal
           </div>
 
-          <H1 className="font-serif text-4xl md:text-5xl font-normal mb-4">
+          <H1 className="font-[var(--font-display)] text-4xl md:text-5xl font-normal mb-4">
             Register Your Bioenergy Project
           </H1>
 
@@ -93,7 +93,7 @@ export default function ProjectRegistration() {
 
         {/* Registration Process Preview */}
         <div className="bg-[#111820] border border-[#c9a962]/15 rounded-2xl p-8 mb-8">
-          <H2 className="font-serif text-2xl mb-6">Registration Process</H2>
+          <H2 className="font-[var(--font-display)] text-2xl mb-6">Registration Process</H2>
 
           <div className="grid grid-cols-1 md:grid-cols-7 gap-4 mb-8">
             {[

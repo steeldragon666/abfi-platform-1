@@ -193,7 +193,7 @@ export default function ProjectRegistrationFlow() {
       <div className="relative max-w-4xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center mb-8">
-          <H1 className="font-serif text-3xl mb-2">
+          <H1 className="font-[var(--font-display)] text-3xl mb-2">
             {STEPS[currentStep - 1].title}
           </H1>
           <div className="flex items-center justify-center gap-3">
