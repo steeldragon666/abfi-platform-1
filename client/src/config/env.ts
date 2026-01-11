@@ -11,6 +11,33 @@ import { z } from "zod";
 // Helper to check if we're in development mode
 const isDev = import.meta.env.DEV;
 
+// Helper to convert empty strings to undefined (for optional fields)
+const emptyToUndefined = (val: string | undefined) =>
+  val === "" || val === undefined ? undefined : val;
+
+// Helper schemas that handle empty strings gracefully
+const optionalUrl = (defaultValue?: string) =>
+  z.preprocess(
+    emptyToUndefined,
+    defaultValue
+      ? z.string().url().optional().default(defaultValue)
+      : z.string().url().optional()
+  );
+
+const optionalString = (defaultValue?: string) =>
+  z.preprocess(
+    emptyToUndefined,
+    defaultValue
+      ? z.string().min(1).optional().default(defaultValue)
+      : z.string().min(1).optional()
+  );
+
+const optionalEthAddress = () =>
+  z.preprocess(
+    emptyToUndefined,
+    z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional()
+  );
+
 // Schema for all environment variables
 const envSchema = z.object({
   // ===================
@@ -18,85 +45,50 @@ const envSchema = z.object({
   // ===================
 
   /** OAuth Portal URL for authentication redirects */
-  VITE_OAUTH_PORTAL_URL: z
-    .string()
-    .url("VITE_OAUTH_PORTAL_URL must be a valid URL")
-    .optional()
-    .default("http://localhost:5173"),
+  VITE_OAUTH_PORTAL_URL: optionalUrl("http://localhost:5173"),
 
   /** Application ID for OAuth */
-  VITE_APP_ID: z
-    .string()
-    .min(1, "VITE_APP_ID cannot be empty")
-    .optional()
-    .default("abfi-platform-dev"),
+  VITE_APP_ID: optionalString("abfi-platform-dev"),
 
   // ===================
   // API Endpoints
   // ===================
 
   /** Intelligence API URL for AI/ML features */
-  VITE_INTELLIGENCE_API_URL: z
-    .string()
-    .url("VITE_INTELLIGENCE_API_URL must be a valid URL")
-    .optional()
-    .default("http://localhost:3001"),
+  VITE_INTELLIGENCE_API_URL: optionalUrl("http://localhost:3001"),
 
   /** Stealth Discovery API URL */
-  VITE_STEALTH_API_URL: z
-    .string()
-    .url("VITE_STEALTH_API_URL must be a valid URL")
-    .optional()
-    .default("http://localhost:3002"),
+  VITE_STEALTH_API_URL: optionalUrl("http://localhost:3002"),
 
   // ===================
   // Maps & Geolocation
   // ===================
 
   /** Frontend Forge API key for map proxy service */
-  VITE_FRONTEND_FORGE_API_KEY: z
-    .string()
-    .min(1, "VITE_FRONTEND_FORGE_API_KEY cannot be empty")
-    .optional(),
+  VITE_FRONTEND_FORGE_API_KEY: optionalString(),
 
   /** Frontend Forge API URL for map proxy service */
-  VITE_FRONTEND_FORGE_API_URL: z
-    .string()
-    .url("VITE_FRONTEND_FORGE_API_URL must be a valid URL")
-    .optional()
-    .default("https://api.frontendforge.dev"),
+  VITE_FRONTEND_FORGE_API_URL: optionalUrl("https://api.frontendforge.dev"),
 
   /** Google Maps API key (used as fallback if Frontend Forge not configured) */
-  VITE_GOOGLE_MAPS_API_KEY: z
-    .string()
-    .min(1, "VITE_GOOGLE_MAPS_API_KEY cannot be empty")
-    .optional(),
+  VITE_GOOGLE_MAPS_API_KEY: optionalString(),
 
   // ===================
   // Monitoring & Analytics
   // ===================
 
   /** Sentry DSN for error tracking */
-  VITE_SENTRY_DSN: z
-    .string()
-    .url("VITE_SENTRY_DSN must be a valid Sentry DSN URL")
-    .optional(),
+  VITE_SENTRY_DSN: optionalUrl(),
 
   /** Application version for release tracking */
-  VITE_APP_VERSION: z
-    .string()
-    .optional()
-    .default("0.0.0-dev"),
+  VITE_APP_VERSION: optionalString("0.0.0-dev"),
 
   // ===================
   // Blockchain
   // ===================
 
   /** Evidence Vault smart contract address */
-  VITE_EVIDENCE_CONTRACT: z
-    .string()
-    .regex(/^0x[a-fA-F0-9]{40}$/, "VITE_EVIDENCE_CONTRACT must be a valid Ethereum address")
-    .optional(),
+  VITE_EVIDENCE_CONTRACT: optionalEthAddress(),
 });
 
 // Type for the validated environment
@@ -125,17 +117,14 @@ function validateEnv(): Env {
       .map(([key, msgs]) => `  ${key}: ${msgs?.join(", ")}`)
       .join("\n");
 
-    const message = `\n❌ Environment Variable Validation Failed:\n${errorMessages}\n\nCheck your .env file and ensure all required variables are set.\nSee .env.example for reference.\n`;
+    const message = `\n⚠️ Environment Variable Validation Warning:\n${errorMessages}\n\nUsing default values. Check your .env file for production configuration.\nSee .env.example for reference.\n`;
 
-    // In development, log warning but continue with defaults
-    if (isDev) {
-      console.warn(message);
-      // Return with defaults applied
-      return envSchema.parse({});
-    }
+    // Log warning and continue with defaults in both dev and production
+    // This prevents the app from crashing due to missing optional env vars
+    console.warn(message);
 
-    // In production, throw to prevent app from starting with invalid config
-    throw new Error(message);
+    // Return with defaults applied
+    return envSchema.parse({});
   }
 
   return result.data;
