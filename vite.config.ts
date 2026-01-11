@@ -60,13 +60,14 @@ export default defineConfig(async ({ command }) => {
       rollupOptions: {
         output: {
           manualChunks(id: string) {
-            // Core React - loaded on every page
-            if (id.includes("node_modules/react/") ||
-                id.includes("node_modules/react-dom/") ||
-                id.includes("node_modules/wouter/") ||
-                id.includes("node_modules/scheduler/")) {
-              return "vendor-react";
-            }
+            // Core React - keep in main bundle to avoid ESM module loading issues
+            // Note: Previously split to vendor-react but caused createContext errors
+            // if (id.includes("node_modules/react/") ||
+            //     id.includes("node_modules/react-dom/") ||
+            //     id.includes("node_modules/wouter/") ||
+            //     id.includes("node_modules/scheduler/")) {
+            //   return "vendor-react";
+            // }
 
             // Split Radix UI into functional groups for better code splitting
             // Overlay components - dialogs, popovers, dropdowns (load on interaction)
