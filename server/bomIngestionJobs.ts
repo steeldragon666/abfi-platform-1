@@ -45,12 +45,12 @@ export async function dailySiloIngestion(): Promise<{
   let regionsProcessed = 0;
 
   // Record ingestion run start
-  const runResult = await db.insert(bomIngestionRuns).values({
+  const [runResult] = await db.insert(bomIngestionRuns).values({
     runType: "silo_historical",
     startedAt: runStartTime,
     status: "started",
-  });
-  const runId = runResult.insertId;
+  }).$returningId();
+  const runId = runResult.id;
 
   const connector = createBOMConnector();
 
@@ -78,14 +78,14 @@ export async function dailySiloIngestion(): Promise<{
             latitude: region.lat.toString(),
             longitude: region.lng.toString(),
             stationName: region.name,
-            date: point.date,
+            date: new Date(point.date),
             dailyRainMm: point.variables.daily_rain?.toString() || null,
             maxTempC: point.variables.max_temp?.toString() || null,
             minTempC: point.variables.min_temp?.toString() || null,
             evapPanMm: point.variables.evap_pan?.toString() || null,
             solarRadiationMJ: point.variables.radiation?.toString() || null,
             vpDeficitHPa: point.variables.vp_deficit?.toString() || null,
-            qualityCodes: point.quality,
+            qualityCodes: point.quality as Record<string, number> || null,
           });
           totalRecords++;
         }
@@ -152,12 +152,12 @@ export async function hourlyObservationsIngestion(): Promise<{
   let totalObservations = 0;
 
   // Record ingestion run
-  const runResult = await db.insert(bomIngestionRuns).values({
+  const [runResult] = await db.insert(bomIngestionRuns).values({
     runType: "observations",
     startedAt: runStartTime,
     status: "started",
-  });
-  const runId = runResult.insertId;
+  }).$returningId();
+  const runId = runResult.id;
 
   const connector = createBOMConnector();
 
@@ -242,12 +242,12 @@ export async function dailyForecastIngestion(): Promise<{
   const errors: string[] = [];
   let totalForecasts = 0;
 
-  const runResult = await db.insert(bomIngestionRuns).values({
+  const [runResult] = await db.insert(bomIngestionRuns).values({
     runType: "forecasts",
     startedAt: runStartTime,
     status: "started",
-  });
-  const runId = runResult.insertId;
+  }).$returningId();
+  const runId = runResult.id;
 
   const connector = createBOMConnector();
 
@@ -264,7 +264,7 @@ export async function dailyForecastIngestion(): Promise<{
               latitude: forecast.location.latitude.toString(),
               longitude: forecast.location.longitude.toString(),
               issueTime: new Date(forecast.issueTime),
-              forecastDate: day.date,
+              forecastDate: new Date(day.date),
               minTempC: day.minTemp?.toString() || null,
               maxTempC: day.maxTemp?.toString() || null,
               precis: day.precis || null,
@@ -334,12 +334,12 @@ export async function monthlySeasonalOutlookIngestion(): Promise<{
   const errors: string[] = [];
   let totalOutlooks = 0;
 
-  const runResult = await db.insert(bomIngestionRuns).values({
+  const [runResult] = await db.insert(bomIngestionRuns).values({
     runType: "seasonal_outlook",
     startedAt: runStartTime,
     status: "started",
-  });
-  const runId = runResult.insertId;
+  }).$returningId();
+  const runId = runResult.id;
 
   const connector = createBOMConnector();
 
@@ -352,9 +352,9 @@ export async function monthlySeasonalOutlookIngestion(): Promise<{
         const region = AGRICULTURAL_REGIONS.find(r => r.name === outlook.region);
 
         await db.insert(seasonalOutlooks).values({
-          issueDate: outlook.issueDate,
-          validPeriodStart: outlook.validPeriod.start,
-          validPeriodEnd: outlook.validPeriod.end,
+          issueDate: new Date(outlook.issueDate),
+          validPeriodStart: new Date(outlook.validPeriod.start),
+          validPeriodEnd: new Date(outlook.validPeriod.end),
           validPeriodMonths: outlook.validPeriod.months,
           region: outlook.region,
           state: region?.state as any || null,
@@ -428,12 +428,12 @@ export async function hourlyWarningsCheck(): Promise<{
   let newWarnings = 0;
   let expiredWarnings = 0;
 
-  const runResult = await db.insert(bomIngestionRuns).values({
+  const [runResult] = await db.insert(bomIngestionRuns).values({
     runType: "warnings",
     startedAt: runStartTime,
     status: "started",
-  });
-  const runId = runResult.insertId;
+  }).$returningId();
+  const runId = runResult.id;
 
   const connector = createBOMConnector();
 
@@ -537,12 +537,12 @@ export async function weeklyClimateMetricsCalculation(): Promise<{
   let propertiesProcessed = 0;
   let metricsGenerated = 0;
 
-  const runResult = await db.insert(bomIngestionRuns).values({
+  const [runResult] = await db.insert(bomIngestionRuns).values({
     runType: "climate_metrics",
     startedAt: runStartTime,
     status: "started",
-  });
-  const runId = runResult.insertId;
+  }).$returningId();
+  const runId = runResult.id;
 
   try {
     // Get all properties with coordinates
@@ -590,8 +590,8 @@ export async function weeklyClimateMetricsCalculation(): Promise<{
         status: errors.length > 0 ? "partial" : "succeeded",
         recordsIn: allProperties.length,
         recordsOut: metricsGenerated,
-        dateRangeStart: startDate.toISOString().split("T")[0],
-        dateRangeEnd: endDate.toISOString().split("T")[0],
+        dateRangeStart: startDate,
+        dateRangeEnd: endDate,
         errorMessage: errors.length > 0 ? errors.join("; ") : null,
       })
       .where(eq(bomIngestionRuns.id, runId));

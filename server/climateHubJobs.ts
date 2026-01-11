@@ -64,7 +64,7 @@ export async function weeklySatelliteDataRefresh(): Promise<{
           .limit(1);
 
         const needsRefresh = existingCache.length === 0 ||
-          (existingCache[0].geeDataUpdatedAt && new Date(existingCache[0].geeDataUpdatedAt) < sixDaysAgo);
+          (existingCache[0].satelliteDataUpdatedAt && new Date(existingCache[0].satelliteDataUpdatedAt) < sixDaysAgo);
 
         if (!needsRefresh) {
           console.log(`[Climate Hub] Skipping ${project.name} - satellite data is fresh`);
@@ -74,19 +74,19 @@ export async function weeklySatelliteDataRefresh(): Promise<{
         // Fetch fresh satellite data from Earth Engine
         console.log(`[Climate Hub] Refreshing satellite data for ${project.name}...`);
 
-        const satelliteData = await getVegetationHealth(lat, lng);
+        const satelliteData = await getVegetationHealth({ lat, lng });
 
         if (satelliteData) {
           // Update or insert cache record
           if (existingCache.length > 0) {
             await db.update(climateLocationData)
               .set({
-                geeNdvi: satelliteData.ndvi?.toString() || null,
-                geeEvi: satelliteData.evi?.toString() || null,
-                geeSoilMoisture: satelliteData.soilMoisture?.toString() || null,
-                geeVegetationHealth: satelliteData.vegetationHealthIndex?.toString() || null,
-                geeDroughtRisk: satelliteData.droughtRisk || null,
-                geeDataUpdatedAt: new Date(),
+                ndviMean: satelliteData.ndvi?.toString() || null,
+                vegetationEVI: satelliteData.evi?.toString() || null,
+                vegetationLAI: satelliteData.lai?.toString() || null,
+                vegetationHealthScore: satelliteData.healthScore || null,
+                vegetationTrend: satelliteData.trend || null,
+                satelliteDataUpdatedAt: new Date(),
                 updatedAt: new Date(),
               })
               .where(eq(climateLocationData.locationHash, locationHash));
@@ -95,12 +95,12 @@ export async function weeklySatelliteDataRefresh(): Promise<{
               locationHash,
               latitude: lat.toString(),
               longitude: lng.toString(),
-              geeNdvi: satelliteData.ndvi?.toString() || null,
-              geeEvi: satelliteData.evi?.toString() || null,
-              geeSoilMoisture: satelliteData.soilMoisture?.toString() || null,
-              geeVegetationHealth: satelliteData.vegetationHealthIndex?.toString() || null,
-              geeDroughtRisk: satelliteData.droughtRisk || null,
-              geeDataUpdatedAt: new Date(),
+              ndviMean: satelliteData.ndvi?.toString() || null,
+              vegetationEVI: satelliteData.evi?.toString() || null,
+              vegetationLAI: satelliteData.lai?.toString() || null,
+              vegetationHealthScore: satelliteData.healthScore || null,
+              vegetationTrend: satelliteData.trend || null,
+              satelliteDataUpdatedAt: new Date(),
             });
           }
 

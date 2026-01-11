@@ -271,7 +271,7 @@ export class BOMConnector extends BaseConnector {
         success: errors.length === 0,
         signalsDiscovered: signals.length,
         signals,
-        errors: errors.length > 0 ? errors : undefined,
+        errors,
         duration: Date.now() - startTime,
       };
     } catch (error) {
@@ -756,34 +756,56 @@ export class BOMConnector extends BaseConnector {
   }
 
   private warningToSignal(warning: BOMWarning): RawSignal {
+    const relevance = warning.severity === "extreme" ? 1.0
+      : warning.severity === "severe" ? 0.8
+      : warning.severity === "moderate" ? 0.6
+      : 0.4;
     return {
-      id: `bom-warning-${warning.id}`,
-      source: "bom_warnings",
-      type: "weather_alert",
+      sourceId: `bom-warning-${warning.id}`,
       title: warning.title,
       description: warning.description,
-      timestamp: new Date(warning.issueTime),
+      detectedAt: new Date(warning.issueTime),
+      entityName: "Bureau of Meteorology",
+      signalType: "news_mention",
+      signalWeight: relevance,
+      confidence: relevance,
+      rawData: {
+        source: "bom_warnings",
+        type: "weather_alert",
+        warningType: warning.type,
+        severity: warning.severity,
+        affectedAreas: warning.affectedAreas,
+        expiryTime: warning.expiryTime,
+      },
       metadata: {
         warningType: warning.type,
         severity: warning.severity,
         affectedAreas: warning.affectedAreas,
         expiryTime: warning.expiryTime,
       },
-      relevanceScore: warning.severity === "extreme" ? 1.0
-        : warning.severity === "severe" ? 0.8
-        : warning.severity === "moderate" ? 0.6
-        : 0.4,
     };
   }
 
   private observationToSignal(observation: BOMObservation, regionName: string): RawSignal {
     return {
-      id: `bom-obs-${observation.stationId}-${observation.timestamp}`,
-      source: "bom_observations",
-      type: "weather_observation",
+      sourceId: `bom-obs-${observation.stationId}-${observation.timestamp}`,
       title: `Weather observation for ${regionName}`,
       description: `Temperature: ${observation.temperature}°C, Humidity: ${observation.humidity}%, Rainfall: ${observation.rainfallSince9am}mm`,
-      timestamp: new Date(observation.timestamp),
+      detectedAt: new Date(observation.timestamp),
+      entityName: "Bureau of Meteorology",
+      signalType: "news_mention",
+      signalWeight: 0.5,
+      confidence: 0.5,
+      rawData: {
+        source: "bom_observations",
+        type: "weather_observation",
+        stationId: observation.stationId,
+        stationName: observation.stationName,
+        temperature: observation.temperature,
+        humidity: observation.humidity,
+        windSpeed: observation.windSpeed,
+        rainfall: observation.rainfallSince9am,
+      },
       metadata: {
         stationId: observation.stationId,
         stationName: observation.stationName,
@@ -792,7 +814,6 @@ export class BOMConnector extends BaseConnector {
         windSpeed: observation.windSpeed,
         rainfall: observation.rainfallSince9am,
       },
-      relevanceScore: 0.5,
     };
   }
 
@@ -806,22 +827,32 @@ export class BOMConnector extends BaseConnector {
       const rainAbove = outlook.rainfall.tercileProbabilities.aboveMedian;
 
       if (rainBelow > 60 || rainAbove > 60) {
+        const relevance = Math.max(rainBelow, rainAbove) / 100;
         signals.push({
-          id: `bom-outlook-rain-${outlook.region}-${outlook.issueDate}`,
-          source: "bom_seasonal",
-          type: "climate_outlook",
+          sourceId: `bom-outlook-rain-${outlook.region}-${outlook.issueDate}`,
           title: `Seasonal rainfall outlook for ${outlook.region}`,
           description: rainBelow > 60
             ? `Below median rainfall likely (${rainBelow}% probability)`
             : `Above median rainfall likely (${rainAbove}% probability)`,
-          timestamp: new Date(outlook.issueDate),
+          detectedAt: new Date(outlook.issueDate),
+          entityName: "Bureau of Meteorology",
+          signalType: "news_mention",
+          signalWeight: relevance,
+          confidence: relevance,
+          rawData: {
+            source: "bom_seasonal",
+            type: "climate_outlook",
+            region: outlook.region,
+            validPeriod: outlook.validPeriod,
+            belowMedianProbability: rainBelow,
+            aboveMedianProbability: rainAbove,
+          },
           metadata: {
             region: outlook.region,
             validPeriod: outlook.validPeriod,
             belowMedianProbability: rainBelow,
             aboveMedianProbability: rainAbove,
           },
-          relevanceScore: Math.max(rainBelow, rainAbove) / 100,
         });
       }
     }

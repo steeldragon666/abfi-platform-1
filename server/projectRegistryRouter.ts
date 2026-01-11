@@ -566,7 +566,7 @@ export const projectRegistryRouter = router({
         offtakeRating: bioenergyProjects.offtakeRating,
         govSupportRating: bioenergyProjects.govSupportRating,
         signal: bioenergyProjects.signal,
-        description: bioenergyProjects.description,
+        description: bioenergyProjects.publicDescription,
       })
       .from(bioenergyProjects)
       .where(eq(bioenergyProjects.isPublic, true));

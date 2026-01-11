@@ -520,7 +520,7 @@ async function seedBioenergyProjects() {
         offtakeRating: project.offtakeRating,
         govSupportRating: project.govSupportRating,
         signal: project.signal,
-        description: project.description,
+        publicDescription: project.description,
         claimStatus: "unclaimed",
         isPublic: true,
       });

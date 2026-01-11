@@ -11,8 +11,8 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -38,6 +38,28 @@ import {
   MapPin,
 } from "lucide-react";
 import { Link } from "wouter";
+
+// Type definitions
+interface Intention {
+  id: number;
+  feedstockType: string;
+  feedstockTypeId?: string;
+  feedstockCategory: string;
+  projectedTonnes: number;
+  expectedHarvestDate: string;
+  status: string;
+  region: string;
+  areaHa?: number;
+}
+
+interface ForwardAvailability {
+  month: string;
+  projectedTonnes: number;
+  confirmedTonnes: number;
+  priceEstimate: number;
+  projectedSupply?: string;
+  demandCommitted?: string;
+}
 
 // Months for calendar display
 const MONTHS = [
@@ -112,10 +134,10 @@ export default function GrowingCalendar() {
 
   // Group intentions by month
   const intentionsByMonth = useMemo(() => {
-    if (!myIntentions) return {};
+    if (!myIntentions) return {} as Record<number, Intention[]>;
 
-    const grouped: Record<number, typeof myIntentions> = {};
-    myIntentions.forEach(intention => {
+    const grouped: Record<number, Intention[]> = {};
+    myIntentions.forEach((intention: Intention) => {
       if (!intention.expectedHarvestDate) return;
       const harvestMonth = new Date(intention.expectedHarvestDate).getMonth();
       if (!grouped[harvestMonth]) grouped[harvestMonth] = [];
@@ -378,16 +400,16 @@ export default function GrowingCalendar() {
                           {month}
                         </div>
                         <div className="min-h-[60px] border rounded-lg p-1 mt-1">
-                          {intentionsByMonth[i]?.map(intention => (
+                          {intentionsByMonth[i]?.map((intention: Intention) => (
                             <div
                               key={intention.id}
                               className={cn(
                                 "text-xs p-1 rounded mb-1 border",
                                 STATUS_COLORS[intention.status as keyof typeof STATUS_COLORS]
                               )}
-                              title={`${intention.feedstockTypeId}: ${intention.areaHa} ha`}
+                              title={`${intention.feedstockTypeId || intention.feedstockType}: ${intention.areaHa || intention.projectedTonnes} ha`}
                             >
-                              {intention.feedstockTypeId}
+                              {intention.feedstockTypeId || intention.feedstockType}
                             </div>
                           ))}
                         </div>
@@ -398,7 +420,7 @@ export default function GrowingCalendar() {
                   {/* Intentions List */}
                   <div className="mt-6 space-y-3">
                     <h4 className="font-medium">Active Intentions</h4>
-                    {myIntentions.map(intention => (
+                    {myIntentions.map((intention: Intention) => (
                       <div
                         key={intention.id}
                         className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
@@ -408,17 +430,17 @@ export default function GrowingCalendar() {
                             className="w-3 h-3 rounded-full"
                             style={{
                               backgroundColor:
-                                FEEDSTOCK_SEASONS[intention.feedstockTypeId]?.color || "#6b7280",
+                                FEEDSTOCK_SEASONS[intention.feedstockTypeId || intention.feedstockType]?.color || "#6b7280",
                             }}
                           />
                           <div>
                             <div className="font-medium capitalize">
-                              {intention.feedstockTypeId}
+                              {intention.feedstockTypeId || intention.feedstockType}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {intention.areaHa} ha • Expected yield:{" "}
-                              {intention.expectedYield
-                                ? `${parseFloat(intention.expectedYield).toLocaleString()} t`
+                              {intention.areaHa || intention.projectedTonnes} ha • Expected yield:{" "}
+                              {intention.projectedTonnes
+                                ? `${intention.projectedTonnes.toLocaleString()} t`
                                 : "N/A"}
                             </div>
                           </div>
@@ -439,7 +461,7 @@ export default function GrowingCalendar() {
                                 STATUS_COLORS[intention.status as keyof typeof STATUS_COLORS]
                               )}
                             >
-                              {intention.commitmentLevel}
+                              {intention.status}
                             </Badge>
                           </div>
                           <Link href={`/grower/intentions/${intention.id}`}>
@@ -487,17 +509,18 @@ export default function GrowingCalendar() {
                   </div>
                 ) : forwardAvailability ? (
                   <div className="space-y-3">
-                    {forwardAvailability.map((month, i) => {
-                      const supply = parseFloat(month.projectedSupply || "0");
-                      const demand = parseFloat(month.demandCommitted || "0");
+                    {forwardAvailability.map((monthData: ForwardAvailability, i: number) => {
+                      const supply = monthData.projectedTonnes || 0;
+                      const demand = monthData.confirmedTonnes || 0;
                       const balance = supply - demand;
                       const supplyPercent = supply + demand > 0 ? (supply / (supply + demand)) * 100 : 50;
+                      const monthDate = new Date(monthData.month);
 
                       return (
                         <div key={i} className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span>
-                              {MONTHS[month.month - 1]} {month.year}
+                              {MONTHS[monthDate.getMonth()]} {monthDate.getFullYear()}
                             </span>
                             <span
                               className={cn(

@@ -224,38 +224,38 @@ export const climateIntelligenceHubRouter = router({
                   mean: parseFloat(cached[0].ndviMean || "0"),
                   min: parseFloat(cached[0].ndviMin || "0"),
                   max: parseFloat(cached[0].ndviMax || "0"),
-                  healthCategory: cached[0].vegetationHealth || "unknown",
+                  healthCategory: cached[0].ndviCategory || "unknown",
                 },
                 vegetationHealth: {
-                  healthScore: parseInt(cached[0].vegetationHealth || "0") || 50,
-                  evi: 0,
-                  lai: 0,
-                  trend: "stable",
+                  healthScore: cached[0].vegetationHealthScore || 50,
+                  evi: parseFloat(cached[0].vegetationEVI || "0"),
+                  lai: parseFloat(cached[0].vegetationLAI || "0"),
+                  trend: cached[0].vegetationTrend || "stable",
                   alerts: [],
                 },
                 soilMoisture: {
-                  surfaceMoisture: parseFloat(cached[0].soilMoisture || "0"),
-                  rootZoneMoisture: parseFloat(cached[0].soilMoisture || "0"),
+                  surfaceMoisture: parseFloat(cached[0].soilMoistureSurface || "0"),
+                  rootZoneMoisture: parseFloat(cached[0].soilMoistureRootZone || "0"),
                   moistureCategory: "moderate",
                   droughtRisk: cached[0].droughtRisk || "low",
                 },
               },
               climate: {
                 current: {
-                  maxTemp: null,
-                  minTemp: null,
-                  rainfall: parseFloat(cached[0].rainfallLast30d || "0"),
+                  maxTemp: parseFloat(cached[0].tempMaxAvg30Days || "0") || null,
+                  minTemp: parseFloat(cached[0].tempMinAvg30Days || "0") || null,
+                  rainfall: parseFloat(cached[0].rainfallLast30Days || "0"),
                   humidity: null,
                 },
                 forecast: {
                   days: 14,
-                  rainfallTotal: parseFloat(cached[0].rainfallForecast14d || "0"),
+                  rainfallTotal: 0,
                   tempRange: {
-                    min: parseFloat(cached[0].tempMinForecast || "0"),
-                    max: parseFloat(cached[0].tempMaxForecast || "0"),
+                    min: parseFloat(cached[0].tempMinAvg30Days || "0"),
+                    max: parseFloat(cached[0].tempMaxAvg30Days || "0"),
                   },
-                  frostDays: parseInt(cached[0].frostDaysForecast || "0") || 0,
-                  heatStressDays: parseInt(cached[0].heatStressDaysForecast || "0") || 0,
+                  frostDays: cached[0].frostDaysLast30 || 0,
+                  heatStressDays: cached[0].heatStressDaysLast30 || 0,
                 },
                 seasonal: null,
                 risks: {
@@ -269,8 +269,8 @@ export const climateIntelligenceHubRouter = router({
               overallScore: 75,
               recommendations: [],
               dataFreshness: {
-                satellite: cached[0].geeDataTimestamp?.toISOString() || "unknown",
-                climate: cached[0].bomDataTimestamp?.toISOString() || "unknown",
+                satellite: cached[0].satelliteDataUpdatedAt?.toISOString() || "unknown",
+                climate: cached[0].bomDataUpdatedAt?.toISOString() || "unknown",
               },
             };
           }
@@ -396,26 +396,28 @@ export const climateIntelligenceHubRouter = router({
               locationHash,
               latitude: lat.toString(),
               longitude: lng.toString(),
-              state: nearestRegion.state,
+              state: nearestRegion.state as any,
               ndviMean: satellite.ndvi.mean.toString(),
               ndviMin: satellite.ndvi.min.toString(),
               ndviMax: satellite.ndvi.max.toString(),
-              vegetationHealth: satellite.ndvi.healthCategory,
-              soilMoisture: satellite.soilMoisture.surfaceMoisture.toString(),
-              droughtRisk: climate.risks.drought.level,
-              geeDataTimestamp: new Date(),
-              bomDataTimestamp: new Date(),
+              ndviCategory: satellite.ndvi.healthCategory as any,
+              soilMoistureSurface: satellite.soilMoisture.surfaceMoisture.toString(),
+              soilMoistureRootZone: satellite.soilMoisture.rootZoneMoisture.toString(),
+              droughtRisk: climate.risks.drought.level as any,
+              satelliteDataUpdatedAt: new Date(),
+              bomDataUpdatedAt: new Date(),
             })
             .onDuplicateKeyUpdate({
               set: {
                 ndviMean: satellite.ndvi.mean.toString(),
                 ndviMin: satellite.ndvi.min.toString(),
                 ndviMax: satellite.ndvi.max.toString(),
-                vegetationHealth: satellite.ndvi.healthCategory,
-                soilMoisture: satellite.soilMoisture.surfaceMoisture.toString(),
-                droughtRisk: climate.risks.drought.level,
-                geeDataTimestamp: new Date(),
-                bomDataTimestamp: new Date(),
+                ndviCategory: satellite.ndvi.healthCategory as any,
+                soilMoistureSurface: satellite.soilMoisture.surfaceMoisture.toString(),
+                soilMoistureRootZone: satellite.soilMoisture.rootZoneMoisture.toString(),
+                droughtRisk: climate.risks.drought.level as any,
+                satelliteDataUpdatedAt: new Date(),
+                bomDataUpdatedAt: new Date(),
                 updatedAt: new Date(),
               },
             });
@@ -493,9 +495,9 @@ export const climateIntelligenceHubRouter = router({
                   state: project.state,
                   climate: {
                     ndvi: parseFloat(cached.ndviMean || "0"),
-                    soilMoisture: parseFloat(cached.soilMoisture || "0"),
+                    soilMoisture: parseFloat(cached.soilMoistureSurface || "0"),
                     droughtRisk: cached.droughtRisk || "low",
-                    vegetationHealth: cached.vegetationHealth || "moderate",
+                    vegetationHealth: cached.vegetationHealthScore || 50,
                     lastUpdated: cached.updatedAt.toISOString(),
                   },
                 };
@@ -613,10 +615,14 @@ export const climateIntelligenceHubRouter = router({
           expiryTime: w.expiryTime?.toISOString(),
         })),
         seasonalOutlook: outlooks.length > 0 ? {
-          period: outlooks[0].validPeriod,
+          period: {
+            start: outlooks[0].validPeriodStart?.toISOString().split("T")[0],
+            end: outlooks[0].validPeriodEnd?.toISOString().split("T")[0],
+            months: outlooks[0].validPeriodMonths,
+          },
           rainfallBelowMedian: outlooks[0].rainBelowMedianPercent,
           rainfallAboveMedian: outlooks[0].rainAboveMedianPercent,
-          tempAboveMedian: outlooks[0].tempAboveMedianPercent,
+          tempAboveMedian: outlooks[0].maxTempAboveMedianPercent,
         } : null,
         projects: projectsWithClimate.map(p => ({
           id: p.id,
@@ -680,7 +686,7 @@ export const climateIntelligenceHubRouter = router({
             expiryTime: w.expiryTime?.toISOString(),
           })),
         })),
-        states: [...new Set(filtered.map(w => w.state).filter(Boolean))],
+        states: Array.from(new Set(filtered.map(w => w.state).filter(Boolean))),
       };
     }),
 
@@ -701,15 +707,15 @@ export const climateIntelligenceHubRouter = router({
     if (db) {
       const [latest] = await db
         .select({
-          geeTimestamp: climateLocationData.geeDataTimestamp,
-          bomTimestamp: climateLocationData.bomDataTimestamp,
+          satelliteTimestamp: climateLocationData.satelliteDataUpdatedAt,
+          bomTimestamp: climateLocationData.bomDataUpdatedAt,
         })
         .from(climateLocationData)
         .orderBy(desc(climateLocationData.updatedAt))
         .limit(1);
 
       if (latest) {
-        latestSatellite = latest.geeTimestamp;
+        latestSatellite = latest.satelliteTimestamp;
         latestClimate = latest.bomTimestamp;
       }
 

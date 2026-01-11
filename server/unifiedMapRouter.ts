@@ -610,6 +610,50 @@ export const unifiedMapRouter = router({
       updatedAt: new Date(),
     };
   }),
+
+  /**
+   * Get current user's growing intentions
+   */
+  getMyIntentions: publicProcedure.query(async ({ ctx }) => {
+    // Return sample intentions for the grower
+    return SAMPLE_INTENTIONS.map(intention => ({
+      id: intention.id,
+      feedstockType: intention.feedstockType,
+      feedstockCategory: intention.feedstockCategory,
+      projectedTonnes: intention.projectedVolumeTonnes,
+      expectedHarvestDate: intention.availableFromDate,
+      status: intention.status,
+      region: intention.region,
+    }));
+  }),
+
+  /**
+   * Get forward availability for a feedstock type
+   */
+  getForwardAvailability: publicProcedure
+    .input(
+      z.object({
+        feedstockTypeId: z.string(),
+        months: z.number().optional().default(12),
+      })
+    )
+    .query(async ({ input }) => {
+      const { feedstockTypeId, months } = input;
+      // Generate sample forward availability data
+      const availability = [];
+      const now = new Date();
+      for (let i = 0; i < months; i++) {
+        const month = new Date(now);
+        month.setMonth(month.getMonth() + i);
+        availability.push({
+          month: month.toISOString(),
+          projectedTonnes: Math.floor(Math.random() * 5000) + 1000,
+          confirmedTonnes: Math.floor(Math.random() * 3000) + 500,
+          priceEstimate: Math.floor(Math.random() * 200) + 300,
+        });
+      }
+      return availability;
+    }),
 });
 
 export type UnifiedMapRouter = typeof unifiedMapRouter;

@@ -477,14 +477,14 @@ export class ClimateIntelligenceService {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    const result = await db.insert(agriculturalClimateMetrics).values({
+    const [result] = await db.insert(agriculturalClimateMetrics).values({
       propertyId: options.propertyId || null,
       supplierId: options.supplierId || null,
       latitude: metrics.location.latitude.toString(),
       longitude: metrics.location.longitude.toString(),
       region: options.region || null,
-      periodStart: metrics.period.start,
-      periodEnd: metrics.period.end,
+      periodStart: new Date(metrics.period.start),
+      periodEnd: new Date(metrics.period.end),
       season: metrics.season,
       cropType: options.cropType || null,
       growingDegreeDays: metrics.metrics.growingDegreeDays,
@@ -498,9 +498,9 @@ export class ClimateIntelligenceService {
       droughtRisk: "moderate", // Would need more data to calculate
       dataSource: "SILO",
       calculatedAt: new Date(),
-    });
+    }).$returningId();
 
-    return result.insertId;
+    return result.id;
   }
 
   /**
@@ -561,13 +561,13 @@ export class ClimateIntelligenceService {
           lte(siloClimateData.latitude, (latitude + tolerance).toString()),
           gte(siloClimateData.longitude, (longitude - tolerance).toString()),
           lte(siloClimateData.longitude, (longitude + tolerance).toString()),
-          gte(siloClimateData.date, startDate),
-          lte(siloClimateData.date, endDate)
+          gte(siloClimateData.date, new Date(startDate)),
+          lte(siloClimateData.date, new Date(endDate))
         ))
         .orderBy(siloClimateData.date);
 
       return dbData.map(row => ({
-        date: row.date,
+        date: row.date instanceof Date ? row.date.toISOString().split("T")[0] : String(row.date),
         latitude: row.latitude,
         longitude: row.longitude,
         dailyRain: row.dailyRainMm ? parseFloat(row.dailyRainMm) : null,

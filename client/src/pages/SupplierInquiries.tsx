@@ -8,7 +8,7 @@
  */
 
 import { useAuth } from"@/_core/hooks/useAuth";
-import { H1, Body } from"@/components/Typography";
+import { H1, H3, Body } from"@/components/Typography";
 import { Button } from"@/components/ui/Button";
 import {
   Card,

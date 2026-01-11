@@ -14,8 +14,8 @@ import "leaflet/dist/leaflet.css";
 import { useQuery } from "@tanstack/react-query";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -152,9 +152,8 @@ export default function MarketIntelligenceMap() {
   const intentionsLayerRef = useRef<L.LayerGroup>(L.layerGroup());
 
   // Fetch market data
-  const { data: marketData, isLoading, refetch } = trpc.unifiedMap.getMarketSnapshot.useQuery(
+  const { data: marketData, isLoading, refetch } = trpc.unifiedMap.getMapData.useQuery(
     {
-      viewport,
       layers: visibleLayers.length > 0 ? visibleLayers : ["all"],
     },
     {
@@ -164,7 +163,7 @@ export default function MarketIntelligenceMap() {
   );
 
   // Fetch market summary
-  const { data: marketSummary } = trpc.unifiedMap.getMarketSummary.useQuery(undefined, {
+  const { data: marketSummary } = trpc.unifiedMap.getMarketIntelligence.useQuery({}, {
     enabled: isMapReady,
   });
 
@@ -466,29 +465,29 @@ export default function MarketIntelligenceMap() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <div className="text-muted-foreground text-xs">Growing Intentions</div>
-                    <div className="font-semibold">{marketSummary.intentions?.count || 0}</div>
+                    <div className="font-semibold">{marketData?.intentions?.length || 0}</div>
                     <div className="text-xs text-muted-foreground">
-                      {marketSummary.intentions?.totalAreaHa?.toLocaleString() || 0} ha
+                      {marketSummary?.totalProjectedSupply?.toLocaleString() || 0} tonnes
                     </div>
                   </div>
                   <div>
                     <div className="text-muted-foreground text-xs">Power Stations</div>
                     <div className="font-semibold">
-                      {marketSummary.powerStations?.operational || 0} active
+                      {marketData?.powerStations?.length || 0} active
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {marketSummary.powerStations?.totalCapacityMw?.toLocaleString() || 0} MW
+                      {marketData?.powerStations?.reduce((acc: number, ps: any) => acc + (ps.capacityMW || 0), 0).toLocaleString() || 0} MW
                     </div>
                   </div>
                   <div>
                     <div className="text-muted-foreground text-xs">Logistics Hubs</div>
-                    <div className="font-semibold">{marketSummary.logisticsHubs?.total || 0}</div>
+                    <div className="font-semibold">{marketData?.logisticsHubs?.length || 0}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground text-xs">Active Contracts</div>
-                    <div className="font-semibold">{marketSummary.contracts?.active || 0}</div>
+                    <div className="font-semibold">{marketData?.contracts?.length || 0}</div>
                     <div className="text-xs text-muted-foreground">
-                      ${(marketSummary.contracts?.totalValue || 0).toLocaleString()}
+                      ${marketData?.contracts?.reduce((acc: number, c: any) => acc + (c.totalValue || 0), 0).toLocaleString() || 0}
                     </div>
                   </div>
                 </div>

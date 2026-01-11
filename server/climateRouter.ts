@@ -86,7 +86,7 @@ router.get("/risk/property/:propertyId", asyncHandler(async (req: Request, res: 
 
   res.json({
     propertyId,
-    propertyName: property.name,
+    propertyName: property.propertyName,
     ...assessment,
   });
 }));

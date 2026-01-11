@@ -109,22 +109,8 @@ export async function dailyAbaresIngestion(): Promise<{
         errors.push(...result.errors);
       }
 
-      // Process raw signals into structured data
-      for (const signal of result.signals) {
-        try {
-          if (signal.category === "crop_forecast") {
-            await processCropForecastSignal(db, signal);
-            cropForecasts++;
-          } else if (signal.category === "commodity_price") {
-            await processCommodityPriceSignal(db, signal);
-            commodityPrices++;
-          }
-        } catch (err) {
-          errors.push(
-            `Failed to process signal ${signal.id}: ${err instanceof Error ? err.message : "Unknown error"}`
-          );
-        }
-      }
+      // Signals from fetchSignals() are general market intelligence signals
+      // Detailed crop forecasts and commodity prices are fetched via getIntelligence() below
     } catch (err) {
       errors.push(
         `Connector fetch failed: ${err instanceof Error ? err.message : "Unknown error"}`
@@ -136,7 +122,7 @@ export async function dailyAbaresIngestion(): Promise<{
       const intelligence = await connector.getIntelligence();
 
       // Store crop forecasts
-      for (const forecast of intelligence.cropForecasts) {
+      for (const forecast of intelligence.forecasts) {
         try {
           await upsertCropForecast(db, forecast);
           cropForecasts++;
@@ -148,7 +134,7 @@ export async function dailyAbaresIngestion(): Promise<{
       }
 
       // Store commodity prices
-      for (const price of intelligence.commodityPrices) {
+      for (const price of intelligence.prices) {
         try {
           await upsertCommodityPrice(db, price);
           commodityPrices++;
@@ -160,7 +146,7 @@ export async function dailyAbaresIngestion(): Promise<{
       }
 
       // Store farm benchmarks
-      for (const benchmark of intelligence.farmBenchmarks) {
+      for (const benchmark of intelligence.benchmarks) {
         try {
           await upsertFarmBenchmark(db, benchmark);
         } catch (err) {
@@ -244,13 +230,17 @@ export async function weeklyYieldPredictions(): Promise<{
             crop,
             state,
             season,
-            predictedYield: prediction.predictedYield,
-            confidenceLow: prediction.confidenceInterval[0],
-            confidenceHigh: prediction.confidenceInterval[1],
+            predictionDate: new Date(),
+            predictedYieldTonnesPerHa: String(prediction.predictedYield),
+            confidenceLower: String(prediction.confidenceInterval[0]),
+            confidenceUpper: String(prediction.confidenceInterval[1]),
             methodology: prediction.methodology,
-            basisDataPoints: prediction.basisData.length,
-            generatedAt: new Date(),
-            validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Valid for 1 week
+            dataInputs: {
+              abaresWeight: 1.0,
+              satelliteWeight: 0,
+              historicalWeight: 0,
+              weatherWeight: 0,
+            },
           });
 
           predictionsGenerated++;
@@ -323,7 +313,7 @@ export async function weeklySupplyForecasts(): Promise<{
         const intelligence = await connector.getIntelligence();
 
         // Calculate supply risk factors based on forecasts
-        const stateForecasts = intelligence.cropForecasts.filter(
+        const stateForecasts = intelligence.forecasts.filter(
           (f) => f.state === region.state
         );
 
@@ -348,7 +338,7 @@ export async function weeklySupplyForecasts(): Promise<{
 
           // Base availability from forecasts
           const totalForecastProduction = stateForecasts.reduce(
-            (sum, f) => sum + (f.production || 0),
+            (sum: number, f: CropForecast) => sum + (f.expectedProductionTonnes || 0),
             0
           );
           const weeklyAvailability = totalForecastProduction / 52;
@@ -366,7 +356,7 @@ export async function weeklySupplyForecasts(): Promise<{
 
           // Check for forecast production issues
           const lowYieldCrops = stateForecasts.filter(
-            (f) => f.yieldChange && f.yieldChange < -10
+            (f: CropForecast) => f.comparedToPreviousYear && f.comparedToPreviousYear < -10
           );
           if (lowYieldCrops.length > 0) {
             riskFactors.push("reduced_yield_forecast");
@@ -381,16 +371,21 @@ export async function weeklySupplyForecasts(): Promise<{
         }
 
         // Store supply forecast
+        const avgConfidence = averageConfidence(forecastDays);
         await db.insert(abaresSupplyForecasts).values({
-          region: region.name,
-          state: region.state,
+          regionCode: region.name,
+          feedstockType: "general",
           forecastDate: today,
           horizonDays: 180,
-          forecastData: JSON.stringify(forecastDays),
-          riskScore: calculateRiskScore(forecastDays),
-          confidenceLevel: averageConfidence(forecastDays),
-          generatedAt: new Date(),
-          validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          availabilityProbability: String(avgConfidence),
+          confidenceIntervalLower: String(Math.max(0, avgConfidence - 0.1)),
+          confidenceIntervalUpper: String(Math.min(1, avgConfidence + 0.1)),
+          contributingFactors: {
+            weatherImpact: calculateRiskScore(forecastDays),
+            cropForecastImpact: 0.5,
+            historicalReliability: 0.8,
+            freightCapacity: 0.9,
+          },
         });
 
         forecastsGenerated++;
@@ -445,7 +440,7 @@ export async function monthlyFarmBenchmarks(): Promise<{
     // Fetch comprehensive intelligence including benchmarks
     const intelligence = await connector.getIntelligence();
 
-    for (const benchmark of intelligence.farmBenchmarks) {
+    for (const benchmark of intelligence.benchmarks) {
       try {
         await upsertFarmBenchmark(db, benchmark);
         benchmarksUpdated++;
@@ -482,12 +477,11 @@ async function processCropForecastSignal(db: any, signal: any): Promise<void> {
     crop: signal.metadata?.crop || "unknown",
     state: signal.metadata?.state || "NSW",
     season: signal.metadata?.season || getCurrentSeason(),
-    area: signal.metadata?.area,
-    production: signal.metadata?.production,
-    yield: signal.metadata?.yield,
-    yieldChange: signal.metadata?.yieldChange,
-    productionChange: signal.metadata?.productionChange,
-    forecastDate: new Date(signal.discoveredAt),
+    plantedAreaHa: signal.metadata?.area,
+    expectedProductionTonnes: signal.metadata?.production,
+    expectedYieldTonnesPerHa: signal.metadata?.yield,
+    comparedToPreviousYear: signal.metadata?.yieldChange,
+    reportDate: new Date(signal.detectedAt),
   };
 
   await upsertCropForecast(db, forecast as CropForecast);
@@ -496,12 +490,11 @@ async function processCropForecastSignal(db: any, signal: any): Promise<void> {
 async function processCommodityPriceSignal(db: any, signal: any): Promise<void> {
   const price: Partial<CommodityPrice> = {
     commodity: signal.metadata?.commodity || "unknown",
-    priceAud: signal.metadata?.price || 0,
-    priceUnit: signal.metadata?.unit || "tonne",
-    priceDate: new Date(signal.discoveredAt),
-    weekChange: signal.metadata?.weekChange,
-    monthChange: signal.metadata?.monthChange,
-    yearChange: signal.metadata?.yearChange,
+    price: signal.metadata?.price || 0,
+    unit: signal.metadata?.unit || "$/tonne",
+    date: new Date(signal.detectedAt),
+    sourceReport: "ABARES Signal",
+    isProjected: false,
   };
 
   await upsertCommodityPrice(db, price as CommodityPrice);
@@ -515,7 +508,7 @@ async function upsertCropForecast(db: any, forecast: CropForecast): Promise<void
     .where(
       and(
         eq(abaresCropForecasts.crop, forecast.crop),
-        eq(abaresCropForecasts.cropState, forecast.state),
+        eq(abaresCropForecasts.state, forecast.state),
         eq(abaresCropForecasts.season, forecast.season)
       )
     )
@@ -526,29 +519,24 @@ async function upsertCropForecast(db: any, forecast: CropForecast): Promise<void
     await db
       .update(abaresCropForecasts)
       .set({
-        area: forecast.area,
-        production: forecast.production,
-        yieldPerHa: forecast.yield,
-        yieldChange: forecast.yieldChange,
-        productionChange: forecast.productionChange,
-        reportDate: forecast.forecastDate,
-        updatedAt: new Date(),
+        plantedAreaHa: String(forecast.plantedAreaHa || 0),
+        expectedProductionTonnes: String(forecast.expectedProductionTonnes || 0),
+        expectedYieldTonnesPerHa: String(forecast.expectedYieldTonnesPerHa || 0),
+        comparedToPreviousYear: String(forecast.comparedToPreviousYear || 0),
+        reportDate: forecast.reportDate,
       })
       .where(eq(abaresCropForecasts.id, existing[0].id));
   } else {
     // Insert new
     await db.insert(abaresCropForecasts).values({
-      reportDate: forecast.forecastDate || new Date(),
+      reportDate: forecast.reportDate || new Date(),
       season: forecast.season,
       crop: forecast.crop,
-      cropState: forecast.state,
-      area: forecast.area || 0,
-      production: forecast.production || 0,
-      yieldPerHa: forecast.yield || 0,
-      yieldChange: forecast.yieldChange || 0,
-      productionChange: forecast.productionChange || 0,
-      source: "abares",
-      createdAt: new Date(),
+      state: forecast.state,
+      plantedAreaHa: String(forecast.plantedAreaHa || 0),
+      expectedProductionTonnes: String(forecast.expectedProductionTonnes || 0),
+      expectedYieldTonnesPerHa: String(forecast.expectedYieldTonnesPerHa || 0),
+      comparedToPreviousYear: String(forecast.comparedToPreviousYear || 0),
     });
   }
 }
@@ -563,7 +551,7 @@ async function upsertCommodityPrice(db: any, price: CommodityPrice): Promise<voi
         eq(abaresCommodityPrices.commodity, price.commodity),
         eq(
           sql`DATE(${abaresCommodityPrices.priceDate})`,
-          sql`DATE(${price.priceDate})`
+          sql`DATE(${price.date})`
         )
       )
     )
@@ -573,26 +561,24 @@ async function upsertCommodityPrice(db: any, price: CommodityPrice): Promise<voi
     await db
       .update(abaresCommodityPrices)
       .set({
-        priceAud: price.priceAud,
-        priceUnit: price.priceUnit,
-        weekChange: price.weekChange,
-        monthChange: price.monthChange,
-        yearChange: price.yearChange,
-        updatedAt: new Date(),
+        price: String(price.price),
+        unit: price.unit,
+        avg5Year: price.avg5Year ? String(price.avg5Year) : null,
+        avg10Year: price.avg10Year ? String(price.avg10Year) : null,
       })
       .where(eq(abaresCommodityPrices.id, existing[0].id));
   } else {
     await db.insert(abaresCommodityPrices).values({
       commodity: price.commodity,
-      priceDate: price.priceDate || new Date(),
-      priceAud: price.priceAud,
-      priceUnit: price.priceUnit || "tonne",
-      weekChange: price.weekChange || 0,
-      monthChange: price.monthChange || 0,
-      yearChange: price.yearChange || 0,
-      fiveYearAvg: price.fiveYearAvg || 0,
-      source: "abares",
-      createdAt: new Date(),
+      priceDate: price.date || new Date(),
+      price: String(price.price),
+      unit: price.unit || "$/tonne",
+      priceType: price.priceType || "farm_gate",
+      state: price.state,
+      avg5Year: price.avg5Year ? String(price.avg5Year) : null,
+      avg10Year: price.avg10Year ? String(price.avg10Year) : null,
+      sourceReport: price.sourceReport,
+      isProjected: price.isProjected || false,
     });
   }
 }
@@ -604,7 +590,7 @@ async function upsertFarmBenchmark(db: any, benchmark: FarmBenchmark): Promise<v
     .where(
       and(
         eq(abaresFarmBenchmarks.farmType, benchmark.farmType),
-        eq(abaresFarmBenchmarks.benchmarkState, benchmark.state),
+        eq(abaresFarmBenchmarks.state, benchmark.state),
         eq(abaresFarmBenchmarks.financialYear, benchmark.financialYear)
       )
     )
@@ -614,30 +600,30 @@ async function upsertFarmBenchmark(db: any, benchmark: FarmBenchmark): Promise<v
     await db
       .update(abaresFarmBenchmarks)
       .set({
-        grossFarmIncome: benchmark.grossFarmIncome,
-        totalCashCosts: benchmark.totalCashCosts,
-        farmCashIncome: benchmark.farmCashIncome,
-        farmBusinessProfit: benchmark.farmBusinessProfit,
-        rateOfReturn: benchmark.rateOfReturn,
-        debtToEquity: benchmark.debtToEquity,
+        avgGrossMarginPerHa: String(benchmark.avgGrossMarginPerHa || 0),
+        avgOperatingCostsPerHa: String(benchmark.avgOperatingCostsPerHa || 0),
+        avgNetFarmIncome: String(benchmark.avgNetFarmIncome || 0),
+        medianNetFarmIncome: String(benchmark.medianNetFarmIncome || 0),
+        debtToAssetRatio: String(benchmark.debtToAssetRatio || 0),
+        returnOnCapital: String(benchmark.returnOnCapital || 0),
+        equityRatio: String(benchmark.equityRatio || 0),
         sampleSize: benchmark.sampleSize,
-        updatedAt: new Date(),
       })
       .where(eq(abaresFarmBenchmarks.id, existing[0].id));
   } else {
     await db.insert(abaresFarmBenchmarks).values({
       farmType: benchmark.farmType,
-      benchmarkState: benchmark.state,
+      state: benchmark.state,
       financialYear: benchmark.financialYear,
-      grossFarmIncome: benchmark.grossFarmIncome || 0,
-      totalCashCosts: benchmark.totalCashCosts || 0,
-      farmCashIncome: benchmark.farmCashIncome || 0,
-      farmBusinessProfit: benchmark.farmBusinessProfit || 0,
-      rateOfReturn: benchmark.rateOfReturn || 0,
-      debtToEquity: benchmark.debtToEquity || 0,
+      farmSizeCategory: benchmark.farmSizeCategory,
+      avgGrossMarginPerHa: String(benchmark.avgGrossMarginPerHa || 0),
+      avgOperatingCostsPerHa: String(benchmark.avgOperatingCostsPerHa || 0),
+      avgNetFarmIncome: String(benchmark.avgNetFarmIncome || 0),
+      medianNetFarmIncome: String(benchmark.medianNetFarmIncome || 0),
+      debtToAssetRatio: String(benchmark.debtToAssetRatio || 0),
+      returnOnCapital: String(benchmark.returnOnCapital || 0),
+      equityRatio: String(benchmark.equityRatio || 0),
       sampleSize: benchmark.sampleSize || 0,
-      source: "abares_farm_survey",
-      createdAt: new Date(),
     });
   }
 }

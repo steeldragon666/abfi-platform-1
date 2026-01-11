@@ -186,13 +186,11 @@ router.post(
           crop: input.crop,
           state: input.state,
           season,
-          predictedYield: prediction.predictedYield,
-          confidenceLow: prediction.confidenceInterval[0],
-          confidenceHigh: prediction.confidenceInterval[1],
+          predictionDate: new Date(),
+          predictedYieldTonnesPerHa: String(prediction.predictedYield),
+          confidenceLower: String(prediction.confidenceInterval[0]),
+          confidenceUpper: String(prediction.confidenceInterval[1]),
           methodology: prediction.methodology,
-          basisDataPoints: prediction.basisData.length,
-          generatedAt: new Date(),
-          validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         });
       }
 
@@ -316,20 +314,23 @@ router.get(
           .limit(months);
 
         prices = dbPrices.map((p) => ({
+          date: p.priceDate,
           commodity: p.commodity,
-          priceAud: Number(p.priceAud),
-          priceUnit: p.priceUnit,
-          priceDate: p.priceDate,
-          weekChange: p.weekChange ? Number(p.weekChange) : undefined,
-          monthChange: p.monthChange ? Number(p.monthChange) : undefined,
-          yearChange: p.yearChange ? Number(p.yearChange) : undefined,
-          fiveYearAvg: p.fiveYearAvg ? Number(p.fiveYearAvg) : undefined,
-        }));
+          unit: p.unit,
+          price: Number(p.price),
+          priceType: p.priceType || "farm_gate",
+          state: p.state || undefined,
+          region: p.region || undefined,
+          avg5Year: p.avg5Year ? Number(p.avg5Year) : undefined,
+          avg10Year: p.avg10Year ? Number(p.avg10Year) : undefined,
+          sourceReport: p.sourceReport || "ABARES",
+          isProjected: p.isProjected || false,
+        })) as CommodityPrice[];
       }
 
       if (prices.length === 0) {
         const intelligence = await abaresConnector.getIntelligence();
-        prices = intelligence.commodityPrices.filter((p) =>
+        prices = intelligence.prices.filter((p: CommodityPrice) =>
           p.commodity.toLowerCase().includes(commodity.toLowerCase())
         );
       }
@@ -343,10 +344,10 @@ router.get(
             startDate: new Date(Date.now() - months * 30 * 24 * 60 * 60 * 1000).toISOString(),
             endDate: new Date().toISOString(),
           },
-          prices: prices.slice(0, months).map((p) => ({
-            date: p.priceDate,
-            price: p.priceAud,
-            unit: p.priceUnit,
+          prices: prices.slice(0, months).map((p: CommodityPrice) => ({
+            date: p.date,
+            price: p.price,
+            unit: p.unit,
           })),
           statistics: calculatePriceStatistics(prices),
           source: "ABARES Agricultural Commodity Statistics",
@@ -440,7 +441,7 @@ router.get(
       const { farmType, sizeCategory } = (req as any).validatedQuery;
 
       const intelligence = await abaresConnector.getIntelligence();
-      let benchmarks = intelligence.farmBenchmarks.filter((b) => b.state === state);
+      let benchmarks = intelligence.benchmarks.filter((b: FarmBenchmark) => b.state === state);
 
       if (farmType) {
         benchmarks = benchmarks.filter((b) =>
@@ -457,12 +458,12 @@ router.get(
             financialYear: b.financialYear,
             farmType: b.farmType,
             metrics: {
-              grossFarmIncome: b.grossFarmIncome,
-              totalCashCosts: b.totalCashCosts,
-              farmCashIncome: b.farmCashIncome,
-              farmBusinessProfit: b.farmBusinessProfit,
-              rateOfReturn: b.rateOfReturn,
-              debtToEquity: b.debtToEquity,
+              avgGrossMarginPerHa: b.avgGrossMarginPerHa,
+              avgOperatingCostsPerHa: b.avgOperatingCostsPerHa,
+              avgNetFarmIncome: b.avgNetFarmIncome,
+              medianNetFarmIncome: b.medianNetFarmIncome,
+              returnOnCapital: b.returnOnCapital,
+              debtToAssetRatio: b.debtToAssetRatio,
             },
             sampleSize: b.sampleSize,
           })),
@@ -500,14 +501,14 @@ router.get(
 
       const intelligence = await abaresConnector.getIntelligence();
 
-      const relevantForecasts = intelligence.cropForecasts.filter((f) => {
+      const relevantForecasts = intelligence.forecasts.filter((f: CropForecast) => {
         const matchesRegion = f.state === region || !region;
         const matchesFeedstock = !feedstockType || f.crop === feedstockType;
         return matchesRegion && matchesFeedstock;
       });
 
       const avgYieldChange =
-        relevantForecasts.reduce((sum, f) => sum + (f.yieldChange || 0), 0) /
+        relevantForecasts.reduce((sum: number, f: CropForecast) => sum + (f.comparedTo5YearAvg || 0), 0) /
         (relevantForecasts.length || 1);
 
       const riskScore = calculateSupplyRiskScore(avgYieldChange, 0, relevantForecasts.length);
@@ -563,14 +564,14 @@ router.post(
 
       const intelligence = await abaresConnector.getIntelligence();
 
-      const relevantForecasts = intelligence.cropForecasts.filter((f) =>
+      const relevantForecasts = intelligence.forecasts.filter((f: CropForecast) =>
         input.feedstockTypes.some((ft: string) =>
           f.crop.toLowerCase().includes(ft.toLowerCase())
         )
       );
 
       const totalExpectedProduction = relevantForecasts.reduce(
-        (sum, f) => sum + (f.production || 0),
+        (sum: number, f: CropForecast) => sum + (f.expectedProductionTonnes || 0),
         0
       );
 
@@ -581,17 +582,15 @@ router.post(
       const db = await getDb();
       if (db) {
         for (const region of input.regions) {
-          await db.insert(abaresSupplyForecasts).values({
-            region,
-            state: region as AustralianStateType,
-            forecastDate: new Date(),
-            horizonDays: 180,
-            forecastData: JSON.stringify({ regions: input.regions, feedstocks: input.feedstockTypes }),
-            riskScore: Math.round((1 - availabilityProbability) * 100),
-            confidenceLevel: availabilityProbability,
-            generatedAt: new Date(),
-            validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          });
+          for (const feedstock of input.feedstockTypes) {
+            await db.insert(abaresSupplyForecasts).values({
+              regionCode: region,
+              feedstockType: feedstock,
+              forecastDate: new Date(),
+              horizonDays: 180,
+              availabilityProbability: String(availabilityProbability),
+            });
+          }
         }
       }
 
@@ -652,12 +651,12 @@ router.get(
 
       const intelligence = await abaresConnector.getIntelligence();
 
-      let forecasts = intelligence.cropForecasts;
+      let forecasts = intelligence.forecasts;
       if (state) {
-        forecasts = forecasts.filter((f) => f.state === state);
+        forecasts = forecasts.filter((f: CropForecast) => f.state === state);
       }
       if (crop) {
-        forecasts = forecasts.filter((f) => f.crop === crop);
+        forecasts = forecasts.filter((f: CropForecast) => f.crop === crop);
       }
 
       res.json({
@@ -671,15 +670,15 @@ router.get(
           },
           summary: {
             totalForecasts: forecasts.length,
-            totalCommodityPrices: intelligence.commodityPrices.length,
-            totalBenchmarks: intelligence.farmBenchmarks.length,
+            totalCommodityPrices: intelligence.prices.length,
+            totalBenchmarks: intelligence.benchmarks.length,
           },
-          cropForecasts: forecasts.slice(0, 10).map((f) => ({
+          cropForecasts: forecasts.slice(0, 10).map((f: CropForecast) => ({
             crop: f.crop,
             state: f.state,
             season: f.season,
-            production: f.production,
-            yieldChange: f.yieldChange,
+            production: f.expectedProductionTonnes,
+            yieldChange: f.comparedTo5YearAvg,
           })),
           priceIndicators: {
             wheat: await safeGetBenchmark("wheat"),
@@ -711,11 +710,10 @@ router.post("/ingest", async (req: Request, res: Response) => {
       const [result] = await db
         .insert(abaresIngestionRuns)
         .values({
-          dataSource: "data.gov.au",
-          datasetId: "manual_trigger",
-          startTime: new Date(),
-          status: "running",
-          recordsProcessed: 0,
+          runType: "crop_report",
+          sourceUrl: "data.gov.au/manual_trigger",
+          startedAt: new Date(),
+          status: "started",
         })
         .$returningId();
       runId = result.id;
@@ -726,19 +724,20 @@ router.post("/ingest", async (req: Request, res: Response) => {
 
     let forecastsStored = 0;
     if (db) {
-      for (const forecast of intelligence.cropForecasts) {
+      for (const forecast of intelligence.forecasts) {
         await db.insert(abaresCropForecasts).values({
-          reportDate: new Date(),
+          reportDate: forecast.reportDate,
           season: forecast.season,
           crop: forecast.crop,
-          cropState: forecast.state,
-          area: forecast.area || 0,
-          production: forecast.production || 0,
-          yieldPerHa: forecast.yield || 0,
-          yieldChange: forecast.yieldChange || 0,
-          productionChange: forecast.productionChange || 0,
-          source: "abares",
-          createdAt: new Date(),
+          state: forecast.state,
+          plantedAreaHa: String(forecast.plantedAreaHa || 0),
+          expectedProductionTonnes: String(forecast.expectedProductionTonnes || 0),
+          expectedYieldTonnesPerHa: String(forecast.expectedYieldTonnesPerHa || 0),
+          comparedTo5YearAvg: String(forecast.comparedTo5YearAvg || 0),
+          comparedToPreviousYear: String(forecast.comparedToPreviousYear || 0),
+          forecastType: forecast.forecastType,
+          seasonalConditions: forecast.seasonalConditions,
+          sourceReport: "ABARES via ABFI",
         });
         forecastsStored++;
       }
@@ -747,9 +746,9 @@ router.post("/ingest", async (req: Request, res: Response) => {
         await db
           .update(abaresIngestionRuns)
           .set({
-            endTime: new Date(),
-            status: "success",
-            recordsProcessed: forecastsStored,
+            finishedAt: new Date(),
+            status: "succeeded",
+            recordsOut: forecastsStored,
           })
           .where(eq(abaresIngestionRuns.id, runId));
       }
@@ -760,10 +759,10 @@ router.post("/ingest", async (req: Request, res: Response) => {
       data: {
         ingestionRunId: runId,
         signalsDiscovered: result.signalsDiscovered,
-        forecastsProcessed: intelligence.cropForecasts.length,
+        forecastsProcessed: intelligence.forecasts.length,
         forecastsStored,
-        pricesProcessed: intelligence.commodityPrices.length,
-        benchmarksProcessed: intelligence.farmBenchmarks.length,
+        pricesProcessed: intelligence.prices.length,
+        benchmarksProcessed: intelligence.benchmarks.length,
         duration: result.duration,
         errors: result.errors,
       },
@@ -821,7 +820,7 @@ function calculateRegionalComparison(
   if (basisData.length === 0) return "No regional data available";
 
   const avgYield =
-    basisData.reduce((sum, f) => sum + (f.yield || 0), 0) / basisData.length;
+    basisData.reduce((sum, f) => sum + (f.expectedYieldTonnesPerHa || 0), 0) / basisData.length;
   const diff = ((predictedYield - avgYield) / avgYield) * 100;
 
   if (diff > 10) return `${Math.round(diff)}% above regional average`;
@@ -839,7 +838,7 @@ function calculatePriceStatistics(prices: CommodityPrice[]): {
     return { min: 0, max: 0, avg: 0, trend: "unknown" };
   }
 
-  const priceValues = prices.map((p) => p.priceAud);
+  const priceValues = prices.map((p) => p.price);
   const min = Math.min(...priceValues);
   const max = Math.max(...priceValues);
   const avg = priceValues.reduce((a, b) => a + b, 0) / priceValues.length;
