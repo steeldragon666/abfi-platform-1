@@ -342,6 +342,167 @@ function getMockRegionalOverview() {
   }));
 }
 
+// =============================================================================
+// Mock RSIE (Risk & Supply Intelligence Engine) Data
+// =============================================================================
+
+const RISK_EVENT_TYPES = ["bushfire", "flood", "drought", "cyclone", "hailstorm", "frost", "heatwave"] as const;
+const RISK_SEVERITY = ["low", "medium", "high", "critical"] as const;
+
+function getMockRiskEvents() {
+  return [
+    {
+      id: 1,
+      eventType: "drought",
+      eventClass: "hazard",
+      eventStatus: "active",
+      severity: "medium",
+      region: "Western NSW",
+      state: "NSW",
+      startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      scoreTotal: 65,
+      confidence: "high",
+      description: "Prolonged dry conditions affecting crop yields",
+      dataSource: { provider: "BOM", license: "CC BY 4.0" },
+    },
+    {
+      id: 2,
+      eventType: "heatwave",
+      eventClass: "hazard",
+      eventStatus: "watch",
+      severity: "high",
+      region: "Northern Victoria",
+      state: "VIC",
+      startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      scoreTotal: 78,
+      confidence: "medium",
+      description: "Extreme heat forecast for coming week",
+      dataSource: { provider: "BOM", license: "CC BY 4.0" },
+    },
+  ];
+}
+
+function getMockWeatherForCell(cellId: string) {
+  const baseTemp = 25 + (Math.random() - 0.5) * 15;
+  return {
+    cellId,
+    historical: Array.from({ length: 30 }, (_, i) => ({
+      date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      maxTemp: baseTemp + 5 + (Math.random() - 0.5) * 8,
+      minTemp: baseTemp - 8 + (Math.random() - 0.5) * 6,
+      rainfall: Math.random() > 0.7 ? Math.random() * 15 : 0,
+      humidity: 40 + Math.random() * 40,
+    })),
+    dataSource: { provider: "SILO", license: "CC BY 4.0", attribution: "Queensland Government SILO" },
+  };
+}
+
+function getMockForecast(cellId: string) {
+  const baseTemp = 26 + (Math.random() - 0.5) * 10;
+  return {
+    cellId,
+    forecast: Array.from({ length: 7 }, (_, i) => ({
+      date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      maxTemp: baseTemp + 5 + (Math.random() - 0.5) * 6,
+      minTemp: baseTemp - 6 + (Math.random() - 0.5) * 4,
+      precipProbability: Math.random() * 0.5,
+      precipAmount: Math.random() > 0.6 ? Math.random() * 10 : 0,
+      conditions: Math.random() > 0.7 ? "Partly cloudy" : "Sunny",
+    })),
+    dataSource: { provider: "BOM", license: "CC BY 4.0", attribution: "Australian Bureau of Meteorology" },
+  };
+}
+
+function getMockDataSources() {
+  return [
+    { id: 1, sourceKey: "bom_observations", name: "BOM Weather Observations", licenseClass: "CC_BY_4", isEnabled: true },
+    { id: 2, sourceKey: "bom_forecasts", name: "BOM Weather Forecasts", licenseClass: "CC_BY_4", isEnabled: true },
+    { id: 3, sourceKey: "silo_climate", name: "SILO Climate Data", licenseClass: "CC_BY_4", isEnabled: true },
+    { id: 4, sourceKey: "abares_commodities", name: "ABARES Agricultural Data", licenseClass: "CC_BY_4", isEnabled: true },
+  ];
+}
+
+// RSIE router with Australian Government data
+const rsieRouter = router({
+  dataSources: router({
+    list: publicProcedure.query(() => getMockDataSources()),
+    listEnabled: publicProcedure.query(() => getMockDataSources().filter(d => d.isEnabled)),
+  }),
+
+  riskEvents: router({
+    list: publicProcedure
+      .input(z.object({
+        eventType: z.array(z.string()).optional(),
+        severity: z.array(z.string()).optional(),
+        limit: z.number().default(50),
+        offset: z.number().default(0),
+      }).optional())
+      .query(() => ({ events: getMockRiskEvents(), total: 2 })),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(({ input }) => getMockRiskEvents().find(e => e.id === input.id) || null),
+
+    getInBbox: publicProcedure
+      .input(z.object({
+        minLat: z.number(), maxLat: z.number(),
+        minLng: z.number(), maxLng: z.number(),
+      }))
+      .query(() => getMockRiskEvents()),
+
+    getActiveRiskEvents: publicProcedure.query(() => getMockRiskEvents().filter(e => e.eventStatus === "active")),
+  }),
+
+  exposure: router({
+    mySummary: publicProcedure.query(() => ({
+      totalExposure: 0,
+      riskScore: 25,
+      mitigatedPercentage: 85,
+      activeAlerts: 0,
+    })),
+  }),
+
+  weather: router({
+    getForCell: publicProcedure
+      .input(z.object({ cellId: z.string() }))
+      .query(({ input }) => getMockWeatherForCell(input.cellId)),
+
+    getForecast: publicProcedure
+      .input(z.object({ cellId: z.string(), hoursAhead: z.number().default(168) }))
+      .query(({ input }) => getMockForecast(input.cellId)),
+
+    getCombined: publicProcedure
+      .input(z.object({ cellId: z.string() }))
+      .query(({ input }) => ({
+        ...getMockWeatherForCell(input.cellId),
+        ...getMockForecast(input.cellId),
+      })),
+
+    myAlerts: publicProcedure.query(() => []),
+  }),
+
+  intelligence: router({
+    list: publicProcedure
+      .input(z.object({ limit: z.number().default(20) }).optional())
+      .query(() => ({
+        items: [
+          { id: 1, type: "market_note", title: "UCO prices stable in Q1", publishedAt: new Date().toISOString(), source: "ABFI Analysis" },
+          { id: 2, type: "policy", title: "New SAF mandate announced", publishedAt: new Date().toISOString(), source: "Government" },
+        ],
+        total: 2,
+      })),
+  }),
+
+  ingestion: router({
+    status: publicProcedure.query(() => ({
+      lastRun: new Date().toISOString(),
+      recordsProcessed: 1542,
+      errors: 0,
+      sources: ["BOM", "SILO", "ABARES"],
+    })),
+  }),
+});
+
 // Climate Hub router with SILO/BOM data
 const climateHubRouter = router({
   getLocationIntelligence: publicProcedure
@@ -398,15 +559,16 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.4.0",
+        version: "2.5.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
-        hasRouter: { prices: true, auth: true, climateHub: true },
+        hasRouter: { prices: true, auth: true, climateHub: true, rsie: true },
       })),
   }),
   prices: pricesRouter,
   auth: authRouter,
   climateHub: climateHubRouter,
+  rsie: rsieRouter,
 });
 
 export const config = {
