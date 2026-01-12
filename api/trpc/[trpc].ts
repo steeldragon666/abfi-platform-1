@@ -537,8 +537,8 @@ const rsieRouter = router({
 // Climate Hub router with SILO/BOM data
 const climateHubRouter = router({
   getLocationIntelligence: publicProcedure
-    .input(z.object({ latitude: z.number(), longitude: z.number() }))
-    .query(({ input }) => getMockClimateIntelligence(input.latitude, input.longitude)),
+    .input(z.object({ lat: z.number(), lng: z.number(), includeHistorical: z.boolean().optional() }))
+    .query(({ input }) => getMockClimateIntelligence(input.lat, input.lng)),
 
   getProjectsClimate: publicProcedure
     .input(z.object({ projectIds: z.array(z.number()).optional() }))
@@ -560,22 +560,26 @@ const climateHubRouter = router({
   getClimateAlerts: publicProcedure
     .input(z.object({ states: z.array(z.string()).optional(), severity: z.string().optional() }).optional())
     .query(() => ({
+      total: 0,
       byType: [
-        { type: "heatwave", alerts: [] },
-        { type: "drought", alerts: [] },
-        { type: "flood", alerts: [] },
-        { type: "fire", alerts: [] },
+        { type: "heatwave", count: 0, alerts: [] },
+        { type: "drought", count: 0, alerts: [] },
+        { type: "flood", count: 0, alerts: [] },
+        { type: "fire", count: 0, alerts: [] },
       ],
-      count: 0,
+      states: [],
       dataSource: "Bureau of Meteorology (CC BY 4.0)",
     })),
 
   getDataStatus: publicProcedure.query(() => ({
+    status: "operational" as const,
+    mode: "demo" as const,
     services: {
-      earthEngine: { available: true, lastUpdate: new Date(Date.now() - 86400000).toISOString() },
-      bomClimate: { available: true, lastSync: new Date().toISOString() },
+      earthEngine: { available: true, mode: "demo", lastData: new Date(Date.now() - 86400000).toISOString() },
+      bomClimate: { available: true, lastData: new Date().toISOString() },
       silo: { available: true, recordCount: 15420 },
     },
+    cache: { entries: 42, maxAge: "24 hours" },
     silo: { status: "operational", lastSync: new Date().toISOString(), recordCount: 15420 },
     bom: { status: "operational", lastSync: new Date().toISOString(), warningCount: 0 },
     satellite: { status: "operational", lastUpdate: new Date(Date.now() - 86400000).toISOString() },
