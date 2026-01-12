@@ -1,162 +1,204 @@
 /**
- * Weather Service - Tomorrow.io Integration
+ * Weather Service - SILO/BOM Integration
  *
- * Provides weather data for RSIE risk assessment
- * API Docs: https://docs.tomorrow.io/reference/welcome
+ * Provides weather data for RSIE risk assessment using Australian Bureau of Meteorology
+ * and SILO (Scientific Information for Land Owners) datasets
+ *
+ * Data Sources:
+ * - BOM: Bureau of Meteorology (observations, forecasts, warnings)
+ * - SILO: Long Baseline Data Network (historical climate data)
+ *
+ * License: CC BY 4.0 (Creative Commons Attribution 4.0 International)
  */
 
 import { getDb } from "./db.js";
 import { dataSources, weatherGridDaily, forecastGridHourly, ingestionRuns } from "../drizzle/schema.js";
 import { eq } from "drizzle-orm";
+import { createBOMConnector } from "./connectors/bomConnector.js";
+import { climateIntelligenceService } from "./services/climateIntelligenceService.js";
 
-const TOMORROW_IO_API_KEY = process.env.TOMORROW_IO_API_KEY;
-const TOMORROW_IO_BASE_URL = "https://api.tomorrow.io/v4";
+// Initialize BOM connector
+const bomConnector = createBOMConnector();
 
 // Australian grid cells for major agricultural regions
 export const AUSTRALIAN_GRID_CELLS = [
   // Queensland
-  { cellId: "QLD-SEQ", lat: -27.4698, lng: 153.0251, name: "South East Queensland" },
-  { cellId: "QLD-DAR", lat: -27.5598, lng: 151.9507, name: "Darling Downs" },
-  { cellId: "QLD-MAC", lat: -21.1411, lng: 149.1861, name: "Mackay Region" },
-  { cellId: "QLD-BUN", lat: -24.8661, lng: 152.3489, name: "Bundaberg Region" },
+  { cellId: "QLD-SEQ", lat: -27.4698, lng: 153.0251, name: "South East Queensland", state: "QLD" },
+  { cellId: "QLD-DAR", lat: -27.5598, lng: 151.9507, name: "Darling Downs", state: "QLD" },
+  { cellId: "QLD-MAC", lat: -21.1411, lng: 149.1861, name: "Mackay Region", state: "QLD" },
+  { cellId: "QLD-BUN", lat: -24.8661, lng: 152.3489, name: "Bundaberg Region", state: "QLD" },
+  { cellId: "QLD-CEN", lat: -23.4167, lng: 148.7333, name: "Central Queensland", state: "QLD" },
+
   // New South Wales
-  { cellId: "NSW-SYD", lat: -33.8688, lng: 151.2093, name: "Sydney Basin" },
-  { cellId: "NSW-NEW", lat: -32.9283, lng: 151.7817, name: "Hunter Valley" },
-  { cellId: "NSW-RIV", lat: -34.2833, lng: 146.0333, name: "Riverina" },
-  { cellId: "NSW-NTH", lat: -29.7592, lng: 151.1211, name: "Northern Tablelands" },
+  { cellId: "NSW-SYD", lat: -33.8688, lng: 151.2093, name: "Sydney Basin", state: "NSW" },
+  { cellId: "NSW-NEW", lat: -32.9283, lng: 151.7817, name: "Hunter Valley", state: "NSW" },
+  { cellId: "NSW-RIV", lat: -34.2833, lng: 146.0333, name: "Riverina", state: "NSW" },
+  { cellId: "NSW-NTH", lat: -29.7592, lng: 151.1211, name: "Northern Tablelands", state: "NSW" },
+  { cellId: "NSW-LIV", lat: -31.5, lng: 150.5, name: "Liverpool Plains", state: "NSW" },
+
   // Victoria
-  { cellId: "VIC-MEL", lat: -37.8136, lng: 144.9631, name: "Melbourne Region" },
-  { cellId: "VIC-GIP", lat: -38.1, lng: 146.25, name: "Gippsland" },
-  { cellId: "VIC-WIM", lat: -36.75, lng: 142.25, name: "Wimmera" },
+  { cellId: "VIC-MEL", lat: -37.8136, lng: 144.9631, name: "Melbourne Region", state: "VIC" },
+  { cellId: "VIC-GIP", lat: -38.1, lng: 146.25, name: "Gippsland", state: "VIC" },
+  { cellId: "VIC-WIM", lat: -36.75, lng: 142.25, name: "Wimmera", state: "VIC" },
+  { cellId: "VIC-MAL", lat: -35.5, lng: 142.0, name: "Mallee", state: "VIC" },
+  { cellId: "VIC-WES", lat: -37.9, lng: 143.5, name: "Western Districts", state: "VIC" },
+
   // South Australia
-  { cellId: "SA-ADE", lat: -34.9285, lng: 138.6007, name: "Adelaide Plains" },
-  { cellId: "SA-SEA", lat: -35.0, lng: 139.0, name: "South East SA" },
+  { cellId: "SA-ADE", lat: -34.9285, lng: 138.6007, name: "Adelaide Plains", state: "SA" },
+  { cellId: "SA-SEA", lat: -35.0, lng: 139.0, name: "South East SA", state: "SA" },
+  { cellId: "SA-MID", lat: -33.75, lng: 138.5, name: "Mid North", state: "SA" },
+  { cellId: "SA-EYR", lat: -33.5, lng: 136.0, name: "Eyre Peninsula", state: "SA" },
+
   // Western Australia
-  { cellId: "WA-PER", lat: -31.9505, lng: 115.8605, name: "Perth Region" },
-  { cellId: "WA-SWC", lat: -33.8, lng: 115.8, name: "South West Coastal" },
+  { cellId: "WA-PER", lat: -31.9505, lng: 115.8605, name: "Perth Region", state: "WA" },
+  { cellId: "WA-SWC", lat: -33.8, lng: 115.8, name: "South West Coastal", state: "WA" },
+  { cellId: "WA-WHE", lat: -31.0, lng: 117.5, name: "Wheatbelt", state: "WA" },
+
   // Tasmania
-  { cellId: "TAS-HOB", lat: -42.8821, lng: 147.3272, name: "Hobart Region" },
-  { cellId: "TAS-NTH", lat: -41.4332, lng: 147.1441, name: "Northern Tasmania" },
+  { cellId: "TAS-HOB", lat: -42.8821, lng: 147.3272, name: "Hobart Region", state: "TAS" },
+  { cellId: "TAS-NTH", lat: -41.4332, lng: 147.1441, name: "Northern Tasmania", state: "TAS" },
 ];
 
-interface TomorrowWeatherData {
-  data: {
-    timelines: Array<{
-      timestep: string;
-      startTime: string;
-      endTime: string;
-      intervals: Array<{
-        startTime: string;
-        values: {
-          temperature?: number;
-          temperatureMin?: number;
-          temperatureMax?: number;
-          humidity?: number;
-          precipitationIntensity?: number;
-          precipitationProbability?: number;
-          windSpeed?: number;
-          windDirection?: number;
-          pressureSurfaceLevel?: number;
-          uvIndex?: number;
-          weatherCode?: number;
-          fireIndex?: number;
-          soilMoistureVolumetric0To10?: number;
-          soilTemperature0To10?: number;
-          evapotranspiration?: number;
-        };
-      }>;
+interface BOMClimateData {
+  observations?: {
+    temperature?: number;
+    humidity?: number;
+    windSpeed?: number;
+    windDirection?: number;
+    rainfall?: number;
+    pressure?: number;
+  };
+  forecast?: {
+    daily?: Array<{
+      date: string;
+      temperatureMin?: number;
+      temperatureMax?: number;
+      precipitationProbability?: number;
+      rainfall?: number;
+      windSpeed?: number;
     }>;
+    hourly?: Array<{
+      datetime: string;
+      temperature?: number;
+      humidity?: number;
+      windSpeed?: number;
+      rainfall?: number;
+    }>;
+  };
+  warnings?: Array<{
+    type: string;
+    severity: string;
+    title: string;
+    description: string;
+    issueTime: string;
+  }>;
+  agricultural?: {
+    soilMoisture?: number;
+    evapotranspiration?: number;
+    frostRisk?: string;
+    heatStress?: string;
   };
 }
 
-/**
- * Fetch current weather for a location
- */
-export async function fetchCurrentWeather(lat: number, lng: number): Promise<any> {
-  if (!TOMORROW_IO_API_KEY) {
-    throw new Error("Tomorrow.io API key not configured");
-  }
-
-  const url = `${TOMORROW_IO_BASE_URL}/weather/realtime?location=${lat},${lng}&apikey=${TOMORROW_IO_API_KEY}&units=metric`;
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Tomorrow.io API error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
+interface SILODataPoint {
+  date: string;
+  rainfall?: number;
+  maxTemp?: number;
+  minTemp?: number;
+  evaporation?: number;
+  radiation?: number;
+  vp?: number;
+  maxRH?: number;
+  minRH?: number;
 }
 
 /**
- * Fetch hourly forecast for a location
+ * Fetch current weather and climate intelligence for a location
  */
-export async function fetchHourlyForecast(
+export async function fetchCurrentWeather(lat: number, lng: number): Promise<BOMClimateData> {
+  try {
+    const climateData = await bomConnector.getClimateIntelligence(lat, lng, {
+      includeObservations: true,
+      includeForecast: true,
+      includeWarnings: true,
+      includeAgricultural: true,
+    });
+
+    return climateData;
+  } catch (error) {
+    console.error("[WeatherService] Error fetching current weather:", error);
+    throw new Error(`BOM API error: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
+}
+
+/**
+ * Fetch forecast for a location
+ */
+export async function fetchForecast(
   lat: number,
   lng: number,
-  hours: number = 168 // 7 days
-): Promise<TomorrowWeatherData> {
-  if (!TOMORROW_IO_API_KEY) {
-    throw new Error("Tomorrow.io API key not configured");
+  days: number = 7
+): Promise<any> {
+  try {
+    const forecastData = await bomConnector.fetchForecast(lat, lng);
+    return forecastData;
+  } catch (error) {
+    console.error("[WeatherService] Error fetching forecast:", error);
+    throw new Error(`BOM Forecast API error: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
-
-  const fields = [
-    "temperature",
-    "temperatureMin",
-    "temperatureMax",
-    "humidity",
-    "precipitationIntensity",
-    "precipitationProbability",
-    "windSpeed",
-    "windDirection",
-    "pressureSurfaceLevel",
-    "uvIndex",
-    "weatherCode",
-  ].join(",");
-
-  const url = `${TOMORROW_IO_BASE_URL}/timelines?location=${lat},${lng}&fields=${fields}&timesteps=1h&units=metric&apikey=${TOMORROW_IO_API_KEY}`;
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Tomorrow.io API error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
 }
 
 /**
- * Fetch daily forecast for a location
+ * Fetch historical SILO data for a location
  */
-export async function fetchDailyForecast(
+export async function fetchHistoricalData(
   lat: number,
   lng: number,
-  days: number = 14
-): Promise<TomorrowWeatherData> {
-  if (!TOMORROW_IO_API_KEY) {
-    throw new Error("Tomorrow.io API key not configured");
+  startDate: string,
+  endDate: string,
+  variables?: string[]
+): Promise<SILODataPoint[]> {
+  try {
+    const defaultVariables = variables || [
+      "daily_rain",
+      "max_temp",
+      "min_temp",
+      "evap_pan",
+      "radiation",
+      "vp",
+      "rh_tmax",
+      "rh_tmin"
+    ];
+
+    const siloData = await bomConnector.fetchSILOData(lat, lng, startDate, endDate, defaultVariables);
+
+    // Transform SILO data to standardized format
+    const dataPoints: SILODataPoint[] = [];
+    if (siloData && Array.isArray(siloData)) {
+      for (const point of siloData) {
+        dataPoints.push({
+          date: point.date,
+          rainfall: point.daily_rain,
+          maxTemp: point.max_temp,
+          minTemp: point.min_temp,
+          evaporation: point.evap_pan,
+          radiation: point.radiation,
+          vp: point.vp,
+          maxRH: point.rh_tmax,
+          minRH: point.rh_tmin,
+        });
+      }
+    }
+
+    return dataPoints;
+  } catch (error) {
+    console.error("[WeatherService] Error fetching historical data:", error);
+    throw new Error(`SILO API error: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
-
-  const fields = [
-    "temperatureMin",
-    "temperatureMax",
-    "precipitationIntensity",
-    "precipitationProbability",
-    "humidity",
-    "windSpeed",
-    "uvIndex",
-  ].join(",");
-
-  const url = `${TOMORROW_IO_BASE_URL}/timelines?location=${lat},${lng}&fields=${fields}&timesteps=1d&units=metric&apikey=${TOMORROW_IO_API_KEY}`;
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Tomorrow.io API error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
 }
 
 /**
- * Ingest weather data for all Australian grid cells
+ * Ingest weather data for all Australian grid cells using SILO/BOM
  */
 export async function ingestWeatherData(): Promise<{
   success: boolean;
@@ -167,30 +209,30 @@ export async function ingestWeatherData(): Promise<{
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  // Get or create Tomorrow.io data source
-  let tomorrowSource = await db
+  // Get or create SILO/BOM data source
+  let siloBomSource = await db
     .select()
     .from(dataSources)
-    .where(eq(dataSources.sourceKey, "tomorrow_io"))
+    .where(eq(dataSources.sourceKey, "silo_bom"))
     .limit(1);
 
-  if (tomorrowSource.length === 0) {
+  if (siloBomSource.length === 0) {
     await db.insert(dataSources).values({
-      sourceKey: "tomorrow_io",
-      name: "Tomorrow.io Weather API",
-      licenseClass: "COMMERCIAL",
-      termsUrl: "https://www.tomorrow.io/terms-of-service/",
-      attributionText: "Weather data provided by Tomorrow.io",
+      sourceKey: "silo_bom",
+      name: "SILO/BOM Climate Data",
+      licenseClass: "CC-BY",
+      termsUrl: "https://creativecommons.org/licenses/by/4.0/",
+      attributionText: "Climate data from Bureau of Meteorology (BOM) and SILO (Scientific Information for Land Owners). Licensed under CC BY 4.0.",
       isEnabled: true,
     });
-    tomorrowSource = await db
+    siloBomSource = await db
       .select()
       .from(dataSources)
-      .where(eq(dataSources.sourceKey, "tomorrow_io"))
+      .where(eq(dataSources.sourceKey, "silo_bom"))
       .limit(1);
   }
 
-  const sourceId = tomorrowSource[0].id;
+  const sourceId = siloBomSource[0].id;
 
   // Create ingestion run record
   const runResult = await db.insert(ingestionRuns).values({
@@ -207,30 +249,74 @@ export async function ingestWeatherData(): Promise<{
 
   for (const cell of AUSTRALIAN_GRID_CELLS) {
     try {
-      // Fetch forecast data
-      const forecastData = await fetchHourlyForecast(cell.lat, cell.lng, 72);
+      // Fetch forecast and current data from BOM
+      const climateData = await bomConnector.getClimateIntelligence(cell.lat, cell.lng, {
+        includeObservations: true,
+        includeForecast: true,
+        includeWarnings: false,
+        includeAgricultural: true,
+      });
 
-      if (forecastData.data?.timelines?.[0]?.intervals) {
-        const intervals = forecastData.data.timelines[0].intervals;
+      // Fetch recent SILO data (last 7 days for comparison/validation)
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+
+      const siloData = await bomConnector.fetchSILOData(
+        cell.lat,
+        cell.lng,
+        startDate.toISOString().split('T')[0],
+        endDate.toISOString().split('T')[0],
+        ["daily_rain", "max_temp", "min_temp", "evap_pan", "radiation"]
+      );
+
+      // Process forecast data (hourly)
+      if (climateData.forecast?.hourly && Array.isArray(climateData.forecast.hourly)) {
         const forecastRunTime = new Date();
 
-        for (const interval of intervals) {
+        for (const hourlyPoint of climateData.forecast.hourly) {
           await db.insert(forecastGridHourly).values({
             cellId: cell.cellId,
             forecastRunTime,
-            hourTime: new Date(interval.startTime),
-            soilMoisture0_7cm: interval.values.soilMoistureVolumetric0To10?.toString() || null,
-            soilTemp: interval.values.soilTemperature0To10?.toString() || null,
-            et0: interval.values.evapotranspiration?.toString() || null,
-            rainfall: interval.values.precipitationIntensity?.toString() || null,
-            windSpeed: interval.values.windSpeed?.toString() || null,
+            hourTime: new Date(hourlyPoint.datetime),
+            soilMoisture0_7cm: climateData.agricultural?.soilMoisture?.toString() || null,
+            soilTemp: null, // BOM doesn't provide soil temp in standard forecast
+            et0: climateData.agricultural?.evapotranspiration?.toString() || null,
+            rainfall: hourlyPoint.rainfall?.toString() || null,
+            windSpeed: hourlyPoint.windSpeed?.toString() || null,
             sourceId,
             ingestionRunId: runId,
             retrievedAt: new Date(),
           }).onDuplicateKeyUpdate({
             set: {
-              soilMoisture0_7cm: interval.values.soilMoistureVolumetric0To10?.toString() || null,
-              rainfall: interval.values.precipitationIntensity?.toString() || null,
+              soilMoisture0_7cm: climateData.agricultural?.soilMoisture?.toString() || null,
+              rainfall: hourlyPoint.rainfall?.toString() || null,
+              retrievedAt: new Date(),
+            },
+          });
+          recordsInserted++;
+        }
+      }
+
+      // Process SILO historical data (daily)
+      if (siloData && Array.isArray(siloData)) {
+        for (const dailyPoint of siloData) {
+          await db.insert(weatherGridDaily).values({
+            cellId: cell.cellId,
+            observedDate: new Date(dailyPoint.date),
+            rainfall: dailyPoint.daily_rain?.toString() || null,
+            maxTemp: dailyPoint.max_temp?.toString() || null,
+            minTemp: dailyPoint.min_temp?.toString() || null,
+            evaporation: dailyPoint.evap_pan?.toString() || null,
+            radiation: dailyPoint.radiation?.toString() || null,
+            sourceId,
+            ingestionRunId: runId,
+            retrievedAt: new Date(),
+          }).onDuplicateKeyUpdate({
+            set: {
+              rainfall: dailyPoint.daily_rain?.toString() || null,
+              maxTemp: dailyPoint.max_temp?.toString() || null,
+              minTemp: dailyPoint.min_temp?.toString() || null,
               retrievedAt: new Date(),
             },
           });
@@ -240,8 +326,8 @@ export async function ingestWeatherData(): Promise<{
 
       cellsProcessed++;
 
-      // Rate limiting - Tomorrow.io has rate limits
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Rate limiting - be respectful to BOM/SILO services
+      await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
       errors.push(`${cell.cellId}: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
@@ -267,68 +353,100 @@ export async function ingestWeatherData(): Promise<{
 }
 
 /**
- * Get weather alerts for a location
+ * Get weather alerts/warnings for a location from BOM
  */
 export async function getWeatherAlerts(lat: number, lng: number): Promise<any[]> {
-  if (!TOMORROW_IO_API_KEY) {
-    return [];
-  }
-
   try {
-    const current = await fetchCurrentWeather(lat, lng);
+    // Fetch climate intelligence with warnings
+    const climateData = await bomConnector.getClimateIntelligence(lat, lng, {
+      includeObservations: true,
+      includeForecast: false,
+      includeWarnings: true,
+      includeAgricultural: true,
+    });
+
     const alerts: any[] = [];
 
-    // Check for extreme conditions
-    if (current.data?.values) {
-      const values = current.data.values;
-
-      // Fire danger
-      if (values.fireIndex && values.fireIndex > 50) {
+    // Process BOM warnings
+    if (climateData.warnings && Array.isArray(climateData.warnings)) {
+      for (const warning of climateData.warnings) {
         alerts.push({
-          type: "fire_danger",
-          severity: values.fireIndex > 100 ? "critical" : "high",
-          message: `Fire Weather Index: ${values.fireIndex}`,
-          value: values.fireIndex,
+          type: warning.type || "general",
+          severity: warning.severity || "medium",
+          message: warning.title || warning.description,
+          description: warning.description,
+          issueTime: warning.issueTime,
+          source: "BOM",
         });
       }
+    }
+
+    // Add agricultural risk alerts based on current conditions
+    if (climateData.observations) {
+      const obs = climateData.observations;
 
       // Extreme heat
-      if (values.temperature && values.temperature > 40) {
+      if (obs.temperature && obs.temperature > 40) {
         alerts.push({
           type: "heatwave",
-          severity: values.temperature > 45 ? "critical" : "high",
-          message: `Extreme temperature: ${values.temperature}°C`,
-          value: values.temperature,
+          severity: obs.temperature > 45 ? "critical" : "high",
+          message: `Extreme temperature: ${obs.temperature}°C`,
+          value: obs.temperature,
+          source: "BOM",
         });
       }
 
-      // Frost
-      if (values.temperature && values.temperature < 2) {
+      // Frost risk
+      if (obs.temperature && obs.temperature < 2) {
         alerts.push({
           type: "frost",
-          severity: values.temperature < 0 ? "high" : "medium",
-          message: `Frost risk: ${values.temperature}°C`,
-          value: values.temperature,
+          severity: obs.temperature < 0 ? "high" : "medium",
+          message: `Frost risk: ${obs.temperature}°C`,
+          value: obs.temperature,
+          source: "BOM",
         });
       }
 
       // High winds
-      if (values.windSpeed && values.windSpeed > 60) {
+      if (obs.windSpeed && obs.windSpeed > 60) {
         alerts.push({
           type: "wind",
-          severity: values.windSpeed > 90 ? "critical" : "high",
-          message: `High winds: ${values.windSpeed} km/h`,
-          value: values.windSpeed,
+          severity: obs.windSpeed > 90 ? "critical" : "high",
+          message: `High winds: ${obs.windSpeed} km/h`,
+          value: obs.windSpeed,
+          source: "BOM",
         });
       }
 
       // Heavy rain
-      if (values.precipitationIntensity && values.precipitationIntensity > 10) {
+      if (obs.rainfall && obs.rainfall > 10) {
         alerts.push({
           type: "flood",
-          severity: values.precipitationIntensity > 30 ? "critical" : "high",
-          message: `Heavy rainfall: ${values.precipitationIntensity} mm/hr`,
-          value: values.precipitationIntensity,
+          severity: obs.rainfall > 30 ? "critical" : "high",
+          message: `Heavy rainfall: ${obs.rainfall} mm`,
+          value: obs.rainfall,
+          source: "BOM",
+        });
+      }
+    }
+
+    // Add agricultural-specific alerts
+    if (climateData.agricultural) {
+      if (climateData.agricultural.frostRisk && climateData.agricultural.frostRisk !== "low") {
+        alerts.push({
+          type: "frost_risk",
+          severity: climateData.agricultural.frostRisk,
+          message: `Frost risk: ${climateData.agricultural.frostRisk}`,
+          source: "Agricultural Intelligence",
+        });
+      }
+
+      if (climateData.agricultural.heatStress && climateData.agricultural.heatStress !== "low") {
+        alerts.push({
+          type: "heat_stress",
+          severity: climateData.agricultural.heatStress,
+          message: `Heat stress risk: ${climateData.agricultural.heatStress}`,
+          source: "Agricultural Intelligence",
         });
       }
     }
@@ -341,26 +459,76 @@ export async function getWeatherAlerts(lat: number, lng: number): Promise<any[]>
 }
 
 /**
- * Check if Tomorrow.io API is configured and working
+ * Check if SILO/BOM services are available and working
  */
 export async function checkWeatherApiStatus(): Promise<{
   configured: boolean;
   working: boolean;
   error?: string;
+  services?: {
+    bom: boolean;
+    silo: boolean;
+  };
 }> {
-  if (!TOMORROW_IO_API_KEY) {
-    return { configured: false, working: false, error: "API key not configured" };
-  }
-
   try {
     // Test with Sydney coordinates
-    await fetchCurrentWeather(-33.8688, 151.2093);
-    return { configured: true, working: true };
+    const testLat = -33.8688;
+    const testLng = 151.2093;
+
+    let bomWorking = false;
+    let siloWorking = false;
+
+    // Test BOM climate intelligence
+    try {
+      await bomConnector.getClimateIntelligence(testLat, testLng, {
+        includeObservations: true,
+        includeForecast: false,
+        includeWarnings: false,
+        includeAgricultural: false,
+      });
+      bomWorking = true;
+    } catch (error) {
+      console.error("[WeatherService] BOM test failed:", error);
+    }
+
+    // Test SILO data access
+    try {
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 1);
+
+      await bomConnector.fetchSILOData(
+        testLat,
+        testLng,
+        startDate.toISOString().split('T')[0],
+        endDate.toISOString().split('T')[0],
+        ["daily_rain"]
+      );
+      siloWorking = true;
+    } catch (error) {
+      console.error("[WeatherService] SILO test failed:", error);
+    }
+
+    const working = bomWorking && siloWorking;
+
+    return {
+      configured: true,
+      working,
+      services: {
+        bom: bomWorking,
+        silo: siloWorking,
+      },
+      error: !working ? "One or more services unavailable" : undefined,
+    };
   } catch (error) {
     return {
       configured: true,
       working: false,
       error: error instanceof Error ? error.message : "Unknown error",
+      services: {
+        bom: false,
+        silo: false,
+      },
     };
   }
 }
