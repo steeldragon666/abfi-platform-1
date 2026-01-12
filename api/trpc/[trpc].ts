@@ -422,6 +422,34 @@ function getMockDataSources() {
   ];
 }
 
+// Project Registry router (for Climate Hub)
+const projectRegistryRouter = router({
+  list: publicProcedure
+    .input(z.object({ status: z.string().optional(), limit: z.number().optional() }).optional())
+    .query(() => ({
+      projects: [
+        { id: 1, name: "Riverina Canola Project", status: "active", lat: -35.0, lng: 146.0, state: "NSW", score: 82 },
+        { id: 2, name: "Wheatbelt UCO Facility", status: "active", lat: -31.5, lng: 117.5, state: "WA", score: 78 },
+        { id: 3, name: "Darling Downs Tallow", status: "planning", lat: -27.5, lng: 151.5, state: "QLD", score: 71 },
+      ],
+      total: 3,
+    })),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => ({
+      id: input.id,
+      name: "Sample Project",
+      status: "active",
+      lat: -33.8,
+      lng: 151.2,
+      state: "NSW",
+      score: 75,
+      climateScore: 72,
+      dataSource: { provider: "SILO/BOM", license: "CC BY 4.0" },
+    })),
+});
+
 // RSIE router with Australian Government data
 const rsieRouter = router({
   dataSources: router({
@@ -559,16 +587,17 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.5.0",
+        version: "2.6.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
-        hasRouter: { prices: true, auth: true, climateHub: true, rsie: true },
+        hasRouter: { prices: true, auth: true, climateHub: true, rsie: true, projectRegistry: true },
       })),
   }),
   prices: pricesRouter,
   auth: authRouter,
   climateHub: climateHubRouter,
   rsie: rsieRouter,
+  projectRegistry: projectRegistryRouter,
 });
 
 export const config = {
