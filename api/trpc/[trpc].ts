@@ -552,6 +552,14 @@ const climateHubRouter = router({
     .input(z.object({ state: z.string().optional() }).optional())
     .query(() => ({
       regions: getMockRegionalOverview(),
+      summary: {
+        projectCount: 3,
+        dominantDroughtRisk: "moderate",
+        avgTemperature: 26,
+        totalRainfall7Day: 45,
+        avgSoilMoisture: 0.38,
+        regionsWithAlerts: 0,
+      },
       nationalSummary: { avgTemperature: 26, totalRainfall7Day: 45, avgSoilMoisture: 0.38, regionsWithAlerts: 0 },
       lastUpdated: new Date().toISOString(),
       dataSource: { provider: "SILO/BOM", license: "CC BY 4.0" },
