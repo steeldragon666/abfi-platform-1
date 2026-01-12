@@ -33,10 +33,19 @@ import {
 } from"@/const";
 import { trpc } from"@/lib/trpc";
 import { Award, Filter, Leaf, List, MapIcon, MapPin } from"lucide-react";
-import { useEffect, useRef, useState } from"react";
+import { useEffect, useRef, useState, useCallback } from"react";
 import { Link } from"wouter";
-import { MapView as GoogleMapView } from"@/components/Map";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { H1, Body, MetricValue, DataLabel } from"@/components/Typography";
+
+// Fix Leaflet default marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
 
 export default function MapView() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -45,10 +54,11 @@ export default function MapView() {
   const [maxCarbon, setMaxCarbon] = useState<number | undefined>();
   const [viewMode, setViewMode] = useState<"map" |"list">("map");
   const [selectedFeedstock, setSelectedFeedstock] = useState<any>(null);
+  const [mapReady, setMapReady] = useState(false);
 
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.Marker[]>([]);
-  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.CircleMarker[]>([]);
 
   const { data: feedstocks, isLoading } = trpc.feedstocks.search.useQuery({
     category: selectedCategories.length > 0 ? selectedCategories : undefined,
@@ -70,92 +80,109 @@ export default function MapView() {
     );
   };
 
-  const handleMapReady = (map: google.maps.Map) => {
-    mapRef.current = map;
-    infoWindowRef.current = new google.maps.InfoWindow();
-    updateMarkers();
-  };
+  // Initialize Leaflet map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
 
-  const updateMarkers = () => {
-    if (!mapRef.current || !feedstocks) return;
+    const map = L.map(mapContainerRef.current, {
+      center: [-25.2744, 133.7751], // Center of Australia
+      zoom: 4,
+      zoomControl: true,
+      scrollWheelZoom: true,
+    });
+
+    // Add OpenStreetMap base layer
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Add scale control
+    L.control.scale({ imperial: false, metric: true }).addTo(map);
+
+    mapRef.current = map;
+    setMapReady(true);
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // Update markers when feedstocks change
+  const updateMarkers = useCallback(() => {
+    if (!mapRef.current || !feedstocks || !mapReady) return;
 
     // Clear existing markers
-    markersRef.current.forEach(marker => marker.setMap(null));
+    markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
     // Add markers for feedstocks with location data
-    const bounds = new google.maps.LatLngBounds();
+    const bounds = L.latLngBounds([]);
     let hasMarkers = false;
 
     feedstocks.forEach(feedstock => {
       if (feedstock.latitude && feedstock.longitude) {
-        const position = {
-          lat: parseFloat(feedstock.latitude),
-          lng: parseFloat(feedstock.longitude),
-        };
+        const lat = parseFloat(feedstock.latitude);
+        const lng = parseFloat(feedstock.longitude);
+        const color = getMarkerColor(feedstock.abfiScore);
 
-        const marker = new google.maps.Marker({
-          position,
-          map: mapRef.current!,
-          title: feedstock.type,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: getMarkerColor(feedstock.abfiScore),
-            fillOpacity: 0.8,
-            strokeColor:"#ffffff",
-            strokeWeight: 2,
-          },
+        // Create custom circle marker
+        const marker = L.circleMarker([lat, lng], {
+          radius: 10,
+          fillColor: color,
+          fillOpacity: 0.8,
+          color: "#ffffff",
+          weight: 2,
         });
 
-        marker.addListener("click", () => {
-          setSelectedFeedstock(feedstock);
-          if (infoWindowRef.current) {
-            infoWindowRef.current.setContent(`
-              <div style="padding: 8px; max-width: 250px;">
-                <h3 style="font-weight: bold; margin-bottom: 4px;">${feedstock.type}</h3>
-                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${feedstock.abfiId}</p>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                  <span style="font-size: 12px;">ABFI Score:</span>
-                  <span style="font-weight: bold; color: ${getScoreColor(feedstock.abfiScore)}">${feedstock.abfiScore ||"N/A"}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                  <span style="font-size: 12px;">Available:</span>
-                  <span style="font-weight: bold;">${feedstock.availableVolumeCurrent.toLocaleString()} tonnes</span>
-                </div>
-                ${
-                  feedstock.pricePerTonne &&
-                  feedstock.priceVisibility ==="public"
-                    ? `
-                  <div style="display: flex; justify-between; margin-bottom: 8px;">
-                    <span style="font-size: 12px;">Price:</span>
-                    <span style="font-weight: bold;">${formatPrice(feedstock.pricePerTonne)}/tonne</span>
-                  </div>
-                `
-                    :""
-                }
-                <a href="/inquiry/send?feedstockId=${feedstock.id}" style="display: inline-block; margin-top: 8px; padding: 6px 12px; background: #1B4332; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">Send Inquiry</a>
+        // Create popup content
+        const popupContent = `
+          <div style="padding: 8px; max-width: 250px; font-family: system-ui, sans-serif;">
+            <h3 style="font-weight: bold; margin-bottom: 4px;">${feedstock.type}</h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${feedstock.abfiId}</p>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 12px;">ABFI Score:</span>
+              <span style="font-weight: bold; color: ${getScoreColor(feedstock.abfiScore)}">${feedstock.abfiScore ||"N/A"}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 12px;">Available:</span>
+              <span style="font-weight: bold;">${feedstock.availableVolumeCurrent.toLocaleString()} tonnes</span>
+            </div>
+            ${
+              feedstock.pricePerTonne &&
+              feedstock.priceVisibility ==="public"
+                ? `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 12px;">Price:</span>
+                <span style="font-weight: bold;">${formatPrice(feedstock.pricePerTonne)}/tonne</span>
               </div>
-            `);
-            infoWindowRef.current.open(mapRef.current!, marker);
-          }
-        });
+            `
+                :""
+            }
+            <a href="/inquiry/send?feedstockId=${feedstock.id}" style="display: inline-block; margin-top: 8px; padding: 6px 12px; background: #1B4332; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">Send Inquiry</a>
+          </div>
+        `;
 
+        marker.bindPopup(popupContent);
+        marker.on("click", () => setSelectedFeedstock(feedstock));
+
+        marker.addTo(mapRef.current!);
         markersRef.current.push(marker);
-        bounds.extend(position);
+        bounds.extend([lat, lng]);
         hasMarkers = true;
       }
     });
 
     // Fit map to markers
     if (hasMarkers && mapRef.current) {
-      mapRef.current.fitBounds(bounds);
+      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
     }
-  };
+  }, [feedstocks, mapReady]);
 
   useEffect(() => {
     updateMarkers();
-  }, [feedstocks]);
+  }, [updateMarkers]);
 
   const getMarkerColor = (score: number | null): string => {
     if (!score) return"#9CA3AF"; // gray
@@ -351,10 +378,10 @@ export default function MapView() {
 
             <Card className="overflow-hidden">
               <div className="h-[600px] relative">
-                <GoogleMapView
-                  onMapReady={handleMapReady}
-                  initialCenter={{ lat: -25.2744, lng: 133.7751 }} // Center of Australia
-                  initialZoom={4}
+                <div
+                  ref={mapContainerRef}
+                  className="w-full h-full"
+                  style={{ minHeight: "600px" }}
                 />
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75">
