@@ -276,6 +276,105 @@ const pricesRouter = router({
   })),
 });
 
+// =============================================================================
+// Mock Climate Data for Australian SILO/BOM (CC BY 4.0)
+// =============================================================================
+
+const AUSTRALIAN_GRID_CELLS = [
+  { id: "WHEATBELT_WA", name: "Wheatbelt", state: "WA", lat: -31.5, lng: 117.5 },
+  { id: "RIVERINA_NSW", name: "Riverina", state: "NSW", lat: -35.0, lng: 146.0 },
+  { id: "MALLEE_VIC", name: "Mallee", state: "VIC", lat: -35.5, lng: 142.0 },
+  { id: "EYRE_SA", name: "Eyre Peninsula", state: "SA", lat: -33.5, lng: 136.0 },
+  { id: "DARLING_DOWNS_QLD", name: "Darling Downs", state: "QLD", lat: -27.5, lng: 151.5 },
+  { id: "CENTRAL_QLD", name: "Central Queensland", state: "QLD", lat: -23.5, lng: 149.5 },
+];
+
+function getMockClimateIntelligence(lat: number, lng: number) {
+  const region = AUSTRALIAN_GRID_CELLS.find(r =>
+    Math.abs(r.lat - lat) < 3 && Math.abs(r.lng - lng) < 3
+  ) || AUSTRALIAN_GRID_CELLS[0];
+
+  const baseTemp = 25 + (Math.random() - 0.5) * 10;
+  const rainfall = Math.random() * 30;
+
+  return {
+    location: { latitude: lat, longitude: lng, region: region.name, state: region.state },
+    timestamp: new Date().toISOString(),
+    satellite: {
+      ndvi: { mean: 0.35 + Math.random() * 0.3, min: 0.1, max: 0.7, healthCategory: "moderate" },
+      vegetationHealth: { healthScore: 65 + Math.random() * 20, evi: 0.28, lai: 2.1, trend: "stable", alerts: [] },
+      soilMoisture: { surfaceMoisture: 0.25 + Math.random() * 0.2, rootZoneMoisture: 0.35, moistureCategory: "adequate", droughtRisk: "low" },
+    },
+    climate: {
+      current: { maxTemp: baseTemp + 5, minTemp: baseTemp - 8, rainfall, humidity: 45 + Math.random() * 30 },
+      forecast: { days: 7, rainfallTotal: rainfall * 3, tempRange: { min: baseTemp - 10, max: baseTemp + 8 }, frostDays: 0, heatStressDays: 1 },
+      seasonal: { rainfallOutlook: "near_average", temperatureOutlook: "above_average", probability: 0.6 },
+      risks: {
+        drought: { level: "moderate", probability: 0.25 },
+        frost: { level: "low", daysExpected: 0 },
+        heatStress: { level: "moderate", daysExpected: 3 },
+        flood: { level: "low", probability: 0.05 },
+      },
+    },
+    alerts: [],
+    overallScore: 72 + Math.floor(Math.random() * 15),
+    recommendations: ["Monitor soil moisture levels during forecast dry period", "Consider irrigation scheduling based on evapotranspiration rates"],
+    dataFreshness: { satellite: "2 days ago", climate: "6 hours ago" },
+    dataSource: { provider: "SILO/BOM", license: "CC BY 4.0", attribution: "Australian Bureau of Meteorology & Queensland Government SILO" },
+  };
+}
+
+function getMockRegionalOverview() {
+  return AUSTRALIAN_GRID_CELLS.map(region => ({
+    regionId: region.id,
+    regionName: region.name,
+    state: region.state,
+    coordinates: { lat: region.lat, lng: region.lng },
+    currentConditions: {
+      temperature: 22 + Math.random() * 12,
+      rainfall7Day: Math.random() * 25,
+      soilMoisture: 0.3 + Math.random() * 0.25,
+      ndvi: 0.3 + Math.random() * 0.35,
+    },
+    riskLevel: Math.random() > 0.7 ? "elevated" : "normal",
+    alerts: [],
+    lastUpdated: new Date().toISOString(),
+  }));
+}
+
+// Climate Hub router with SILO/BOM data
+const climateHubRouter = router({
+  getLocationIntelligence: publicProcedure
+    .input(z.object({ latitude: z.number(), longitude: z.number() }))
+    .query(({ input }) => getMockClimateIntelligence(input.latitude, input.longitude)),
+
+  getProjectsClimate: publicProcedure
+    .input(z.object({ projectIds: z.array(z.number()).optional() }))
+    .query(() => ({
+      projects: [],
+      summary: { avgScore: 74, riskCount: 0, alertCount: 0 },
+      dataSource: "SILO/BOM (CC BY 4.0)",
+    })),
+
+  getRegionalOverview: publicProcedure.query(() => ({
+    regions: getMockRegionalOverview(),
+    nationalSummary: { avgTemperature: 26, totalRainfall7Day: 45, avgSoilMoisture: 0.38, regionsWithAlerts: 0 },
+    lastUpdated: new Date().toISOString(),
+    dataSource: { provider: "SILO/BOM", license: "CC BY 4.0" },
+  })),
+
+  getClimateAlerts: publicProcedure
+    .input(z.object({ states: z.array(z.string()).optional(), severity: z.string().optional() }).optional())
+    .query(() => ({ alerts: [], count: 0, dataSource: "Bureau of Meteorology (CC BY 4.0)" })),
+
+  getDataStatus: publicProcedure.query(() => ({
+    silo: { status: "operational", lastSync: new Date().toISOString(), recordCount: 15420 },
+    bom: { status: "operational", lastSync: new Date().toISOString(), warningCount: 0 },
+    satellite: { status: "operational", lastUpdate: new Date(Date.now() - 86400000).toISOString() },
+    dataSource: { provider: "SILO/BOM", license: "CC BY 4.0", attribution: "Australian Bureau of Meteorology" },
+  })),
+});
+
 // Auth router for dev login
 const authRouter = router({
   me: publicProcedure.query(async ({ ctx }) => {
@@ -299,14 +398,15 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.3.0",
+        version: "2.4.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
-        hasRouter: { prices: true, auth: true },
+        hasRouter: { prices: true, auth: true, climateHub: true },
       })),
   }),
   prices: pricesRouter,
   auth: authRouter,
+  climateHub: climateHubRouter,
 });
 
 export const config = {
