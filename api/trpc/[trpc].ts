@@ -428,9 +428,9 @@ const projectRegistryRouter = router({
     .input(z.object({ status: z.string().optional(), limit: z.number().optional() }).optional())
     .query(() => ({
       projects: [
-        { id: 1, name: "Riverina Canola Project", status: "active", lat: -35.0, lng: 146.0, state: "NSW", score: 82 },
-        { id: 2, name: "Wheatbelt UCO Facility", status: "active", lat: -31.5, lng: 117.5, state: "WA", score: 78 },
-        { id: 3, name: "Darling Downs Tallow", status: "planning", lat: -27.5, lng: 151.5, state: "QLD", score: 71 },
+        { id: 1, name: "Riverina Canola Project", slug: "riverina-canola", company: "AgriEnergy NSW", status: "operational", technology: "Biodiesel", latitude: "-35.0", longitude: "146.0", state: "NSW", score: 82 },
+        { id: 2, name: "Wheatbelt UCO Facility", slug: "wheatbelt-uco", company: "WA Biofuels", status: "operational", technology: "UCO Processing", latitude: "-31.5", longitude: "117.5", state: "WA", score: 78 },
+        { id: 3, name: "Darling Downs Tallow", slug: "darling-downs-tallow", company: "QLD Renewables", status: "construction", technology: "Tallow Refining", latitude: "-27.5", longitude: "151.5", state: "QLD", score: 71 },
       ],
       total: 3,
     })),
@@ -440,9 +440,12 @@ const projectRegistryRouter = router({
     .query(({ input }) => ({
       id: input.id,
       name: "Sample Project",
-      status: "active",
-      lat: -33.8,
-      lng: 151.2,
+      slug: "sample-project",
+      company: "Sample Company",
+      status: "operational",
+      technology: "Biodiesel",
+      latitude: "-33.8",
+      longitude: "151.2",
       state: "NSW",
       score: 75,
       climateScore: 72,
@@ -603,7 +606,7 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.7.0",
+        version: "2.8.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
         hasRouter: { prices: true, auth: true, climateHub: true, rsie: true, projectRegistry: true },
