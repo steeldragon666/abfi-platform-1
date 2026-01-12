@@ -16,22 +16,40 @@ const STATIONS = [
 
 function generateObservation(station: typeof STATIONS[0]) {
   const baseTemp = station.state === "QLD" ? 28 : station.state === "TAS" ? 15 : 22;
-  const temp = baseTemp + (Math.random() - 0.5) * 10;
+  const temp = Math.round((baseTemp + (Math.random() - 0.5) * 10) * 10) / 10;
+  const humidity = Math.round(40 + Math.random() * 40);
+  const windSpeed = Math.round(5 + Math.random() * 25);
+  const rainfall = Math.random() > 0.7 ? Math.round(Math.random() * 10 * 10) / 10 : 0;
+  const cloudOktas = Math.floor(Math.random() * 8);
+
+  const cloudDesc = cloudOktas <= 1 ? "Clear" : cloudOktas <= 3 ? "Partly cloudy" : cloudOktas <= 5 ? "Cloudy" : "Overcast";
+  const heatStress = temp > 35 ? "High" : temp > 28 ? "Moderate" : "Low";
+  const frostRisk = temp < 5 ? "High" : temp < 10 ? "Moderate" : "None";
+  const irrigationNeed = rainfall > 5 ? "Low" : humidity < 50 && temp > 25 ? "High" : "Moderate";
 
   return {
-    station_id: station.id,
-    station_name: station.name,
-    state: station.state,
-    lat: station.lat,
-    lng: station.lng,
-    timestamp: new Date().toISOString(),
-    air_temp: Math.round(temp * 10) / 10,
-    apparent_temp: Math.round((temp - 2 + Math.random() * 4) * 10) / 10,
-    rel_hum: Math.round(40 + Math.random() * 40),
-    wind_spd_kmh: Math.round(5 + Math.random() * 25),
-    wind_dir: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.floor(Math.random() * 8)],
-    rain_trace: Math.random() > 0.7 ? Math.round(Math.random() * 10 * 10) / 10 : 0,
-    cloud_oktas: Math.floor(Math.random() * 8),
+    station: {
+      id: station.id,
+      name: station.name,
+      state: station.state,
+      lat: station.lat,
+      lng: station.lng,
+    },
+    observation: {
+      timestamp: new Date().toISOString(),
+      temperature: temp,
+      apparentTemp: Math.round((temp - 2 + Math.random() * 4) * 10) / 10,
+      humidity,
+      windSpeed,
+      windDirection: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.floor(Math.random() * 8)],
+      rainfall24h: rainfall,
+      cloud: cloudDesc,
+    },
+    agricultureImpact: {
+      heatStress,
+      frostRisk,
+      irrigationNeed,
+    },
   };
 }
 

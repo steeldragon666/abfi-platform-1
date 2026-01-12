@@ -16,34 +16,56 @@ const DROUGHT_REGIONS = [
 
 const STATUSES = ["Normal", "Below Average", "Drought Watch", "Drought Declared", "Recovering"];
 
+const FEEDSTOCK_CROPS = ["Canola", "Wheat", "Tallow", "UCO Feedstock"];
+
 export default function handler(req: VercelRequest, res: VercelResponse) {
   const regions = DROUGHT_REGIONS.map(region => {
     const statusIndex = Math.floor(Math.random() * STATUSES.length);
-    const rainfallDeficit = statusIndex >= 2 ? Math.round(15 + Math.random() * 35) : Math.round(Math.random() * 15);
+    const rainfallDeficiency = statusIndex >= 2 ? Math.round(15 + Math.random() * 35) : Math.round(Math.random() * 15);
+    const impactedCrops = statusIndex >= 2
+      ? FEEDSTOCK_CROPS.slice(0, Math.floor(1 + Math.random() * 3))
+      : [];
 
     return {
-      region_id: region.id,
-      region_name: region.name,
+      id: region.id,
+      name: region.name,
       state: region.state,
       status: STATUSES[statusIndex],
-      status_code: statusIndex,
-      area_affected_pct: region.area_pct,
-      rainfall_deficit_pct: rainfallDeficit,
-      months_below_avg: statusIndex >= 2 ? Math.floor(3 + Math.random() * 18) : 0,
-      last_updated: new Date().toISOString(),
+      statusCode: statusIndex,
+      rainfallDeficiency,
+      waterStorages: Math.round(30 + Math.random() * 50),
+      impactedCrops,
+      lastUpdated: new Date().toISOString(),
     };
   });
 
-  const droughtDeclared = regions.filter(r => r.status === "Drought Declared").length;
-  const totalAffectedArea = regions.reduce((sum, r) => sum + (r.status_code >= 2 ? r.area_affected_pct : 0), 0);
+  const droughtCount = regions.filter(r => r.status === "Drought Declared").length;
+  const recoveringCount = regions.filter(r => r.status === "Recovering").length;
+  const normalCount = regions.filter(r => r.status === "Normal").length;
+  const totalCount = regions.length;
+
+  // Bioenergy impact
+  const affectedFeedstockRegions = regions
+    .filter(r => r.statusCode >= 2)
+    .map(r => ({
+      region: r.name,
+      feedstock: r.impactedCrops[0] || "General crops",
+      impactLevel: r.statusCode >= 3 ? "High" : "Moderate",
+      productionReduction: Math.round(10 + Math.random() * 25),
+    }));
 
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.json({
-    drought_status: regions,
+    regions,
     summary: {
-      total_regions: regions.length,
-      drought_declared: droughtDeclared,
-      total_affected_area_pct: Math.round(totalAffectedArea / regions.length),
+      areasInDrought: Math.round((droughtCount / totalCount) * 100),
+      areasRecovering: Math.round((recoveringCount / totalCount) * 100),
+      areasNormal: Math.round((normalCount / totalCount) * 100),
+      totalRegions: totalCount,
+    },
+    bioenergyImpact: {
+      affectedFeedstockRegions,
+      overallRisk: droughtCount >= 2 ? "High" : droughtCount >= 1 ? "Moderate" : "Low",
     },
     timestamp: new Date().toISOString(),
     source: {

@@ -39,11 +39,18 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
+  // Count by type
+  const byType: Record<string, number> = {};
+  warnings.forEach(w => {
+    byType[w.type] = (byType[w.type] || 0) + 1;
+  });
+
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.json({
     warnings,
-    count: warnings.length,
-    active_severe: warnings.filter(w => w.severity === "severe" || w.severity === "extreme").length,
+    activeCount: warnings.length,
+    byType,
+    activeSevere: warnings.filter(w => w.severity === "severe" || w.severity === "extreme").length,
     timestamp: new Date().toISOString(),
     source: {
       provider: "Bureau of Meteorology",

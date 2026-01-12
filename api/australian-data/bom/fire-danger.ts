@@ -17,39 +17,57 @@ const FIRE_DISTRICTS = [
 
 const RATINGS = ["Low-Moderate", "High", "Very High", "Severe", "Extreme", "Catastrophic"];
 
+const RATING_LEGEND = {
+  0: { level: "Low-Moderate", color: "#4CAF50" },
+  1: { level: "High", color: "#FFC107" },
+  2: { level: "Very High", color: "#FF9800" },
+  3: { level: "Severe", color: "#F44336" },
+  4: { level: "Extreme", color: "#9C27B0" },
+  5: { level: "Catastrophic", color: "#000000" },
+};
+
 function generateFireDanger(district: typeof FIRE_DISTRICTS[0]) {
-  const ratingIndex = Math.floor(Math.random() * 4); // Usually not extreme
+  const rating = Math.floor(Math.random() * 4); // Usually not extreme
   return {
-    district_id: district.id,
-    district_name: district.name,
+    id: district.id,
+    name: district.name,
     state: district.state,
-    rating: RATINGS[ratingIndex],
-    rating_code: ratingIndex,
-    fire_ban: ratingIndex >= 3,
-    valid_from: new Date().toISOString(),
-    valid_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    rating,
+    ratingInfo: RATING_LEGEND[rating as keyof typeof RATING_LEGEND],
+    fireBan: rating >= 3,
+    validFrom: new Date().toISOString(),
+    validTo: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   };
 }
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   const state = req.query.state as string | undefined;
 
-  let districts = FIRE_DISTRICTS;
+  let filteredDistricts = FIRE_DISTRICTS;
   if (state) {
-    districts = FIRE_DISTRICTS.filter(d => d.state === state);
+    filteredDistricts = FIRE_DISTRICTS.filter(d => d.state === state);
   }
 
-  const ratings = districts.map(generateFireDanger);
-  const extremeCount = ratings.filter(r => r.rating_code >= 4).length;
+  const districts = filteredDistricts.map(generateFireDanger);
+  const extremeStates = [...new Set(districts.filter(d => d.rating >= 4).map(d => d.state))];
+
+  // Count by rating
+  const byRating: Record<string, number> = {};
+  districts.forEach(d => {
+    const level = d.ratingInfo.level;
+    byRating[level] = (byRating[level] || 0) + 1;
+  });
 
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.json({
-    fire_danger: ratings,
+    districts,
     summary: {
-      total_districts: ratings.length,
-      extreme_count: extremeCount,
-      total_fire_bans: ratings.filter(r => r.fire_ban).length,
+      totalDistricts: districts.length,
+      statesWithExtreme: extremeStates,
+      byRating,
+      totalFireBans: districts.filter(d => d.fireBan).length,
     },
+    ratingLegend: RATING_LEGEND,
     timestamp: new Date().toISOString(),
     source: {
       provider: "Bureau of Meteorology",

@@ -23,26 +23,37 @@ function generateForecast(region: typeof REGIONS[0]) {
   for (let i = 0; i < 7; i++) {
     const date = new Date();
     date.setDate(date.getDate() + i);
-    const maxTemp = baseTemp + (Math.random() - 0.5) * 8;
+    const maxTemp = Math.round(baseTemp + (Math.random() - 0.5) * 8);
+    const rainChance = Math.round(Math.random() * 60);
+    const conditions = CONDITIONS[Math.floor(Math.random() * CONDITIONS.length)];
+
+    // Agriculture outlook based on conditions
+    const harvestConditions = rainChance > 40 ? "Poor" : rainChance > 20 ? "Moderate" : "Good";
 
     days.push({
       date: date.toISOString().split("T")[0],
-      day_name: date.toLocaleDateString("en-AU", { weekday: "long" }),
-      temp_max: Math.round(maxTemp),
-      temp_min: Math.round(maxTemp - 8 - Math.random() * 4),
-      precip_probability: Math.round(Math.random() * 60),
-      precip_amount: Math.random() > 0.6 ? Math.round(Math.random() * 15) : 0,
-      conditions: CONDITIONS[Math.floor(Math.random() * CONDITIONS.length)],
-      uv_index: Math.round(4 + Math.random() * 8),
+      dayName: date.toLocaleDateString("en-AU", { weekday: "long" }),
+      maxTemp,
+      minTemp: Math.round(maxTemp - 8 - Math.random() * 4),
+      rainChance,
+      rainAmount: Math.random() > 0.6 ? Math.round(Math.random() * 15) : 0,
+      conditions,
+      uvIndex: Math.round(4 + Math.random() * 8),
       humidity: Math.round(40 + Math.random() * 35),
+      agricultureOutlook: {
+        harvestConditions,
+        sprayConditions: rainChance > 30 ? "Poor" : "Good",
+      },
     });
   }
 
   return {
-    region_id: region.id,
-    region_name: region.name,
-    state: region.state,
-    forecast_days: days,
+    station: {
+      id: region.id,
+      name: region.name,
+      state: region.state,
+    },
+    forecasts: days,
     issued: new Date().toISOString(),
   };
 }
