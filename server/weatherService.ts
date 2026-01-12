@@ -14,7 +14,7 @@
 import { getDb } from "./db.js";
 import { dataSources, weatherGridDaily, forecastGridHourly, ingestionRuns } from "../drizzle/schema.js";
 import { eq } from "drizzle-orm";
-import { createBOMConnector } from "./connectors/bomConnector.js";
+import { createBOMConnector, ClimateIntelligence, SILOVariable } from "./connectors/bomConnector.js";
 import { climateIntelligenceService } from "./services/climateIntelligenceService.js";
 
 // Initialize BOM connector
@@ -115,13 +115,10 @@ interface SILODataPoint {
 /**
  * Fetch current weather and climate intelligence for a location
  */
-export async function fetchCurrentWeather(lat: number, lng: number): Promise<BOMClimateData> {
+export async function fetchCurrentWeather(lat: number, lng: number): Promise<ClimateIntelligence> {
   try {
     const climateData = await bomConnector.getClimateIntelligence(lat, lng, {
-      includeObservations: true,
-      includeForecast: true,
-      includeWarnings: true,
-      includeAgricultural: true,
+      includeHistorical: true,
     });
 
     return climateData;
@@ -170,7 +167,7 @@ export async function fetchHistoricalData(
       "rh_tmin"
     ];
 
-    const siloData = await bomConnector.fetchSILOData(lat, lng, startDate, endDate, defaultVariables);
+    const siloData = await bomConnector.fetchSILOData(lat, lng, startDate, endDate, defaultVariables as SILOVariable[]);
 
     // Transform SILO data to standardized format
     const dataPoints: SILODataPoint[] = [];
@@ -220,7 +217,7 @@ export async function ingestWeatherData(): Promise<{
     await db.insert(dataSources).values({
       sourceKey: "silo_bom",
       name: "SILO/BOM Climate Data",
-      licenseClass: "CC-BY",
+      licenseClass: "CC_BY_4",
       termsUrl: "https://creativecommons.org/licenses/by/4.0/",
       attributionText: "Climate data from Bureau of Meteorology (BOM) and SILO (Scientific Information for Land Owners). Licensed under CC BY 4.0.",
       isEnabled: true,
@@ -251,10 +248,7 @@ export async function ingestWeatherData(): Promise<{
     try {
       // Fetch forecast and current data from BOM
       const climateData = await bomConnector.getClimateIntelligence(cell.lat, cell.lng, {
-        includeObservations: true,
-        includeForecast: true,
-        includeWarnings: false,
-        includeAgricultural: true,
+        includeHistorical: true,
       });
 
       // Fetch recent SILO data (last 7 days for comparison/validation)
@@ -270,27 +264,29 @@ export async function ingestWeatherData(): Promise<{
         ["daily_rain", "max_temp", "min_temp", "evap_pan", "radiation"]
       );
 
-      // Process forecast data (hourly)
-      if (climateData.forecast?.hourly && Array.isArray(climateData.forecast.hourly)) {
+      // Process forecast data (daily from BOM)
+      if (climateData.forecast?.days && Array.isArray(climateData.forecast.days)) {
         const forecastRunTime = new Date();
+        const soilMoistureIndex = climateData.agriculturalMetrics?.soilMoistureIndex;
 
-        for (const hourlyPoint of climateData.forecast.hourly) {
+        for (const dailyPoint of climateData.forecast.days) {
+          const rainfallAmount = dailyPoint.precipitation?.amount?.max?.toString() || null;
           await db.insert(forecastGridHourly).values({
             cellId: cell.cellId,
             forecastRunTime,
-            hourTime: new Date(hourlyPoint.datetime),
-            soilMoisture0_7cm: climateData.agricultural?.soilMoisture?.toString() || null,
+            hourTime: new Date(dailyPoint.date),
+            soilMoisture0_7cm: soilMoistureIndex?.toString() || null,
             soilTemp: null, // BOM doesn't provide soil temp in standard forecast
-            et0: climateData.agricultural?.evapotranspiration?.toString() || null,
-            rainfall: hourlyPoint.rainfall?.toString() || null,
-            windSpeed: hourlyPoint.windSpeed?.toString() || null,
+            et0: null,
+            rainfall: rainfallAmount,
+            windSpeed: null, // BOM forecast doesn't include wind speed
             sourceId,
             ingestionRunId: runId,
             retrievedAt: new Date(),
           }).onDuplicateKeyUpdate({
             set: {
-              soilMoisture0_7cm: climateData.agricultural?.soilMoisture?.toString() || null,
-              rainfall: hourlyPoint.rainfall?.toString() || null,
+              soilMoisture0_7cm: soilMoistureIndex?.toString() || null,
+              rainfall: rainfallAmount,
               retrievedAt: new Date(),
             },
           });
@@ -303,11 +299,11 @@ export async function ingestWeatherData(): Promise<{
         for (const dailyPoint of siloData) {
           await db.insert(weatherGridDaily).values({
             cellId: cell.cellId,
-            observedDate: new Date(dailyPoint.date),
+            date: new Date(dailyPoint.date),
             rainfall: dailyPoint.daily_rain?.toString() || null,
-            maxTemp: dailyPoint.max_temp?.toString() || null,
-            minTemp: dailyPoint.min_temp?.toString() || null,
-            evaporation: dailyPoint.evap_pan?.toString() || null,
+            tmax: dailyPoint.max_temp?.toString() || null,
+            tmin: dailyPoint.min_temp?.toString() || null,
+            et0: dailyPoint.evap_pan?.toString() || null,
             radiation: dailyPoint.radiation?.toString() || null,
             sourceId,
             ingestionRunId: runId,
@@ -315,8 +311,8 @@ export async function ingestWeatherData(): Promise<{
           }).onDuplicateKeyUpdate({
             set: {
               rainfall: dailyPoint.daily_rain?.toString() || null,
-              maxTemp: dailyPoint.max_temp?.toString() || null,
-              minTemp: dailyPoint.min_temp?.toString() || null,
+              tmax: dailyPoint.max_temp?.toString() || null,
+              tmin: dailyPoint.min_temp?.toString() || null,
               retrievedAt: new Date(),
             },
           });
@@ -359,17 +355,14 @@ export async function getWeatherAlerts(lat: number, lng: number): Promise<any[]>
   try {
     // Fetch climate intelligence with warnings
     const climateData = await bomConnector.getClimateIntelligence(lat, lng, {
-      includeObservations: true,
-      includeForecast: false,
-      includeWarnings: true,
-      includeAgricultural: true,
+      includeHistorical: false,
     });
 
     const alerts: any[] = [];
 
     // Process BOM warnings
-    if (climateData.warnings && Array.isArray(climateData.warnings)) {
-      for (const warning of climateData.warnings) {
+    if (climateData.activeWarnings && Array.isArray(climateData.activeWarnings)) {
+      for (const warning of climateData.activeWarnings) {
         alerts.push({
           type: warning.type || "general",
           severity: warning.severity || "medium",
@@ -381,9 +374,9 @@ export async function getWeatherAlerts(lat: number, lng: number): Promise<any[]>
       }
     }
 
-    // Add agricultural risk alerts based on current conditions
-    if (climateData.observations) {
-      const obs = climateData.observations;
+    // Add agricultural risk alerts based on current observations
+    if (climateData.currentObservations && climateData.currentObservations.length > 0) {
+      const obs = climateData.currentObservations[0]; // Get most recent observation
 
       // Extreme heat
       if (obs.temperature && obs.temperature > 40) {
@@ -431,21 +424,21 @@ export async function getWeatherAlerts(lat: number, lng: number): Promise<any[]>
     }
 
     // Add agricultural-specific alerts
-    if (climateData.agricultural) {
-      if (climateData.agricultural.frostRisk && climateData.agricultural.frostRisk !== "low") {
+    if (climateData.agriculturalMetrics) {
+      if (climateData.agriculturalMetrics.frostRisk && climateData.agriculturalMetrics.frostRisk !== "low") {
         alerts.push({
           type: "frost_risk",
-          severity: climateData.agricultural.frostRisk,
-          message: `Frost risk: ${climateData.agricultural.frostRisk}`,
+          severity: climateData.agriculturalMetrics.frostRisk,
+          message: `Frost risk: ${climateData.agriculturalMetrics.frostRisk}`,
           source: "Agricultural Intelligence",
         });
       }
 
-      if (climateData.agricultural.heatStress && climateData.agricultural.heatStress !== "low") {
+      if (climateData.agriculturalMetrics.heatStressRisk && climateData.agriculturalMetrics.heatStressRisk !== "low") {
         alerts.push({
           type: "heat_stress",
-          severity: climateData.agricultural.heatStress,
-          message: `Heat stress risk: ${climateData.agricultural.heatStress}`,
+          severity: climateData.agriculturalMetrics.heatStressRisk,
+          message: `Heat stress risk: ${climateData.agriculturalMetrics.heatStressRisk}`,
           source: "Agricultural Intelligence",
         });
       }
@@ -481,10 +474,7 @@ export async function checkWeatherApiStatus(): Promise<{
     // Test BOM climate intelligence
     try {
       await bomConnector.getClimateIntelligence(testLat, testLng, {
-        includeObservations: true,
-        includeForecast: false,
-        includeWarnings: false,
-        includeAgricultural: false,
+        includeHistorical: false,
       });
       bomWorking = true;
     } catch (error) {
@@ -502,7 +492,7 @@ export async function checkWeatherApiStatus(): Promise<{
         testLng,
         startDate.toISOString().split('T')[0],
         endDate.toISOString().split('T')[0],
-        ["daily_rain"]
+        ["daily_rain"] as SILOVariable[]
       );
       siloWorking = true;
     } catch (error) {
