@@ -545,18 +545,34 @@ const climateHubRouter = router({
       dataSource: "SILO/BOM (CC BY 4.0)",
     })),
 
-  getRegionalOverview: publicProcedure.query(() => ({
-    regions: getMockRegionalOverview(),
-    nationalSummary: { avgTemperature: 26, totalRainfall7Day: 45, avgSoilMoisture: 0.38, regionsWithAlerts: 0 },
-    lastUpdated: new Date().toISOString(),
-    dataSource: { provider: "SILO/BOM", license: "CC BY 4.0" },
-  })),
+  getRegionalOverview: publicProcedure
+    .input(z.object({ state: z.string().optional() }).optional())
+    .query(() => ({
+      regions: getMockRegionalOverview(),
+      nationalSummary: { avgTemperature: 26, totalRainfall7Day: 45, avgSoilMoisture: 0.38, regionsWithAlerts: 0 },
+      lastUpdated: new Date().toISOString(),
+      dataSource: { provider: "SILO/BOM", license: "CC BY 4.0" },
+    })),
 
   getClimateAlerts: publicProcedure
     .input(z.object({ states: z.array(z.string()).optional(), severity: z.string().optional() }).optional())
-    .query(() => ({ alerts: [], count: 0, dataSource: "Bureau of Meteorology (CC BY 4.0)" })),
+    .query(() => ({
+      byType: [
+        { type: "heatwave", alerts: [] },
+        { type: "drought", alerts: [] },
+        { type: "flood", alerts: [] },
+        { type: "fire", alerts: [] },
+      ],
+      count: 0,
+      dataSource: "Bureau of Meteorology (CC BY 4.0)",
+    })),
 
   getDataStatus: publicProcedure.query(() => ({
+    services: {
+      earthEngine: { available: true, lastUpdate: new Date(Date.now() - 86400000).toISOString() },
+      bomClimate: { available: true, lastSync: new Date().toISOString() },
+      silo: { available: true, recordCount: 15420 },
+    },
     silo: { status: "operational", lastSync: new Date().toISOString(), recordCount: 15420 },
     bom: { status: "operational", lastSync: new Date().toISOString(), warningCount: 0 },
     satellite: { status: "operational", lastUpdate: new Date(Date.now() - 86400000).toISOString() },
@@ -587,7 +603,7 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.6.0",
+        version: "2.7.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
         hasRouter: { prices: true, auth: true, climateHub: true, rsie: true, projectRegistry: true },
