@@ -595,6 +595,142 @@ const climateHubRouter = router({
   })),
 });
 
+// =============================================================================
+// Mock Feedstocks Data
+// =============================================================================
+
+const MOCK_FEEDSTOCKS = [
+  { id: 1, abfiId: "ABFI-FS-001", type: "Used Cooking Oil", category: "waste_oils", state: "NSW", latitude: "-33.8688", longitude: "151.2093", abfiScore: 85, carbonIntensityValue: 12.5, annualCapacityTonnes: 50000, availableVolumeCurrent: 35000, pricePerTonne: 1250, priceVisibility: "public", status: "verified" },
+  { id: 2, abfiId: "ABFI-FS-002", type: "Beef Tallow", category: "animal_fats", state: "QLD", latitude: "-27.4698", longitude: "153.0251", abfiScore: 78, carbonIntensityValue: 18.2, annualCapacityTonnes: 75000, availableVolumeCurrent: 42000, pricePerTonne: 980, priceVisibility: "public", status: "verified" },
+  { id: 3, abfiId: "ABFI-FS-003", type: "Canola Oil", category: "oilseeds", state: "VIC", latitude: "-37.8136", longitude: "144.9631", abfiScore: 92, carbonIntensityValue: 8.5, annualCapacityTonnes: 120000, availableVolumeCurrent: 85000, pricePerTonne: 720, priceVisibility: "public", status: "verified" },
+  { id: 4, abfiId: "ABFI-FS-004", type: "Palm Fatty Acid Distillate", category: "waste_oils", state: "WA", latitude: "-31.9505", longitude: "115.8605", abfiScore: 72, carbonIntensityValue: 22.1, annualCapacityTonnes: 45000, availableVolumeCurrent: 28000, pricePerTonne: 650, priceVisibility: "public", status: "verified" },
+  { id: 5, abfiId: "ABFI-FS-005", type: "Poultry Fat", category: "animal_fats", state: "SA", latitude: "-34.9285", longitude: "138.6007", abfiScore: 81, carbonIntensityValue: 15.8, annualCapacityTonnes: 30000, availableVolumeCurrent: 18000, pricePerTonne: 890, priceVisibility: "public", status: "verified" },
+  { id: 6, abfiId: "ABFI-FS-006", type: "Sugarcane Bagasse", category: "crop_residues", state: "QLD", latitude: "-19.2590", longitude: "146.8169", abfiScore: 88, carbonIntensityValue: 6.2, annualCapacityTonnes: 200000, availableVolumeCurrent: 150000, pricePerTonne: 120, priceVisibility: "public", status: "verified" },
+  { id: 7, abfiId: "ABFI-FS-007", type: "Wheat Straw", category: "crop_residues", state: "NSW", latitude: "-35.2809", longitude: "149.1300", abfiScore: 79, carbonIntensityValue: 9.1, annualCapacityTonnes: 80000, availableVolumeCurrent: 55000, pricePerTonne: 85, priceVisibility: "public", status: "verified" },
+  { id: 8, abfiId: "ABFI-FS-008", type: "Forestry Residues", category: "woody_biomass", state: "TAS", latitude: "-42.8821", longitude: "147.3272", abfiScore: 86, carbonIntensityValue: 7.8, annualCapacityTonnes: 95000, availableVolumeCurrent: 72000, pricePerTonne: 95, priceVisibility: "public", status: "verified" },
+  { id: 9, abfiId: "ABFI-FS-009", type: "Food Processing Waste", category: "organic_waste", state: "VIC", latitude: "-37.5622", longitude: "143.8503", abfiScore: 74, carbonIntensityValue: 14.3, annualCapacityTonnes: 25000, availableVolumeCurrent: 15000, pricePerTonne: 180, priceVisibility: "public", status: "verified" },
+  { id: 10, abfiId: "ABFI-FS-010", type: "Municipal Green Waste", category: "organic_waste", state: "ACT", latitude: "-35.2809", longitude: "149.1300", abfiScore: 69, carbonIntensityValue: 19.5, annualCapacityTonnes: 15000, availableVolumeCurrent: 8000, pricePerTonne: 45, priceVisibility: "public", status: "verified" },
+];
+
+const feedstocksRouter = router({
+  search: publicProcedure
+    .input(z.object({
+      category: z.array(z.string()).nullish(),
+      state: z.array(z.string()).nullish(),
+      minAbfiScore: z.number().nullish(),
+      maxCarbonIntensity: z.number().nullish(),
+      limit: z.number().default(200),
+    }).optional())
+    .query(({ input }) => {
+      let results = [...MOCK_FEEDSTOCKS];
+      if (input?.category?.length) {
+        results = results.filter(f => input.category!.includes(f.category));
+      }
+      if (input?.state?.length) {
+        results = results.filter(f => input.state!.includes(f.state));
+      }
+      if (input?.minAbfiScore) {
+        results = results.filter(f => f.abfiScore >= input.minAbfiScore!);
+      }
+      if (input?.maxCarbonIntensity) {
+        results = results.filter(f => f.carbonIntensityValue <= input.maxCarbonIntensity!);
+      }
+      return results.slice(0, input?.limit || 200);
+    }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => MOCK_FEEDSTOCKS.find(f => f.id === input.id) || null),
+
+  getPublic: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => MOCK_FEEDSTOCKS.find(f => f.id === input.id) || null),
+});
+
+// =============================================================================
+// Mock Futures Data
+// =============================================================================
+
+const MOCK_FUTURES = [
+  { id: 1, supplierId: 1, cropType: "Canola", state: "NSW", volumeTonnes: 5000, harvestYear: 2026, harvestQuarter: "Q1", pricePerTonne: 750, status: "published", createdAt: new Date().toISOString() },
+  { id: 2, supplierId: 2, cropType: "Wheat Straw", state: "VIC", volumeTonnes: 8000, harvestYear: 2026, harvestQuarter: "Q2", pricePerTonne: 95, status: "published", createdAt: new Date().toISOString() },
+  { id: 3, supplierId: 3, cropType: "Sugarcane Bagasse", state: "QLD", volumeTonnes: 15000, harvestYear: 2026, harvestQuarter: "Q3", pricePerTonne: 130, status: "published", createdAt: new Date().toISOString() },
+  { id: 4, supplierId: 4, cropType: "Forestry Residues", state: "TAS", volumeTonnes: 6000, harvestYear: 2026, harvestQuarter: "Q4", pricePerTonne: 105, status: "published", createdAt: new Date().toISOString() },
+  { id: 5, supplierId: 5, cropType: "UCO", state: "SA", volumeTonnes: 3000, harvestYear: 2027, harvestQuarter: "Q1", pricePerTonne: 1300, status: "published", createdAt: new Date().toISOString() },
+];
+
+const futuresRouter = router({
+  search: publicProcedure
+    .input(z.object({
+      state: z.string().nullish(),
+      cropType: z.string().nullish(),
+      minVolume: z.number().nullish(),
+      limit: z.number().default(50),
+    }).optional())
+    .query(({ input }) => {
+      let results = [...MOCK_FUTURES];
+      if (input?.state) {
+        results = results.filter(f => f.state === input.state);
+      }
+      if (input?.cropType) {
+        results = results.filter(f => f.cropType === input.cropType);
+      }
+      if (input?.minVolume) {
+        results = results.filter(f => f.volumeTonnes >= input.minVolume!);
+      }
+      return results.slice(0, input?.limit || 50);
+    }),
+
+  getPublic: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => MOCK_FUTURES.find(f => f.id === input.id) || null),
+
+  list: publicProcedure
+    .input(z.object({ limit: z.number().default(50) }).optional())
+    .query(({ input }) => MOCK_FUTURES.slice(0, input?.limit || 50)),
+});
+
+// =============================================================================
+// Mock Admin Router
+// =============================================================================
+
+const adminRouter = router({
+  getPendingSuppliers: publicProcedure.query(() => []),
+  getPendingFeedstocks: publicProcedure.query(() => []),
+  getStats: publicProcedure.query(() => ({
+    totalSuppliers: 25,
+    pendingVerifications: 0,
+    totalFeedstocks: 10,
+    activeFutures: 5,
+  })),
+});
+
+// =============================================================================
+// Mock Demand Signals Router
+// =============================================================================
+
+const MOCK_DEMAND_SIGNALS = [
+  { id: 1, buyerId: 1, title: "UCO Required - Sydney Metro", feedstockTypes: ["UCO"], volumeRequired: 10000, status: "published", createdAt: new Date().toISOString() },
+  { id: 2, buyerId: 2, title: "Tallow for Biodiesel Production", feedstockTypes: ["Tallow"], volumeRequired: 25000, status: "published", createdAt: new Date().toISOString() },
+  { id: 3, buyerId: 3, title: "Crop Residues for Biomass Plant", feedstockTypes: ["Wheat Straw", "Sugarcane Bagasse"], volumeRequired: 50000, status: "published", createdAt: new Date().toISOString() },
+];
+
+const demandSignalsRouter = router({
+  list: publicProcedure
+    .input(z.object({ status: z.string().optional() }).optional())
+    .query(({ input }) => {
+      let results = [...MOCK_DEMAND_SIGNALS];
+      if (input?.status) {
+        results = results.filter(d => d.status === input.status);
+      }
+      return results;
+    }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => MOCK_DEMAND_SIGNALS.find(d => d.id === input.id) || null),
+});
+
 // Auth router for dev login
 const authRouter = router({
   me: publicProcedure.query(async ({ ctx }) => {
@@ -618,10 +754,10 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.8.0",
+        version: "2.9.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
-        hasRouter: { prices: true, auth: true, climateHub: true, rsie: true, projectRegistry: true },
+        hasRouter: { prices: true, auth: true, climateHub: true, rsie: true, projectRegistry: true, feedstocks: true, futures: true, admin: true, demandSignals: true },
       })),
   }),
   prices: pricesRouter,
@@ -629,6 +765,10 @@ const apiRouter = router({
   climateHub: climateHubRouter,
   rsie: rsieRouter,
   projectRegistry: projectRegistryRouter,
+  feedstocks: feedstocksRouter,
+  futures: futuresRouter,
+  admin: adminRouter,
+  demandSignals: demandSignalsRouter,
 });
 
 export const config = {
