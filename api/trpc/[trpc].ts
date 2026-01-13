@@ -731,6 +731,155 @@ const demandSignalsRouter = router({
     .query(({ input }) => MOCK_DEMAND_SIGNALS.find(d => d.id === input.id) || null),
 });
 
+// =============================================================================
+// Mock Bankability Data for Lender Portal
+// =============================================================================
+
+const MOCK_LENDER_PROJECTS = [
+  {
+    id: 1,
+    name: "Riverina Biofuels Plant",
+    facilityLocation: "Wagga Wagga, NSW",
+    status: "operational",
+    nameplateCapacity: 120000,
+    description: "Large-scale biodiesel production facility using local oilseed feedstock",
+    tier1Target: 80,
+    annualFeedstockVolume: 100000,
+    supplyPosition: {
+      tier1Coverage: 85,
+      tier2Coverage: 12,
+      primaryCoverage: 97,
+      optionsVolume: 5000,
+      rofrVolume: 8000,
+    },
+  },
+  {
+    id: 2,
+    name: "Queensland SAF Project",
+    facilityLocation: "Gladstone, QLD",
+    status: "construction",
+    nameplateCapacity: 200000,
+    description: "Sustainable aviation fuel production from sugarcane bagasse",
+    tier1Target: 75,
+    annualFeedstockVolume: 180000,
+    supplyPosition: {
+      tier1Coverage: 72,
+      tier2Coverage: 18,
+      primaryCoverage: 90,
+      optionsVolume: 10000,
+      rofrVolume: 15000,
+    },
+  },
+  {
+    id: 3,
+    name: "Victorian Tallow Refinery",
+    facilityLocation: "Geelong, VIC",
+    status: "financing",
+    nameplateCapacity: 80000,
+    description: "Animal fat processing for renewable diesel production",
+    tier1Target: 80,
+    annualFeedstockVolume: 70000,
+    supplyPosition: {
+      tier1Coverage: 65,
+      tier2Coverage: 20,
+      primaryCoverage: 85,
+      optionsVolume: 3000,
+      rofrVolume: 5000,
+    },
+  },
+];
+
+const bankabilityRouter = router({
+  getMyLenderProjects: publicProcedure.query(({ ctx }) => {
+    // In production, filter by lender's access. For demo, return all.
+    if (!ctx.user) {
+      return [];
+    }
+    return MOCK_LENDER_PROJECTS;
+  }),
+
+  getProjectById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => MOCK_LENDER_PROJECTS.find(p => p.id === input.id) || null),
+
+  getProjectRating: publicProcedure
+    .input(z.object({ projectId: z.number() }))
+    .query(({ input }) => ({
+      projectId: input.projectId,
+      rating: "A",
+      score: 78,
+      lastAssessed: new Date().toISOString(),
+      breakdown: {
+        supplyChain: 82,
+        financial: 75,
+        operational: 78,
+        environmental: 80,
+      },
+    })),
+});
+
+// =============================================================================
+// Mock Stress Testing Data
+// =============================================================================
+
+const MOCK_STRESS_RESULTS = [
+  {
+    id: 1,
+    projectId: 1,
+    testDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    scenarioType: "supplier_default",
+    passesStressTest: true,
+    baseRating: "A",
+    stressRating: "A-",
+    ratingDelta: -1,
+    supplyShortfallPercent: 8,
+    hhiDelta: 120,
+    minimumRatingMaintained: true,
+  },
+  {
+    id: 2,
+    projectId: 2,
+    testDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    scenarioType: "price_spike",
+    passesStressTest: false,
+    baseRating: "BBB",
+    stressRating: "BB",
+    ratingDelta: -2,
+    supplyShortfallPercent: 15,
+    hhiDelta: 250,
+    minimumRatingMaintained: false,
+  },
+];
+
+const stressTestingRouter = router({
+  getProjectResults: publicProcedure
+    .input(z.object({ projectId: z.number() }))
+    .query(({ input }) => MOCK_STRESS_RESULTS.filter(r => r.projectId === input.projectId)),
+
+  runTest: publicProcedure
+    .input(z.object({ projectId: z.number(), scenarioType: z.string() }))
+    .mutation(({ input }) => ({
+      id: Math.floor(Math.random() * 1000),
+      projectId: input.projectId,
+      testDate: new Date().toISOString(),
+      scenarioType: input.scenarioType,
+      passesStressTest: Math.random() > 0.3,
+      baseRating: "A",
+      stressRating: Math.random() > 0.5 ? "A-" : "BBB+",
+      ratingDelta: Math.random() > 0.5 ? -1 : -2,
+      supplyShortfallPercent: Math.floor(Math.random() * 20),
+      hhiDelta: Math.floor(Math.random() * 300),
+      minimumRatingMaintained: Math.random() > 0.3,
+    })),
+
+  getScenarios: publicProcedure.query(() => [
+    { id: "supplier_default", name: "Supplier Default", description: "Tests impact of largest supplier defaulting" },
+    { id: "price_spike", name: "Price Spike", description: "Tests impact of 30% feedstock price increase" },
+    { id: "climate_event", name: "Climate Event", description: "Tests impact of regional drought/flood" },
+    { id: "combined", name: "Combined Scenario", description: "Tests multiple stress factors simultaneously" },
+  ]),
+});
+
 // Auth router for dev login
 const authRouter = router({
   me: publicProcedure.query(async ({ ctx }) => {
@@ -754,10 +903,10 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.9.0",
+        version: "2.10.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
-        hasRouter: { prices: true, auth: true, climateHub: true, rsie: true, projectRegistry: true, feedstocks: true, futures: true, admin: true, demandSignals: true },
+        hasRouter: { prices: true, auth: true, climateHub: true, rsie: true, projectRegistry: true, feedstocks: true, futures: true, admin: true, demandSignals: true, bankability: true, stressTesting: true },
       })),
   }),
   prices: pricesRouter,
@@ -769,6 +918,8 @@ const apiRouter = router({
   futures: futuresRouter,
   admin: adminRouter,
   demandSignals: demandSignalsRouter,
+  bankability: bankabilityRouter,
+  stressTesting: stressTestingRouter,
 });
 
 export const config = {
