@@ -380,8 +380,8 @@ export default function MapView() {
               <div className="h-[600px] relative">
                 <div
                   ref={mapContainerRef}
-                  className="w-full h-full"
-                  style={{ minHeight: "600px" }}
+                  className="w-full h-full bg-gray-100"
+                  style={{ minHeight: "600px", contain: "strict" }}
                 />
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75">

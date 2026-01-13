@@ -409,7 +409,7 @@ export function TopNavigation({ className }: TopNavigationProps) {
 
           {/* Portals - Color coded */}
           <div className="pt-2">
-            <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {menuGroups.portals.label}
             </p>
             {PORTALS.map((portal) => (
@@ -441,7 +441,7 @@ export function TopNavigation({ className }: TopNavigationProps) {
 
           {/* Marketplace */}
           <div className="pt-2">
-            <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {menuGroups.marketplace.label}
             </p>
             {menuGroups.marketplace.items.map((item) => (
@@ -466,7 +466,7 @@ export function TopNavigation({ className }: TopNavigationProps) {
 
           {/* Intelligence */}
           <div className="pt-2">
-            <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {menuGroups.intelligence.label}
             </p>
             {menuGroups.intelligence.items.map((item) => (
@@ -491,7 +491,7 @@ export function TopNavigation({ className }: TopNavigationProps) {
 
           {/* Platform */}
           <div className="pt-2">
-            <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {menuGroups.platform.label}
             </p>
             {menuGroups.platform.items.map((item) => (
@@ -516,7 +516,7 @@ export function TopNavigation({ className }: TopNavigationProps) {
 
           {/* Dashboards */}
           <div className="pt-2">
-            <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {menuGroups.dashboards.label}
             </p>
             {menuGroups.dashboards.items.map((item) => (
