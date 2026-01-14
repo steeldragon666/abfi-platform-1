@@ -3,7 +3,7 @@
  * Allows MapControlsPanel to control UnifiedMap from outside
  */
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { type LucideIcon, Leaf, TrendingUp, MapPin, Globe, Layers, Satellite, Factory, Truck, Zap } from 'lucide-react';
+import { type LucideIcon, Leaf, TrendingUp, MapPin, Globe, Layers, Satellite, Factory, Truck, Zap, Cloud, Thermometer, Droplets, AlertTriangle, Map, Wheat, Building } from 'lucide-react';
 
 // Layer configuration with role visibility
 export interface MapLayer {
@@ -94,6 +94,72 @@ export const DEFAULT_LAYERS: MapLayer[] = [
     icon: Zap,
     color: '#eab308',
     roles: ['buyer', 'lender', 'admin'],
+    enabled: false,
+  },
+  // BOM Climate Overlays
+  {
+    id: 'bomRainfall',
+    label: 'Rainfall (BOM)',
+    icon: Droplets,
+    color: '#0ea5e9',
+    roles: ['buyer', 'supplier', 'grower', 'admin', 'auditor', 'lender'],
+    enabled: false,
+  },
+  {
+    id: 'bomTemperature',
+    label: 'Temperature (BOM)',
+    icon: Thermometer,
+    color: '#ef4444',
+    roles: ['buyer', 'supplier', 'grower', 'admin', 'auditor', 'lender'],
+    enabled: false,
+  },
+  {
+    id: 'bomWarnings',
+    label: 'Weather Warnings',
+    icon: AlertTriangle,
+    color: '#f59e0b',
+    roles: ['buyer', 'supplier', 'grower', 'admin', 'auditor', 'lender'],
+    enabled: false,
+  },
+  {
+    id: 'bomRadar',
+    label: 'Radar (BOM)',
+    icon: Cloud,
+    color: '#6366f1',
+    roles: ['buyer', 'supplier', 'grower', 'admin', 'auditor', 'lender'],
+    enabled: false,
+  },
+  // Government Data Overlays
+  {
+    id: 'landUse',
+    label: 'Land Use (ABARES)',
+    icon: Map,
+    color: '#84cc16',
+    roles: ['buyer', 'supplier', 'grower', 'admin', 'auditor', 'lender'],
+    enabled: false,
+  },
+  {
+    id: 'cropAreas',
+    label: 'Crop Areas',
+    icon: Wheat,
+    color: '#f59e0b',
+    roles: ['buyer', 'supplier', 'grower', 'admin', 'auditor', 'lender'],
+    enabled: false,
+  },
+  {
+    id: 'sugarcaneZones',
+    label: 'Sugarcane Zones (QLD)',
+    icon: Leaf,
+    color: '#22c55e',
+    roles: ['buyer', 'supplier', 'grower', 'admin', 'auditor', 'lender'],
+    enabled: false,
+  },
+  {
+    id: 'cadastre',
+    label: 'Property Boundaries',
+    icon: Building,
+    color: '#a855f7',
+    roles: ['buyer', 'supplier', 'grower', 'admin', 'auditor', 'lender'],
     enabled: false,
   },
 ];

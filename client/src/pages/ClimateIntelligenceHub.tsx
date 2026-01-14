@@ -24,10 +24,11 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { Link } from 'wouter';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, CircleMarker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, CircleMarker, WMSTileLayer } from 'react-leaflet';
 import { LatLng, Icon as LeafletIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { trpc } from '@/lib/trpc';
+import { DataOverlayLayers, OverlayLegend } from '@/components/maps/DataOverlayLayers';
 import { cn } from '@/lib/utils';
 import { H1, Body, MetricValue, DataLabel } from '@/components/Typography';
 import { ClimateAlertsBar } from '@/components/climate/ClimateAlertsBar';
@@ -84,6 +85,9 @@ export default function ClimateIntelligenceHub() {
     soilMoisture: 0.7,
     weather: 0.7,
   });
+
+  // Data overlay layers (BOM, government data)
+  const [dataLayers, setDataLayers] = useState<string[]>([]);
 
   // Fetch climate alerts
   const { data: alertsData, isLoading: alertsLoading } = trpc.climateHub.getClimateAlerts.useQuery({});
@@ -182,6 +186,20 @@ export default function ClimateIntelligenceHub() {
               />
             )}
 
+            {/* BOM and Government Data Overlays */}
+            <DataOverlayLayers
+              enabledLayers={[
+                ...(layers.weather ? ['bomRadar'] : []),
+                ...(layers.soilMoisture ? ['bomRainfall'] : []),
+                ...(layers.warnings ? ['bomWarnings'] : []),
+                ...dataLayers,
+              ]}
+              opacitySettings={{
+                bomRadar: opacity.weather,
+                bomRainfall: opacity.soilMoisture,
+              }}
+            />
+
             {/* Map Click Handler */}
             <MapClickHandler onMapClick={handleMapClick} />
 
@@ -250,6 +268,19 @@ export default function ClimateIntelligenceHub() {
             onLayerChange={handleLayerChange}
             onOpacityChange={handleOpacityChange}
             compact
+          />
+        </div>
+
+        {/* Overlay Legend - Bottom Left */}
+        <div className="absolute bottom-8 left-4 z-[1000]">
+          <OverlayLegend
+            enabledLayers={[
+              ...(layers.weather ? ['bomRadar'] : []),
+              ...(layers.soilMoisture ? ['bomRainfall'] : []),
+              ...(layers.warnings ? ['bomWarnings'] : []),
+              ...(layers.ndvi ? ['ndvi'] : []),
+              ...dataLayers,
+            ]}
           />
         </div>
 

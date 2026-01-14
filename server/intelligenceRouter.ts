@@ -1063,5 +1063,293 @@ router.post("/accu/ingest", async (req: Request, res: Response) => {
   }
 });
 
+// ============================================================================
+// QUALITY VISION ENDPOINTS (P3)
+// ============================================================================
+
+import {
+  analyzeQualityFromPhotos,
+  estimateYieldFromSatellite,
+} from "./services/feedstockQualityVision";
+
+const QualityAnalysisSchema = z.object({
+  images: z.array(z.string()).min(1).max(10),
+  feedstockType: z.string(),
+  expectedMoistureRange: z.object({
+    min: z.number().min(0).max(100),
+    max: z.number().min(0).max(100),
+  }).optional(),
+  notes: z.string().optional(),
+});
+
+/**
+ * POST /api/intelligence/quality/analyze-photos
+ * Analyze feedstock quality from photos using computer vision
+ */
+router.post(
+  "/quality/analyze-photos",
+  validateBody(QualityAnalysisSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const params = (req as any).validated;
+      const analysis = await analyzeQualityFromPhotos(params);
+
+      res.json({
+        success: true,
+        data: analysis,
+      });
+    } catch (error) {
+      console.error("[Intelligence] Quality analysis error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to analyze quality from photos",
+      });
+    }
+  }
+);
+
+const SatelliteYieldSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  feedstockType: z.string(),
+});
+
+/**
+ * POST /api/intelligence/quality/satellite-yield
+ * Estimate yield from satellite imagery (NDVI analysis)
+ */
+router.post(
+  "/quality/satellite-yield",
+  validateBody(SatelliteYieldSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { latitude, longitude, feedstockType } = (req as any).validated;
+      const estimate = await estimateYieldFromSatellite(latitude, longitude, feedstockType);
+
+      res.json({
+        success: true,
+        data: estimate,
+      });
+    } catch (error) {
+      console.error("[Intelligence] Satellite yield error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to estimate yield from satellite",
+      });
+    }
+  }
+);
+
+// ============================================================================
+// GRANT DECODER ENDPOINTS (P3)
+// ============================================================================
+
+import {
+  decodeGrantAgreement,
+  checkGrantCompliance,
+  searchSimilarClauses,
+} from "./services/grantDecoder";
+
+const GrantDecodeSchema = z.object({
+  documentBase64: z.string(),
+  documentType: z.enum(["pdf", "docx"]).default("pdf"),
+});
+
+/**
+ * POST /api/intelligence/grants/decode
+ * Decode and analyze a grant agreement document
+ */
+router.post(
+  "/grants/decode",
+  validateBody(GrantDecodeSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const { documentBase64, documentType } = (req as any).validated;
+      const analysis = await decodeGrantAgreement(documentBase64, documentType);
+
+      res.json({
+        success: true,
+        data: analysis,
+      });
+    } catch (error) {
+      console.error("[Intelligence] Grant decode error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to decode grant agreement",
+      });
+    }
+  }
+);
+
+const ComplianceCheckSchema = z.object({
+  agreementId: z.string(),
+  reportDate: z.string().transform(s => new Date(s)),
+  milestoneProgress: z.record(z.object({
+    completed: z.boolean(),
+    completionDate: z.string().transform(s => new Date(s)).optional(),
+    evidence: z.array(z.string()).optional(),
+  })),
+  expenditure: z.array(z.object({
+    category: z.string(),
+    amount: z.number(),
+  })),
+  jobsCreated: z.number().optional(),
+  issues: z.array(z.string()).optional(),
+});
+
+/**
+ * POST /api/intelligence/grants/compliance-check
+ * Check compliance of project report against grant agreement
+ */
+router.post(
+  "/grants/compliance-check",
+  validateBody(ComplianceCheckSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const params = (req as any).validated;
+      const report = await checkGrantCompliance(params.agreementId, params);
+
+      res.json({
+        success: true,
+        data: report,
+      });
+    } catch (error) {
+      console.error("[Intelligence] Compliance check error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to check grant compliance",
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/intelligence/grants/similar-clauses
+ * Search for similar clauses in the knowledge base
+ */
+router.get("/grants/similar-clauses", async (req: Request, res: Response) => {
+  try {
+    const query = z.string().min(5).parse(req.query.query);
+    const grantProgram = req.query.program ? String(req.query.program) : undefined;
+
+    const results = await searchSimilarClauses(query, grantProgram);
+
+    res.json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    console.error("[Intelligence] Clause search error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to search for similar clauses",
+    });
+  }
+});
+
+// ============================================================================
+// PRICE DISCOVERY ENDPOINTS (P3)
+// ============================================================================
+
+import {
+  calculateFairValuePrice,
+  getRegionalBenchmarks,
+  getCurrentAEMOPrices,
+} from "./services/priceDiscoveryEngine";
+
+const PriceQuoteSchema = z.object({
+  feedstockType: z.string(),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  moisturePercent: z.number().min(0).max(100),
+  energyContentMJkg: z.number().min(0).max(30),
+  contaminationLevel: z.enum(["none", "low", "medium", "high"]).default("none"),
+  ashContentPercent: z.number().min(0).max(50).optional(),
+});
+
+/**
+ * POST /api/intelligence/price/fair-value
+ * Calculate fair value price for feedstock
+ */
+router.post(
+  "/price/fair-value",
+  validateBody(PriceQuoteSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const params = (req as any).validated;
+      const quote = await calculateFairValuePrice(
+        params.feedstockType,
+        { latitude: params.latitude, longitude: params.longitude },
+        {
+          moisturePercent: params.moisturePercent,
+          energyContentMJkg: params.energyContentMJkg,
+          contaminationLevel: params.contaminationLevel,
+          ashContentPercent: params.ashContentPercent,
+        }
+      );
+
+      res.json({
+        success: true,
+        data: quote,
+      });
+    } catch (error) {
+      console.error("[Intelligence] Price calculation error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to calculate fair value price",
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/intelligence/price/benchmarks/:state/:feedstock
+ * Get regional price benchmarks
+ */
+router.get("/price/benchmarks/:state/:feedstock", async (req: Request, res: Response) => {
+  try {
+    const state = AustralianState.parse(req.params.state);
+    const feedstock = req.params.feedstock;
+    const period = z.enum(["7d", "30d", "90d"]).default("30d").parse(req.query.period || "30d");
+
+    const benchmarks = await getRegionalBenchmarks(feedstock, state, period);
+
+    res.json({
+      success: true,
+      data: benchmarks,
+    });
+  } catch (error) {
+    console.error("[Intelligence] Benchmark fetch error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch price benchmarks",
+    });
+  }
+});
+
+/**
+ * GET /api/intelligence/price/aemo
+ * Get current AEMO electricity spot prices
+ */
+router.get("/price/aemo", async (req: Request, res: Response) => {
+  try {
+    const prices = await getCurrentAEMOPrices();
+
+    res.json({
+      success: true,
+      data: {
+        timestamp: new Date(),
+        prices,
+      },
+    });
+  } catch (error) {
+    console.error("[Intelligence] AEMO price fetch error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch AEMO prices",
+    });
+  }
+});
+
 export const intelligenceRouter = router;
 export default router;
