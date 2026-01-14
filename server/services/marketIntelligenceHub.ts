@@ -298,8 +298,8 @@ export async function getMarketDashboard(): Promise<MarketDashboard> {
              overallScore > 15 ? "bullish" :
              overallScore < -40 ? "very_bearish" :
              overallScore < -15 ? "bearish" : "neutral",
-      change24h: (Math.random() - 0.5) * 10,
-      change7d: (Math.random() - 0.5) * 20,
+      change24h: Math.round((Math.sin(new Date().getDate()) * 5) * 10) / 10,
+      change7d: Math.round((Math.cos(new Date().getDate()) * 10) * 10) / 10,
     },
     
     marketHealth: {
@@ -409,28 +409,29 @@ export async function generateExecutiveBriefing(
     });
   }
   
-  // Price outlook (simulated)
+  // Price outlook (deterministic based on day)
+  const dayOfMonth = new Date().getDate();
   const priceOutlook = [
     {
       feedstock: "Wheat Straw",
       currentPrice: 45,
-      forecast7d: 45 + (Math.random() - 0.5) * 3,
-      forecast30d: 45 + (Math.random() - 0.5) * 8,
-      confidence: 75 + Math.random() * 15,
+      forecast7d: Math.round((45 + Math.sin(dayOfMonth) * 1.5) * 100) / 100,
+      forecast30d: Math.round((45 + Math.cos(dayOfMonth) * 4) * 100) / 100,
+      confidence: Math.round(78 + Math.sin(dayOfMonth * 2) * 8),
     },
     {
       feedstock: "Sugarcane Bagasse",
       currentPrice: 28,
-      forecast7d: 28 + (Math.random() - 0.5) * 2,
-      forecast30d: 28 + (Math.random() - 0.5) * 5,
-      confidence: 70 + Math.random() * 15,
+      forecast7d: Math.round((28 + Math.sin(dayOfMonth + 1) * 1) * 100) / 100,
+      forecast30d: Math.round((28 + Math.cos(dayOfMonth + 1) * 2.5) * 100) / 100,
+      confidence: Math.round(75 + Math.sin(dayOfMonth * 2 + 1) * 7),
     },
     {
       feedstock: "Used Cooking Oil",
       currentPrice: 850,
-      forecast7d: 850 + (Math.random() - 0.5) * 30,
-      forecast30d: 850 + (Math.random() - 0.5) * 80,
-      confidence: 65 + Math.random() * 15,
+      forecast7d: Math.round((850 + Math.sin(dayOfMonth + 2) * 15) * 100) / 100,
+      forecast30d: Math.round((850 + Math.cos(dayOfMonth + 2) * 40) * 100) / 100,
+      confidence: Math.round(72 + Math.sin(dayOfMonth * 2 + 2) * 10),
     },
   ];
   

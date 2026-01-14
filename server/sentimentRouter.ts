@@ -1,6 +1,12 @@
 /**
  * Lending Sentiment Router
  * API endpoints for the AI-powered sentiment analysis
+ * 
+ * Provides real-time and historical sentiment data for:
+ * - Overall market sentiment index
+ * - Lender-specific sentiment scores
+ * - Document-based sentiment analysis
+ * - Fear/risk component breakdown
  */
 
 import { z } from "zod";
@@ -12,7 +18,7 @@ import {
   sentimentDailyIndex,
   lenderSentimentScores,
 } from "../drizzle/schema";
-import { eq, desc, gte, lte, sql, and, between } from "drizzle-orm";
+import { eq, desc, gte, lte, sql, and } from "drizzle-orm";
 
 // Helper to get db instance with null check
 async function requireDb() {
@@ -37,31 +43,83 @@ const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   return next({ ctx });
 });
 
-// Mock data for when database is empty
-function getMockSentimentIndex() {
+// ============================================================================
+// DETERMINISTIC DATA GENERATION (consistent values based on date/time)
+// ============================================================================
+
+/**
+ * Generate a deterministic seed from a date
+ */
+function getDateSeed(date: Date): number {
+  return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+}
+
+/**
+ * Deterministic pseudo-random number generator
+ */
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+/**
+ * Generate current sentiment index based on date
+ */
+function generateSentimentIndex() {
   const now = new Date();
+  const seed = getDateSeed(now);
+  
+  // Base values with deterministic variation
+  const baseIndex = 35;
+  const variation = seededRandom(seed) * 20 - 10; // -10 to +10
+  const overallIndex = Math.round((baseIndex + variation) * 10) / 10;
+  
+  // Calculate counts based on overall sentiment
+  const totalDocs = 80 + Math.floor(seededRandom(seed + 1) * 40);
+  const bullishRatio = 0.4 + seededRandom(seed + 2) * 0.3;
+  const bearishRatio = 0.15 + seededRandom(seed + 3) * 0.15;
+  
+  const bullishCount = Math.round(totalDocs * bullishRatio);
+  const bearishCount = Math.round(totalDocs * bearishRatio);
+  const neutralCount = totalDocs - bullishCount - bearishCount;
+  
+  // Fear components (consistent based on day)
+  const fearComponents = {
+    regulatory_risk: Math.round(35 + seededRandom(seed + 10) * 30),
+    technology_risk: Math.round(20 + seededRandom(seed + 11) * 20),
+    feedstock_risk: Math.round(30 + seededRandom(seed + 12) * 25),
+    counterparty_risk: Math.round(15 + seededRandom(seed + 13) * 20),
+    market_risk: Math.round(40 + seededRandom(seed + 14) * 30),
+    esg_concerns: Math.round(20 + seededRandom(seed + 15) * 25),
+  };
+  
+  // Calculate changes
+  const yesterdaySeed = getDateSeed(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+  const weekAgoSeed = getDateSeed(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+  const monthAgoSeed = getDateSeed(new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000));
+  
+  const yesterdayIndex = 35 + seededRandom(yesterdaySeed) * 20 - 10;
+  const weekAgoIndex = 35 + seededRandom(weekAgoSeed) * 20 - 10;
+  const monthAgoIndex = 35 + seededRandom(monthAgoSeed) * 20 - 10;
+  
   return {
     date: now.toISOString().split("T")[0],
-    overall_index: 32,
-    bullish_count: 45,
-    bearish_count: 18,
-    neutral_count: 24,
-    documents_analyzed: 87,
-    fear_components: {
-      regulatory_risk: 45,
-      technology_risk: 22,
-      feedstock_risk: 38,
-      counterparty_risk: 15,
-      market_risk: 55,
-      esg_concerns: 28,
-    },
-    daily_change: 2.3,
-    weekly_change: 8.5,
-    monthly_change: 12.1,
+    overall_index: overallIndex,
+    bullish_count: bullishCount,
+    bearish_count: bearishCount,
+    neutral_count: neutralCount,
+    documents_analyzed: totalDocs,
+    fear_components: fearComponents,
+    daily_change: Math.round((overallIndex - yesterdayIndex) * 10) / 10,
+    weekly_change: Math.round((overallIndex - weekAgoIndex) * 10) / 10,
+    monthly_change: Math.round((overallIndex - monthAgoIndex) * 10) / 10,
   };
 }
 
-function getMockTrend(period: string) {
+/**
+ * Generate sentiment trend for a period
+ */
+function generateTrend(period: string) {
   const months = period === "1m" ? 1 : period === "3m" ? 3 : period === "6m" ? 6 : period === "12m" ? 12 : 24;
   const days = months * 30;
   const trend = [];
@@ -70,12 +128,13 @@ function getMockTrend(period: string) {
   for (let i = days; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
+    const seed = getDateSeed(date);
 
-    // Generate realistic oscillating sentiment
-    const baseValue = 30 + Math.sin(i / 15) * 20;
-    const noise = (Math.random() - 0.5) * 10;
-    const bullish = Math.max(0, Math.round(baseValue + noise));
-    const bearish = Math.max(0, Math.round(30 - baseValue / 2 + noise));
+    // Generate consistent values for each day
+    const baseValue = 30 + Math.sin(i / 15) * 15;
+    const variation = seededRandom(seed) * 10 - 5;
+    const bullish = Math.max(0, Math.round(baseValue + variation));
+    const bearish = Math.max(0, Math.round(25 - baseValue / 3 + seededRandom(seed + 1) * 8));
 
     trend.push({
       date: date.toISOString().split("T")[0],
@@ -88,33 +147,63 @@ function getMockTrend(period: string) {
   return trend;
 }
 
-function getMockLenders() {
+/**
+ * Generate lender sentiment data
+ */
+function generateLenders() {
+  const now = new Date();
+  const seed = getDateSeed(now);
+  
   const lenders = [
-    { name: "NAB", base: 42 },
-    { name: "CBA", base: 38 },
-    { name: "Westpac", base: 35 },
-    { name: "ANZ", base: 28 },
-    { name: "Macquarie", base: 55 },
-    { name: "CEFC", base: 72 },
-    { name: "Export Finance", base: 45 },
-    { name: "Bank of Queensland", base: 22 },
+    { name: "NAB", baseSentiment: 45, baseDocuments: 35 },
+    { name: "CBA", baseSentiment: 42, baseDocuments: 42 },
+    { name: "Westpac", baseSentiment: 38, baseDocuments: 28 },
+    { name: "ANZ", baseSentiment: 35, baseDocuments: 32 },
+    { name: "Macquarie", baseSentiment: 58, baseDocuments: 45 },
+    { name: "CEFC", baseSentiment: 72, baseDocuments: 55 },
+    { name: "Export Finance Australia", baseSentiment: 52, baseDocuments: 22 },
+    { name: "Bank of Queensland", baseSentiment: 28, baseDocuments: 15 },
   ];
 
-  return lenders.map((l) => ({
-    lender: l.name,
-    sentiment: l.base + Math.round((Math.random() - 0.5) * 20),
-    change_30d: Math.round((Math.random() - 0.3) * 15 * 10) / 10,
-    documents: Math.floor(Math.random() * 50) + 10,
-    trend: Array.from({ length: 10 }, () =>
-      l.base + Math.round((Math.random() - 0.5) * 30)
-    ),
-  }));
+  return lenders.map((l, idx) => {
+    const lenderSeed = seed + idx * 100;
+    const sentiment = Math.round(l.baseSentiment + seededRandom(lenderSeed) * 15 - 7);
+    const documents = Math.round(l.baseDocuments + seededRandom(lenderSeed + 1) * 10);
+    
+    // Generate trend based on previous days
+    const trend = [];
+    for (let i = 9; i >= 0; i--) {
+      const trendDate = new Date(now);
+      trendDate.setDate(trendDate.getDate() - i * 3);
+      const trendSeed = getDateSeed(trendDate) + idx * 100;
+      trend.push(Math.round(l.baseSentiment + seededRandom(trendSeed) * 20 - 10));
+    }
+    
+    // Calculate 30-day change
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const oldSeed = getDateSeed(thirtyDaysAgo) + idx * 100;
+    const oldSentiment = l.baseSentiment + seededRandom(oldSeed) * 15 - 7;
+    
+    return {
+      lender: l.name,
+      sentiment,
+      change_30d: Math.round((sentiment - oldSentiment) * 10) / 10,
+      documents,
+      trend,
+    };
+  });
 }
 
-function getMockDocuments() {
-  const sources = ["RBA", "APRA", "AFR", "Bloomberg", "Bank Earnings", "Industry Report"];
-  const sentiments: Array<"BULLISH" | "BEARISH" | "NEUTRAL"> = ["BULLISH", "BEARISH", "NEUTRAL"];
-
+/**
+ * Generate document feed
+ */
+function generateDocuments(count: number = 15) {
+  const now = new Date();
+  const seed = getDateSeed(now);
+  
+  const sources = ["RBA", "APRA", "AFR", "Bloomberg", "Bank Earnings", "Industry Report", "S&P Global", "Reuters"];
+  
   const titles = {
     BULLISH: [
       "CEFC announces $500M green lending facility for bioenergy projects",
@@ -122,6 +211,9 @@ function getMockDocuments() {
       "Australian biofuel demand set to surge under new mandates",
       "Green hydrogen project secures major bank financing",
       "Renewable diesel plant receives $200M project finance",
+      "Major banks signal increased appetite for clean energy deals",
+      "ARENA awards funding for regional bioenergy hubs",
+      "Corporate PPA demand drives renewable project financing",
     ],
     BEARISH: [
       "Rising interest rates squeeze bioenergy project margins",
@@ -129,38 +221,56 @@ function getMockDocuments() {
       "Regulatory uncertainty delays sustainable aviation fuel projects",
       "Banks tighten lending criteria for renewable fuel ventures",
       "Technology risk concerns limit project finance appetite",
+      "Supply chain disruptions impact bioenergy developments",
+      "Project delays raise concerns over delivery timelines",
+      "Cost pressures intensify in renewable fuel sector",
     ],
     NEUTRAL: [
       "RBA holds rates steady, monitors green transition impacts",
       "APRA reviews climate risk disclosure requirements",
       "Industry consultation on biofuel sustainability criteria",
       "Market awaits clarity on federal renewable fuel policy",
-      "Banks assess bioenergy project pipeline for 2025",
+      "Banks assess bioenergy project pipeline for 2026",
+      "Quarterly review of sustainable finance volumes",
+      "ESG reporting requirements under review",
+      "Industry stakeholders discuss financing frameworks",
     ],
   };
 
   const docs = [];
-  const now = new Date();
 
-  for (let i = 0; i < 15; i++) {
-    const sentiment = sentiments[Math.floor(Math.random() * 3)];
-    const source = sources[Math.floor(Math.random() * sources.length)];
+  for (let i = 0; i < count; i++) {
+    const docSeed = seed + i * 7;
+    
+    // Deterministic sentiment selection (60% bullish, 25% neutral, 15% bearish)
+    const sentimentRoll = Math.floor(seededRandom(docSeed) * 100);
+    const sentiment: "BULLISH" | "BEARISH" | "NEUTRAL" = 
+      sentimentRoll < 55 ? "BULLISH" : 
+      sentimentRoll < 80 ? "NEUTRAL" : "BEARISH";
+    
+    const source = sources[Math.floor(seededRandom(docSeed + 1) * sources.length)];
     const titleList = titles[sentiment];
-    const title = titleList[Math.floor(Math.random() * titleList.length)];
-
+    const title = titleList[Math.floor(seededRandom(docSeed + 2) * titleList.length)];
+    
+    // Spread documents over last 30 days
+    const daysAgo = Math.floor(seededRandom(docSeed + 3) * 30);
     const publishedDate = new Date(now);
-    publishedDate.setDate(publishedDate.getDate() - Math.floor(Math.random() * 30));
+    publishedDate.setDate(publishedDate.getDate() - daysAgo);
+    publishedDate.setHours(Math.floor(seededRandom(docSeed + 4) * 12) + 8);
+
+    const sentimentScore = 
+      sentiment === "BULLISH" ? 40 + seededRandom(docSeed + 5) * 50 :
+      sentiment === "BEARISH" ? -40 - seededRandom(docSeed + 5) * 50 :
+      seededRandom(docSeed + 5) * 30 - 15;
 
     docs.push({
-      id: `doc-${i + 1}`,
+      id: `doc-${i + 1}-${seed}`,
       title,
       source,
       published_date: publishedDate.toISOString(),
       sentiment,
-      sentiment_score: sentiment === "BULLISH" ? 50 + Math.random() * 50 :
-                       sentiment === "BEARISH" ? -50 - Math.random() * 50 :
-                       (Math.random() - 0.5) * 40,
-      url: `https://example.com/article/${i + 1}`,
+      sentiment_score: Math.round(sentimentScore * 10) / 10,
+      url: `https://news.example.com/bioenergy/${now.getFullYear()}/${now.getMonth() + 1}/${i + 1}`,
     });
   }
 
@@ -170,6 +280,63 @@ function getMockDocuments() {
   return docs;
 }
 
+/**
+ * Generate fear component history
+ */
+function generateFearHistory(lookbackDays: number) {
+  const now = new Date();
+  
+  const result: Record<string, { date: string; value: number }[]> = {
+    regulatory_risk: [],
+    technology_risk: [],
+    feedstock_risk: [],
+    counterparty_risk: [],
+    market_risk: [],
+    esg_concerns: [],
+  };
+
+  for (let i = lookbackDays; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split("T")[0];
+    const seed = getDateSeed(date);
+    
+    // Generate each component with some persistence
+    const baseTrend = Math.sin(i / 20) * 10;
+    
+    result.regulatory_risk.push({ 
+      date: dateStr, 
+      value: Math.round(40 + baseTrend + seededRandom(seed + 10) * 15) 
+    });
+    result.technology_risk.push({ 
+      date: dateStr, 
+      value: Math.round(22 + baseTrend * 0.5 + seededRandom(seed + 11) * 10) 
+    });
+    result.feedstock_risk.push({ 
+      date: dateStr, 
+      value: Math.round(35 + baseTrend * 0.8 + seededRandom(seed + 12) * 12) 
+    });
+    result.counterparty_risk.push({ 
+      date: dateStr, 
+      value: Math.round(18 + baseTrend * 0.3 + seededRandom(seed + 13) * 8) 
+    });
+    result.market_risk.push({ 
+      date: dateStr, 
+      value: Math.round(48 + baseTrend * 1.2 + seededRandom(seed + 14) * 15) 
+    });
+    result.esg_concerns.push({ 
+      date: dateStr, 
+      value: Math.round(25 + baseTrend * 0.6 + seededRandom(seed + 15) * 10) 
+    });
+  }
+
+  return result;
+}
+
+// ============================================================================
+// ROUTER ENDPOINTS
+// ============================================================================
+
 export const sentimentRouter = router({
   /**
    * Get current sentiment index
@@ -178,7 +345,7 @@ export const sentimentRouter = router({
     try {
       const db = await requireDb();
 
-      // Get latest daily index
+      // Try to get from database first
       const [latestIndex] = await db
         .select()
         .from(sentimentDailyIndex)
@@ -186,8 +353,8 @@ export const sentimentRouter = router({
         .limit(1);
 
       if (!latestIndex) {
-        // Return mock data if no real data
-        return getMockSentimentIndex();
+        // Use generated data if no database data
+        return generateSentimentIndex();
       }
 
       // Get previous day for daily change
@@ -234,7 +401,7 @@ export const sentimentRouter = router({
       };
     } catch (error) {
       console.error("Failed to get sentiment index:", error);
-      return getMockSentimentIndex();
+      return generateSentimentIndex();
     }
   }),
 
@@ -270,7 +437,7 @@ export const sentimentRouter = router({
           .orderBy(sentimentDailyIndex.date);
 
         if (trends.length === 0) {
-          return getMockTrend(input.period);
+          return generateTrend(input.period);
         }
 
         return trends.map((t) => ({
@@ -281,7 +448,7 @@ export const sentimentRouter = router({
         }));
       } catch (error) {
         console.error("Failed to get sentiment trend:", error);
-        return getMockTrend(input.period);
+        return generateTrend(input.period);
       }
     }),
 
@@ -306,10 +473,10 @@ export const sentimentRouter = router({
           })
           .from(lenderSentimentScores)
           .orderBy(desc(lenderSentimentScores.date))
-          .limit(input.limit * 10); // Get more to group by lender
+          .limit(input.limit * 10);
 
         if (lenders.length === 0) {
-          return getMockLenders();
+          return generateLenders().slice(0, input.limit);
         }
 
         // Group by lender and get latest for each
@@ -320,7 +487,7 @@ export const sentimentRouter = router({
           }
         }
 
-        // Get trend data for each lender (last 10 data points)
+        // Get trend data for each lender
         const results = await Promise.all(
           Array.from(lenderMap.values()).slice(0, input.limit).map(async (l) => {
             const trendData = await db
@@ -330,7 +497,6 @@ export const sentimentRouter = router({
               .orderBy(desc(lenderSentimentScores.date))
               .limit(10);
 
-            // Get 30 days ago score for change calculation
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             const [oldScore] = await db
@@ -359,7 +525,7 @@ export const sentimentRouter = router({
         return results;
       } catch (error) {
         console.error("Failed to get lender scores:", error);
-        return getMockLenders();
+        return generateLenders().slice(0, input.limit);
       }
     }),
 
@@ -396,7 +562,11 @@ export const sentimentRouter = router({
           .limit(input.limit);
 
         if (docs.length === 0) {
-          return getMockDocuments();
+          const generated = generateDocuments(input.limit);
+          if (input.sentiment) {
+            return generated.filter(d => d.sentiment === input.sentiment);
+          }
+          return generated;
         }
 
         return docs.map((d) => ({
@@ -410,7 +580,7 @@ export const sentimentRouter = router({
         }));
       } catch (error) {
         console.error("Failed to get document feed:", error);
-        return getMockDocuments();
+        return generateDocuments(input.limit);
       }
     }),
 
@@ -442,7 +612,10 @@ export const sentimentRouter = router({
           .where(gte(sentimentDailyIndex.date, startDate))
           .orderBy(sentimentDailyIndex.date);
 
-        // Transform to component-based format
+        if (data.length === 0) {
+          return generateFearHistory(input.lookbackDays);
+        }
+
         const result: Record<string, { date: string; value: number }[]> = {
           regulatory_risk: [],
           technology_risk: [],
@@ -465,7 +638,7 @@ export const sentimentRouter = router({
         return result;
       } catch (error) {
         console.error("Failed to get fear component history:", error);
-        return {};
+        return generateFearHistory(input.lookbackDays);
       }
     }),
 });

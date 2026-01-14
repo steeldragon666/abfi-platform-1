@@ -4,16 +4,15 @@
  *
  * Features:
  * - RSS feed aggregation from major news sources
- * - API-based news retrieval (Google News, NewsAPI)
  * - NLP-based sentiment analysis
  * - Keyword extraction and topic categorization
  * - Trending topics identification
  * - Alert generation for breaking news
  *
  * Sources:
- * - Australian: AFR, The Australian, ABC, ARENA, CEFC
- * - Global: Reuters, Bloomberg, Biofuels Digest, Argus Media
- * - Industry: Bioenergy Insight, Biomass Magazine, IEA Bioenergy
+ * - Australian: ARENA, CEFC, ABC
+ * - Global: Biofuels Digest, Biomass Magazine, IEA Bioenergy
+ * - Carbon: Carbon Pulse
  */
 
 import { logger } from "../utils/logger";
@@ -88,7 +87,14 @@ export interface NewsAlert {
 // RSS FEED SOURCES
 // ============================================================================
 
-const RSS_FEEDS = {
+interface RSSFeedConfig {
+  name: string;
+  url: string;
+  category: string;
+  region: string;
+}
+
+const RSS_FEEDS: Record<string, RSSFeedConfig> = {
   // Australian Sources
   arena: {
     name: "ARENA News",
@@ -112,7 +118,7 @@ const RSS_FEEDS = {
   // Global Industry
   biofuels_digest: {
     name: "Biofuels Digest",
-    url: "https://www.biofuelsdigest.com/feed/",
+    url: "https://www.biofuelsdigest.com/bdigest/feed/",
     category: "industry",
     region: "GLOBAL",
   },
@@ -139,7 +145,7 @@ const RSS_FEEDS = {
   
   // Carbon Markets
   carbon_pulse_free: {
-    name: "Carbon Pulse (Free)",
+    name: "Carbon Pulse",
     url: "https://carbon-pulse.com/feed/",
     category: "carbon",
     region: "GLOBAL",
@@ -170,111 +176,177 @@ const SENTIMENT_KEYWORDS = {
   bullish: [
     "investment", "funding", "expansion", "growth", "approval",
     "breakthrough", "record", "milestone", "partnership", "deal",
-    "mandate", "target", "incentive", "subsidy", "grant",
+    "mandate", "target", "incentive", "subsidy", "grant", "success",
+    "increase", "boost", "award", "launch", "opens", "secures",
   ],
   bearish: [
     "delay", "cancellation", "shutdown", "concern", "challenge",
     "uncertainty", "risk", "decline", "shortage", "cost overrun",
-    "opposition", "lawsuit", "regulatory hurdle", "tariff",
+    "opposition", "lawsuit", "regulatory hurdle", "tariff", "fails",
+    "closes", "cuts", "reduces", "suspends", "halts", "drops",
   ],
 };
 
+// Cache for fetched articles to avoid repeated fetches
+let articleCache: NewsArticle[] = [];
+let lastFetchTime: Date | null = null;
+const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+
 // ============================================================================
-// NEWS FETCHING & PARSING
+// RSS PARSING (using fetch and basic XML parsing)
 // ============================================================================
 
 /**
- * Fetch and parse RSS feeds
+ * Parse RSS XML content into articles
  */
-async function fetchRSSFeeds(): Promise<NewsArticle[]> {
+function parseRSSXML(xml: string, feed: RSSFeedConfig): NewsArticle[] {
   const articles: NewsArticle[] = [];
   
-  // In production, would use xml2js or fast-xml-parser to parse RSS
-  // For now, generate simulated articles from known sources
-  
-  for (const [feedKey, feed] of Object.entries(RSS_FEEDS)) {
-    try {
-      // Simulate RSS fetch with realistic articles
-      const simulatedArticles = generateSimulatedArticles(feed, 3);
-      articles.push(...simulatedArticles);
+  try {
+    // Simple XML parsing using regex (for Node.js without xml2js)
+    // Extract items from RSS feed
+    const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
+    const items = xml.match(itemRegex) || [];
+    
+    for (const item of items.slice(0, 10)) { // Limit to 10 per feed
+      // Extract title
+      const titleMatch = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i);
+      const title = titleMatch ? cleanText(titleMatch[1]) : "";
       
-      logger.info("NEWS_INTEL", `Fetched ${simulatedArticles.length} articles from ${feed.name}`);
-    } catch (error) {
-      logger.error("NEWS_INTEL", `Failed to fetch RSS from ${feed.name}:`, error);
+      if (!title) continue;
+      
+      // Extract description/summary
+      const descMatch = item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i);
+      const summary = descMatch ? cleanText(descMatch[1]).substring(0, 500) : "";
+      
+      // Extract link
+      const linkMatch = item.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i);
+      const url = linkMatch ? cleanText(linkMatch[1]) : "";
+      
+      // Extract pubDate
+      const dateMatch = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
+      const publishedAt = dateMatch ? new Date(dateMatch[1].trim()) : new Date();
+      
+      // Extract image if present
+      const imageMatch = item.match(/<media:content[^>]*url="([^"]+)"/i) ||
+                         item.match(/<enclosure[^>]*url="([^"]+)"/i) ||
+                         item.match(/<image>.*?<url>([\s\S]*?)<\/url>.*?<\/image>/i);
+      const imageUrl = imageMatch ? imageMatch[1] : undefined;
+      
+      // Analyze sentiment and relevance
+      const fullText = `${title} ${summary}`;
+      const sentiment = analyzeSentiment(fullText);
+      const relevance = calculateRelevance(fullText);
+      
+      // Only include articles with some relevance to bioenergy
+      if (relevance > 0 || feed.category === "industry" || feed.category === "carbon") {
+        articles.push({
+          id: `${feed.category}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title,
+          summary,
+          source: feed.name,
+          sourceType: "rss",
+          url,
+          imageUrl,
+          publishedAt: isNaN(publishedAt.getTime()) ? new Date() : publishedAt,
+          fetchedAt: new Date(),
+          sentiment: sentiment.label,
+          sentimentScore: sentiment.score,
+          relevanceScore: Math.max(relevance, 30), // Minimum relevance for included articles
+          categories: [feed.category],
+          keywords: extractKeywords(fullText),
+          regions: [feed.region],
+        });
+      }
     }
+  } catch (error) {
+    logger.error("NEWS_INTEL", `Failed to parse RSS from ${feed.name}:`, error);
   }
   
   return articles;
 }
 
 /**
- * Generate simulated articles for development
+ * Clean text by removing HTML tags and decoding entities
  */
-function generateSimulatedArticles(
-  feed: typeof RSS_FEEDS[keyof typeof RSS_FEEDS],
-  count: number
-): NewsArticle[] {
+function cleanText(text: string): string {
+  return text
+    .replace(/<[^>]*>/g, "") // Remove HTML tags
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Fetch and parse all RSS feeds
+ */
+async function fetchRSSFeeds(): Promise<NewsArticle[]> {
+  // Check cache
+  if (lastFetchTime && articleCache.length > 0 && 
+      Date.now() - lastFetchTime.getTime() < CACHE_DURATION_MS) {
+    logger.info("NEWS_INTEL", `Using cached articles (${articleCache.length} articles)`);
+    return articleCache;
+  }
+  
   const articles: NewsArticle[] = [];
+  const fetchPromises: Promise<void>[] = [];
   
-  const headlines = {
-    government: [
-      "ARENA announces $50M funding for regional bioenergy hubs",
-      "Government fast-tracks approval for biomass power plant",
-      "New renewable fuel mandate to boost biofuel sector",
-    ],
-    finance: [
-      "CEFC commits $200M to sustainable aviation fuel project",
-      "Major banks increase green lending for bioenergy sector",
-      "Clean energy investment reaches record levels in Q4",
-    ],
-    news: [
-      "Queensland sugar mill converts to biomass cogeneration",
-      "Australian farmers explore stubble-to-fuel opportunities",
-      "Regional communities benefit from bioenergy job creation",
-    ],
-    industry: [
-      "New enzyme technology improves cellulosic ethanol yields",
-      "Global SAF production capacity to triple by 2030",
-      "Algae-based biofuel startup raises $100M Series B",
-    ],
-    policy: [
-      "EU strengthens RED III requirements for biomass sustainability",
-      "California LCFS credit prices reach new highs",
-      "IEA: Bioenergy critical for hard-to-abate sectors",
-    ],
-    carbon: [
-      "ACCU spot prices steady as ERF demand grows",
-      "Voluntary carbon market sees record transaction volumes",
-      "New methodology approved for agricultural biochar projects",
-    ],
-  };
-  
-  const categoryHeadlines = headlines[feed.category as keyof typeof headlines] || headlines.industry;
-  
-  for (let i = 0; i < count; i++) {
-    const headline = categoryHeadlines[i % categoryHeadlines.length];
-    const sentiment = analyzeSentiment(headline);
-    const relevance = calculateRelevance(headline);
+  for (const [feedKey, feed] of Object.entries(RSS_FEEDS)) {
+    const fetchPromise = (async () => {
+      try {
+        logger.info("NEWS_INTEL", `Fetching RSS from ${feed.name}...`);
+        
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        
+        const response = await fetch(feed.url, {
+          signal: controller.signal,
+          headers: {
+            "User-Agent": "ABFI-Platform/1.0 (News Aggregator)",
+            "Accept": "application/rss+xml, application/xml, text/xml, */*",
+          },
+        });
+        
+        clearTimeout(timeout);
+        
+        if (!response.ok) {
+          logger.warn("NEWS_INTEL", `Failed to fetch ${feed.name}: ${response.status}`);
+          return;
+        }
+        
+        const xml = await response.text();
+        const feedArticles = parseRSSXML(xml, feed);
+        
+        logger.info("NEWS_INTEL", `Fetched ${feedArticles.length} articles from ${feed.name}`);
+        articles.push(...feedArticles);
+        
+      } catch (error: any) {
+        if (error.name === "AbortError") {
+          logger.warn("NEWS_INTEL", `Timeout fetching ${feed.name}`);
+        } else {
+          logger.warn("NEWS_INTEL", `Error fetching ${feed.name}:`, error.message);
+        }
+      }
+    })();
     
-    const publishedAt = new Date();
-    publishedAt.setHours(publishedAt.getHours() - Math.floor(Math.random() * 72));
-    
-    articles.push({
-      id: `${feed.category}-${Date.now()}-${i}`,
-      title: headline,
-      summary: `${headline}. Industry experts weigh in on implications for the Australian bioenergy sector.`,
-      source: feed.name,
-      sourceType: "rss",
-      url: `https://example.com/article/${Date.now()}-${i}`,
-      publishedAt,
-      fetchedAt: new Date(),
-      sentiment: sentiment.label,
-      sentimentScore: sentiment.score,
-      relevanceScore: relevance,
-      categories: [feed.category],
-      keywords: extractKeywords(headline),
-      regions: [feed.region],
-    });
+    fetchPromises.push(fetchPromise);
+  }
+  
+  // Wait for all fetches to complete
+  await Promise.all(fetchPromises);
+  
+  // Update cache
+  if (articles.length > 0) {
+    articleCache = articles;
+    lastFetchTime = new Date();
+    logger.info("NEWS_INTEL", `Total articles fetched: ${articles.length}`);
+  } else {
+    logger.warn("NEWS_INTEL", "No articles fetched from any source");
   }
   
   return articles;
@@ -300,11 +372,11 @@ function analyzeSentiment(text: string): { label: "bullish" | "bearish" | "neutr
   const net = bullishCount - bearishCount;
   
   if (net > 0) {
-    return { label: "bullish", score: Math.min(100, net * 25 + Math.random() * 20) };
+    return { label: "bullish", score: Math.min(100, net * 20 + 10) };
   } else if (net < 0) {
-    return { label: "bearish", score: Math.max(-100, net * 25 - Math.random() * 20) };
+    return { label: "bearish", score: Math.max(-100, net * 20 - 10) };
   } else {
-    return { label: "neutral", score: (Math.random() - 0.5) * 30 };
+    return { label: "neutral", score: 0 };
   }
 }
 
@@ -470,7 +542,7 @@ export async function getNewsFeed(options: {
   const sourceStats = Array.from(sourceMap.entries()).map(([source, data]) => ({
     source,
     articleCount: data.count,
-    avgSentiment: data.sentimentSum / data.count,
+    avgSentiment: data.count > 0 ? data.sentimentSum / data.count : 0,
   }));
   
   return {
@@ -487,7 +559,7 @@ export async function getNewsFeed(options: {
 export async function getBreakingAlerts(
   acknowledgedIds: string[] = []
 ): Promise<NewsAlert[]> {
-  const feed = await getNewsFeed({ minRelevance: 50 });
+  const feed = await getNewsFeed({ minRelevance: 30 });
   
   const alerts: NewsAlert[] = [];
   
@@ -513,7 +585,7 @@ export async function getBreakingAlerts(
   
   // Check for high-impact articles
   for (const article of feed.articles.slice(0, 5)) {
-    if (article.relevanceScore >= 80 && Math.abs(article.sentimentScore) >= 50) {
+    if (article.relevanceScore >= 60 && Math.abs(article.sentimentScore) >= 30) {
       const alertId = `alert-article-${article.id}`;
       
       if (!alerts.some(a => a.articleId === article.id)) {
@@ -521,7 +593,7 @@ export async function getBreakingAlerts(
           id: alertId,
           type: article.categories.includes("policy") ? "policy" :
                 article.categories.includes("carbon") ? "market" : "breaking",
-          severity: Math.abs(article.sentimentScore) >= 75 ? "high" : "medium",
+          severity: Math.abs(article.sentimentScore) >= 50 ? "high" : "medium",
           title: article.title,
           summary: article.summary,
           articleId: article.id,
@@ -563,6 +635,16 @@ export async function searchNews(
   return results.slice(0, limit);
 }
 
+/**
+ * Force refresh the cache
+ */
+export async function refreshCache(): Promise<number> {
+  lastFetchTime = null;
+  articleCache = [];
+  const articles = await fetchRSSFeeds();
+  return articles.length;
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -571,6 +653,7 @@ export const newsIntelligence = {
   getNewsFeed,
   getBreakingAlerts,
   searchNews,
+  refreshCache,
 };
 
 export default newsIntelligence;

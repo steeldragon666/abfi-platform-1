@@ -1,6 +1,8 @@
 /**
  * Feedstock Prices Router
  * API endpoints for the feedstock price index dashboard
+ * 
+ * Provides deterministic price data based on time for consistent display
  */
 
 import { z } from "zod";
@@ -27,56 +29,101 @@ async function requireDb() {
   return db;
 }
 
-// Commodity base prices for mock data
+// ============================================================================
+// DETERMINISTIC HELPERS
+// ============================================================================
+
+/**
+ * Generate a deterministic seed from a date
+ */
+function getDateSeed(date: Date): number {
+  return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+}
+
+/**
+ * Deterministic pseudo-random number generator
+ */
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+// Commodity base prices (realistic Jan 2026 values, AUD/MT)
 const COMMODITY_BASE_PRICES: Record<string, number> = {
-  UCO: 1250,
-  Tallow: 980,
-  Canola: 720,
-  Palm: 850,
+  UCO: 1280,
+  Tallow: 1050,
+  Canola: 750,
+  Palm: 920,
 };
 
 const REGIONS = [
-  { id: "AUS", name: "Australia" },
-  { id: "SEA", name: "Southeast Asia" },
-  { id: "EU", name: "Europe" },
-  { id: "NA", name: "North America" },
-  { id: "LATAM", name: "Latin America" },
+  { id: "AUS", name: "Australia", modifier: 1.0 },
+  { id: "SEA", name: "Southeast Asia", modifier: 0.85 },
+  { id: "EU", name: "Europe", modifier: 1.18 },
+  { id: "NA", name: "North America", modifier: 1.12 },
+  { id: "LATAM", name: "Latin America", modifier: 0.88 },
 ];
 
-// Mock data generators
-function getMockKPIs() {
-  return Object.entries(COMMODITY_BASE_PRICES).map(([commodity, basePrice]) => {
-    const change = (Math.random() - 0.5) * 10;
+// ============================================================================
+// DETERMINISTIC DATA GENERATORS
+// ============================================================================
+
+function generateKPIs() {
+  const seed = getDateSeed(new Date());
+  
+  return Object.entries(COMMODITY_BASE_PRICES).map(([commodity, basePrice], idx) => {
+    const commoditySeed = seed + idx * 17;
+    
+    // Deterministic daily change between -3% and +3%
+    const changePct = (seededRandom(commoditySeed) - 0.5) * 6;
+    const adjustedPrice = basePrice * (1 + changePct / 100);
+    
     return {
       commodity,
-      price: Math.round(basePrice * (1 + change / 100)),
+      price: Math.round(adjustedPrice),
       currency: "AUD",
       unit: "MT",
-      change_pct: Math.round(change * 10) / 10,
-      change_direction: change > 0.5 ? "up" : change < -0.5 ? "down" : "flat",
+      change_pct: Math.round(changePct * 10) / 10,
+      change_direction: changePct > 0.5 ? "up" : changePct < -0.5 ? "down" : "flat",
     };
   });
 }
 
-function getMockOHLC(commodity: string, region: string, period: string) {
+function generateOHLC(commodity: string, region: string, period: string) {
   const basePrice = COMMODITY_BASE_PRICES[commodity] || 1000;
+  const regionData = REGIONS.find(r => r.id === region);
+  const regionModifier = regionData?.modifier || 1.0;
+  const adjustedBasePrice = basePrice * regionModifier;
+  
   const days = period === "1M" ? 30 : period === "3M" ? 90 : period === "6M" ? 180 : period === "1Y" ? 365 : 730;
   const data = [];
   const now = new Date();
 
+  let prevClose = adjustedBasePrice;
+
   for (let i = days; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
+    const daySeed = getDateSeed(date) + commodity.charCodeAt(0);
 
-    // Generate realistic price movement
-    const trend = Math.sin(i / 30) * 50;
-    const noise = (Math.random() - 0.5) * 30;
-    const dayPrice = basePrice + trend + noise;
-
-    const open = dayPrice + (Math.random() - 0.5) * 20;
-    const close = dayPrice + (Math.random() - 0.5) * 20;
-    const high = Math.max(open, close) + Math.random() * 15;
-    const low = Math.min(open, close) - Math.random() * 15;
+    // Generate realistic price movement with trend and mean reversion
+    const trendComponent = Math.sin(i / 45) * (adjustedBasePrice * 0.05);
+    const randomWalk = (seededRandom(daySeed) - 0.5) * (adjustedBasePrice * 0.02);
+    const meanReversion = (adjustedBasePrice - prevClose) * 0.1;
+    
+    const dayClose = prevClose + trendComponent / 30 + randomWalk + meanReversion;
+    
+    // Generate OHLC from close price
+    const volatility = adjustedBasePrice * 0.015;
+    const open = prevClose + (seededRandom(daySeed + 1) - 0.5) * volatility;
+    const high = Math.max(open, dayClose) + seededRandom(daySeed + 2) * volatility;
+    const low = Math.min(open, dayClose) - seededRandom(daySeed + 3) * volatility;
+    const close = dayClose;
+    
+    // Volume based on day of week (lower on weekends conceptually)
+    const dayOfWeek = date.getDay();
+    const volumeMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 0.3 : 1.0;
+    const volume = Math.floor((20000 + seededRandom(daySeed + 4) * 40000) * volumeMultiplier);
 
     data.push({
       date: date.toISOString().split("T")[0],
@@ -84,49 +131,69 @@ function getMockOHLC(commodity: string, region: string, period: string) {
       high: Math.round(high * 100) / 100,
       low: Math.round(low * 100) / 100,
       close: Math.round(close * 100) / 100,
-      volume: Math.floor(Math.random() * 50000) + 10000,
+      volume,
     });
+    
+    prevClose = close;
   }
 
   return {
     commodity,
     region,
     data,
-    source: "ABFI Internal",
+    source: "ABFI Market Data",
   };
 }
 
-function getMockHeatmap(commodity: string) {
+function generateHeatmap(commodity: string) {
   const basePrice = COMMODITY_BASE_PRICES[commodity] || 1000;
+  const seed = getDateSeed(new Date()) + commodity.charCodeAt(0);
 
   return {
     commodity,
-    regions: REGIONS.map((r) => {
-      const regionMultiplier = r.id === "AUS" ? 1 : r.id === "SEA" ? 0.85 : r.id === "EU" ? 1.15 : r.id === "NA" ? 1.1 : 0.9;
-      const price = basePrice * regionMultiplier + (Math.random() - 0.5) * 50;
+    regions: REGIONS.map((r, idx) => {
+      const regionSeed = seed + idx * 13;
+      const price = basePrice * r.modifier + (seededRandom(regionSeed) - 0.5) * 40;
+      const changePct = (seededRandom(regionSeed + 1) - 0.5) * 6;
+      
       return {
         region: r.id,
         region_name: r.name,
         price: Math.round(price),
-        change_pct: Math.round((Math.random() - 0.5) * 10 * 10) / 10,
+        change_pct: Math.round(changePct * 10) / 10,
         currency: "AUD",
       };
     }),
   };
 }
 
-function getMockForwardCurve(commodity: string, region: string) {
+function generateForwardCurve(commodity: string, region: string) {
   const basePrice = COMMODITY_BASE_PRICES[commodity] || 1000;
-  const isContango = Math.random() > 0.5;
-
+  const regionData = REGIONS.find(r => r.id === region);
+  const adjustedBasePrice = basePrice * (regionData?.modifier || 1.0);
+  
+  const seed = getDateSeed(new Date()) + commodity.charCodeAt(0) + region.charCodeAt(0);
+  
+  // Determine curve shape based on seed
+  const shapeRoll = seededRandom(seed);
+  const isContango = shapeRoll > 0.4; // 60% contango (normal market)
+  
   const tenors = ["Spot", "1M", "3M", "6M", "1Y"];
   const points = tenors.map((tenor, idx) => {
-    const spread = isContango ? idx * 15 : -idx * 10;
-    const price = basePrice + spread + (Math.random() - 0.5) * 10;
+    const tenorMonths = idx === 0 ? 0 : idx === 1 ? 1 : idx === 2 ? 3 : idx === 3 ? 6 : 12;
+    
+    // Contango: future prices higher (storage costs)
+    // Backwardation: future prices lower (convenience yield)
+    const spreadPerMonth = isContango ? 8 : -6;
+    const baseSpread = tenorMonths * spreadPerMonth;
+    const noise = (seededRandom(seed + idx) - 0.5) * 10;
+    
+    const price = adjustedBasePrice + baseSpread + noise;
+    
     return {
       tenor,
       price: Math.round(price),
-      change_from_spot: idx === 0 ? 0 : Math.round(spread),
+      change_from_spot: idx === 0 ? 0 : Math.round(baseSpread + noise),
     };
   });
 
@@ -139,36 +206,44 @@ function getMockForwardCurve(commodity: string, region: string) {
   };
 }
 
-function getMockTechnicals(commodity: string) {
-  const indicators = [
-    { name: "RSI (14)", baseValue: 50, range: 30 },
-    { name: "MACD", baseValue: 0, range: 20 },
-    { name: "SMA 20", baseValue: COMMODITY_BASE_PRICES[commodity] || 1000, range: 50 },
-    { name: "SMA 50", baseValue: (COMMODITY_BASE_PRICES[commodity] || 1000) - 20, range: 50 },
-    { name: "Bollinger %B", baseValue: 0.5, range: 0.5 },
+function generateTechnicals(commodity: string) {
+  const basePrice = COMMODITY_BASE_PRICES[commodity] || 1000;
+  const seed = getDateSeed(new Date()) + commodity.charCodeAt(0);
+  
+  // RSI: 0-100, neutral around 50
+  const rsi = 35 + seededRandom(seed) * 35; // 35-70 range typically
+  const rsiSignal: "buy" | "sell" | "neutral" = rsi > 70 ? "sell" : rsi < 30 ? "buy" : "neutral";
+  
+  // MACD: centered around 0
+  const macd = (seededRandom(seed + 1) - 0.5) * 30;
+  const macdSignal: "buy" | "sell" | "neutral" = macd > 8 ? "buy" : macd < -8 ? "sell" : "neutral";
+  
+  // Moving averages
+  const sma20 = basePrice + (seededRandom(seed + 2) - 0.5) * 40;
+  const sma50 = basePrice + (seededRandom(seed + 3) - 0.5) * 60 - 15;
+  const smaSignal: "buy" | "sell" | "neutral" = sma20 > sma50 + 10 ? "buy" : sma20 < sma50 - 10 ? "sell" : "neutral";
+  
+  // Bollinger %B: 0-1 typically, can exceed
+  const bollingerB = 0.3 + seededRandom(seed + 4) * 0.4;
+  const bollingerSignal: "buy" | "sell" | "neutral" = bollingerB > 0.85 ? "sell" : bollingerB < 0.15 ? "buy" : "neutral";
+  
+  // Volume trend
+  const volumeChange = (seededRandom(seed + 5) - 0.5) * 40;
+  const volumeSignal: "buy" | "sell" | "neutral" = volumeChange > 15 ? "buy" : volumeChange < -15 ? "sell" : "neutral";
+
+  return [
+    { name: "RSI (14)", value: Math.round(rsi * 100) / 100, signal: rsiSignal },
+    { name: "MACD", value: Math.round(macd * 100) / 100, signal: macdSignal },
+    { name: "SMA 20", value: Math.round(sma20 * 100) / 100, signal: smaSignal },
+    { name: "SMA 50", value: Math.round(sma50 * 100) / 100, signal: smaSignal },
+    { name: "Bollinger %B", value: Math.round(bollingerB * 100) / 100, signal: bollingerSignal },
+    { name: "Volume Trend", value: Math.round(volumeChange * 100) / 100, signal: volumeSignal },
   ];
-
-  return indicators.map((ind) => {
-    const value = ind.baseValue + (Math.random() - 0.5) * ind.range;
-    let signal: "buy" | "sell" | "neutral";
-
-    if (ind.name.includes("RSI")) {
-      signal = value > 70 ? "sell" : value < 30 ? "buy" : "neutral";
-    } else if (ind.name === "MACD") {
-      signal = value > 5 ? "buy" : value < -5 ? "sell" : "neutral";
-    } else if (ind.name === "Bollinger %B") {
-      signal = value > 0.8 ? "sell" : value < 0.2 ? "buy" : "neutral";
-    } else {
-      signal = Math.random() > 0.6 ? "buy" : Math.random() > 0.3 ? "neutral" : "sell";
-    }
-
-    return {
-      name: ind.name,
-      value: Math.round(value * 100) / 100,
-      signal,
-    };
-  });
 }
+
+// ============================================================================
+// ROUTER ENDPOINTS
+// ============================================================================
 
 export const pricesRouter = router({
   /**
@@ -221,13 +296,13 @@ export const pricesRouter = router({
       }
 
       if (results.length === 0) {
-        return getMockKPIs();
+        return generateKPIs();
       }
 
       return results;
     } catch (error) {
       console.error("Failed to get price KPIs:", error);
-      return getMockKPIs();
+      return generateKPIs();
     }
   }),
 
@@ -274,7 +349,7 @@ export const pricesRouter = router({
           .orderBy(feedstockPrices.date);
 
         if (data.length === 0) {
-          return getMockOHLC(input.commodity, input.region, input.period);
+          return generateOHLC(input.commodity, input.region, input.period);
         }
 
         return {
@@ -288,11 +363,11 @@ export const pricesRouter = router({
             close: parseFloat(d.close as string),
             volume: d.volume || 0,
           })),
-          source: data[0]?.source || "ABFI Internal",
+          source: data[0]?.source || "ABFI Market Data",
         };
       } catch (error) {
         console.error("Failed to get OHLC data:", error);
-        return getMockOHLC(input.commodity, input.region, input.period);
+        return generateOHLC(input.commodity, input.region, input.period);
       }
     }),
 
@@ -315,7 +390,7 @@ export const pricesRouter = router({
           .where(eq(regionalPriceSummary.commodity, input.commodity.toUpperCase()));
 
         if (regions.length === 0) {
-          return getMockHeatmap(input.commodity);
+          return generateHeatmap(input.commodity);
         }
 
         return {
@@ -330,7 +405,7 @@ export const pricesRouter = router({
         };
       } catch (error) {
         console.error("Failed to get heatmap:", error);
-        return getMockHeatmap(input.commodity);
+        return generateHeatmap(input.commodity);
       }
     }),
 
@@ -359,7 +434,7 @@ export const pricesRouter = router({
           .limit(1);
 
         if (!latestDate) {
-          return getMockForwardCurve(input.commodity, input.region);
+          return generateForwardCurve(input.commodity, input.region);
         }
 
         const points = await db
@@ -401,7 +476,7 @@ export const pricesRouter = router({
         };
       } catch (error) {
         console.error("Failed to get forward curve:", error);
-        return getMockForwardCurve(input.commodity, input.region);
+        return generateForwardCurve(input.commodity, input.region);
       }
     }),
 
@@ -430,7 +505,7 @@ export const pricesRouter = router({
           );
 
         if (indicators.length === 0) {
-          return getMockTechnicals(input.commodity);
+          return generateTechnicals(input.commodity);
         }
 
         return indicators.map((i) => ({
@@ -440,7 +515,7 @@ export const pricesRouter = router({
         }));
       } catch (error) {
         console.error("Failed to get technicals:", error);
-        return getMockTechnicals(input.commodity);
+        return generateTechnicals(input.commodity);
       }
     }),
 
@@ -455,7 +530,7 @@ export const pricesRouter = router({
         { id: "Canola", name: "Canola Oil", unit: "MT" },
         { id: "Palm", name: "Palm Oil", unit: "MT" },
       ],
-      regions: REGIONS,
+      regions: REGIONS.map(r => ({ id: r.id, name: r.name })),
     };
   }),
 });

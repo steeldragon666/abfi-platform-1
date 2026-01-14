@@ -639,17 +639,30 @@ export const unifiedMapRouter = router({
     )
     .query(async ({ input }) => {
       const { feedstockTypeId, months } = input;
-      // Generate sample forward availability data
+      // Generate deterministic forward availability data based on feedstock and month
       const availability = [];
       const now = new Date();
+      const feedstockSeed = feedstockTypeId || 1;
+      
       for (let i = 0; i < months; i++) {
         const month = new Date(now);
         month.setMonth(month.getMonth() + i);
+        
+        // Deterministic values based on feedstock ID and month
+        const monthSeed = month.getMonth() + 1;
+        const baseTonnes = 3000 + (feedstockSeed * 500);
+        const seasonalFactor = 0.8 + Math.sin((monthSeed * Math.PI) / 6) * 0.4;
+        
+        const projectedTonnes = Math.floor(baseTonnes * seasonalFactor);
+        const confirmedRatio = 0.4 + (monthSeed % 6) * 0.05;
+        const confirmedTonnes = Math.floor(projectedTonnes * confirmedRatio);
+        const priceEstimate = 350 + (feedstockSeed * 20) + (monthSeed * 5);
+        
         availability.push({
           month: month.toISOString(),
-          projectedTonnes: Math.floor(Math.random() * 5000) + 1000,
-          confirmedTonnes: Math.floor(Math.random() * 3000) + 500,
-          priceEstimate: Math.floor(Math.random() * 200) + 300,
+          projectedTonnes,
+          confirmedTonnes,
+          priceEstimate,
         });
       }
       return availability;
