@@ -290,7 +290,7 @@ function RetireDialog({
           <div className="space-y-2">
             <div className="flex justify-between">
               <Label>Quantity to Retire</Label>
-              <span className="text-sm text-muted-foreground">Max: {maxQty.toLocaleString()}</span>
+              <span className="text-sm text-muted-foreground">Max: {(maxQty ?? 0).toLocaleString()}</span>
             </div>
             <div className="flex items-center gap-4">
               <Slider
@@ -353,7 +353,7 @@ function RetireDialog({
             ) : (
               <>
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                Retire {quantity.toLocaleString()} Units
+                Retire {(quantity ?? 0).toLocaleString()} Units
               </>
             )}
           </Button>
@@ -413,7 +413,7 @@ function TransactionHistory({ userId }: { userId?: number }) {
                 {txn.txnType === 'OUT' && 'Transferred'}
                 {txn.txnType === 'RETIRE' && 'Retired'}
                 {txn.txnType === 'BUNDLE_LOCK' && 'Locked in Bundle'}
-                {' '}{txn.quantity.toLocaleString()} {txn.instrument}
+                {' '}{(txn.quantity ?? 0).toLocaleString()} {txn.instrument}
               </p>
               <p className="text-xs text-muted-foreground">
                 {new Date(txn.createdAt).toLocaleDateString()}
