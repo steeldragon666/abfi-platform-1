@@ -252,6 +252,9 @@ function Router() {
 
         {/* Climate Intelligence Hub (Phase 5) */}
         <Route path="/climate-hub" component={ClimateIntelligenceHub} />
+        <Route path="/climate-intelligence">
+          <Redirect to="/climate-hub" />
+        </Route>
 
         {/* Legacy home route -> redirect to landing */}
         <Route path="/home">

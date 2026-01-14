@@ -499,7 +499,7 @@ export function CarbonWallet() {
   
   // Price lookup helper
   const getPrice = (instrument: string) => {
-    return pricesData?.prices.find(p => p.instrument === instrument);
+    return pricesData?.prices?.find(p => p.instrument === instrument);
   };
   
   return (
@@ -545,7 +545,7 @@ export function CarbonWallet() {
                 <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
               ))}
             </div>
-          ) : balanceData ? (
+          ) : balanceData && balanceData.balances ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {balanceData.balances.map((balance) => (
                 <BalanceCard
