@@ -176,7 +176,7 @@ function BalanceCard({
         {valueAud && valueAud > 0 && (
           <div className="mt-3 pt-3 border-t">
             <p className="text-sm text-muted-foreground">
-              Portfolio value: <span className="font-semibold text-foreground">${valueAud.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              Portfolio value: <span className="font-semibold text-foreground">${(valueAud ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </p>
           </div>
         )}
