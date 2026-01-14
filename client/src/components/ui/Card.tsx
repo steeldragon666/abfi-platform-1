@@ -8,14 +8,15 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: "transition-colors duration-200",
-        elevated: "shadow-md border-transparent transition-shadow duration-200",
-        outlined: "border-2 transition-colors duration-200",
+        default: "transition-all duration-200",
+        elevated: "shadow-md border-transparent transition-all duration-200 hover:shadow-lg",
+        outlined: "border-2 transition-all duration-200",
         glass:
           "bg-card/80 backdrop-blur-md shadow-lg border-white/10 transition-all duration-200",
         premium:
           "border-primary/10 bg-gradient-to-br from-card to-card/95 transition-all duration-200",
         stats: "stats-card",
+        skeleton: "animate-pulse bg-muted border-transparent",
       },
       padding: {
         default: "gap-5 py-5",
@@ -24,9 +25,11 @@ const cardVariants = cva(
         none: "",
       },
       hover: {
-        true: "hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50/50 dark:hover:bg-gray-900/50 cursor-pointer transition-colors duration-150",
+        true: "hover:border-border/80 dark:hover:border-border/60 hover:bg-accent/50 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all duration-200",
+        lift: "hover:-translate-y-1 hover:shadow-lg cursor-pointer transition-all duration-200",
         subtle:
-          "hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer transition-colors duration-150",
+          "hover:border-border/80 dark:hover:border-border/60 cursor-pointer transition-all duration-200",
+        glow: "hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] hover:border-primary/20 cursor-pointer transition-all duration-200",
         false: "",
       },
     },

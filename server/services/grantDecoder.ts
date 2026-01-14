@@ -284,9 +284,9 @@ export async function checkGrantCompliance(
         });
       }
     } else if (!progress.evidence || progress.evidence.length === 0) {
-    milestoneIndex++;
       documentationGaps.push(`Missing evidence documentation for milestone ${milestoneId}`);
     }
+    milestoneIndex++;
   }
 
   // Check expenditure categories

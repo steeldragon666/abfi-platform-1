@@ -2062,10 +2062,11 @@ australianDataRouter.get("/bom/fire-danger", async (req, res) => {
         const districtSeed = d.name.charCodeAt(0) + today + idx;
         const variation = seededRandom(districtSeed) > 0.7 ? 1 : 0;
         const decrease = seededRandom(districtSeed + 1) > 0.8 ? 1 : 0;
+        const newRating = Math.max(0, Math.min(4, d.rating + variation - decrease));
         return {
           ...d,
-          rating: Math.max(0, Math.min(4, d.rating + variation - decrease)),
-          ratingInfo: FIRE_DANGER_RATINGS[d.rating as keyof typeof FIRE_DANGER_RATINGS],
+          rating: newRating,
+          ratingInfo: FIRE_DANGER_RATINGS[newRating as keyof typeof FIRE_DANGER_RATINGS],
           validFrom: new Date().toISOString(),
           validTo: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         };

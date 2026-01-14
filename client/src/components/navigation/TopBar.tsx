@@ -15,6 +15,7 @@ import { usePortal } from "@/contexts/PortalContext";
 import { useUserRole } from "@/contexts/UserRoleContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { PortalSwitcher } from "./PortalSwitcher";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 interface TopBarProps {
   className?: string;
@@ -78,6 +79,11 @@ export function TopBar({ className }: TopBarProps) {
 
       {/* Right Section: Actions */}
       <div className="flex items-center h-full ml-auto">
+        {/* Theme Toggle */}
+        <div className="h-14 w-12 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-900 hidden sm:flex">
+          <ThemeToggle size="md" />
+        </div>
+
         {/* Help Button */}
         <Button
           variant="ghost"
