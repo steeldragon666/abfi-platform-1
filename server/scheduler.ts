@@ -28,6 +28,7 @@ import {
   weeklySatelliteDataRefresh,
   monthlyClimateDataCacheCleanup,
 } from "./climateHubJobs";
+import { runDailyABNMonitoring } from "./services/counterpartyDueDiligence";
 
 // Track job status
 export const jobStatus = {
@@ -119,6 +120,13 @@ export const jobStatus = {
     lastResult: null as any,
   },
   climateHubCacheCleanupMonthly: {
+    lastRun: null as Date | null,
+    nextRun: null as Date | null,
+    status: "scheduled" as "scheduled" | "running" | "completed" | "failed",
+    lastResult: null as any,
+  },
+  // ABN Monitoring Jobs
+  abnMonitoringDaily: {
     lastRun: null as Date | null,
     nextRun: null as Date | null,
     status: "scheduled" as "scheduled" | "running" | "completed" | "failed",
@@ -577,6 +585,36 @@ const climateHubCacheCleanupMonthlyJob = cron.schedule(
 );
 
 /**
+ * Daily ABN Monitoring
+ * Runs every day at 8:00 AM (after covenant checks)
+ * Cron: 0 8 * * *
+ */
+const abnMonitoringDailyJob = cron.schedule(
+  "0 8 * * *",
+  async () => {
+    console.log(
+      "[Scheduler] Running daily ABN monitoring at",
+      new Date().toISOString()
+    );
+    jobStatus.abnMonitoringDaily.status = "running";
+
+    try {
+      const result = await runDailyABNMonitoring();
+      jobStatus.abnMonitoringDaily.lastRun = new Date();
+      jobStatus.abnMonitoringDaily.status = "completed";
+      jobStatus.abnMonitoringDaily.lastResult = result;
+      console.log("[Scheduler] ABN monitoring completed:", result);
+    } catch (error) {
+      jobStatus.abnMonitoringDaily.status = "failed";
+      console.error("[Scheduler] ABN monitoring failed:", error);
+    }
+  },
+  {
+    timezone: "Australia/Sydney",
+  }
+);
+
+/**
  * Initialize scheduler
  * Starts all cron jobs and logs their schedules
  */
@@ -605,6 +643,9 @@ export function initializeScheduler() {
   // Start Climate Intelligence Hub jobs
   climateHubSatelliteWeeklyJob.start();
   climateHubCacheCleanupMonthlyJob.start();
+
+  // Start ABN monitoring jobs
+  abnMonitoringDailyJob.start();
 
   logger.info("Scheduler", "Monitoring Jobs:");
   console.log(
@@ -655,6 +696,10 @@ export function initializeScheduler() {
   console.log(
     "  ✓ Monthly Cache Cleanup scheduled for 2:00 AM 15th of month (Australia/Sydney)"
   );
+  logger.info("Scheduler", "Counterparty Due Diligence Jobs:");
+  console.log(
+    "  ✓ Daily ABN Monitoring scheduled for 8:00 AM daily (Australia/Sydney)"
+  );
   logger.info("Scheduler", "All jobs started successfully");
 }
 
@@ -683,6 +728,8 @@ export function stopScheduler() {
   // Stop Climate Intelligence Hub jobs
   climateHubSatelliteWeeklyJob.stop();
   climateHubCacheCleanupMonthlyJob.stop();
+  // Stop ABN monitoring jobs
+  abnMonitoringDailyJob.stop();
   logger.info("Scheduler", "All jobs stopped");
 }
 

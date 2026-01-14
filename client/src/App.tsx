@@ -152,6 +152,7 @@ const CarbonIntensityAnalysis = lazy(() => import("./pages/CarbonIntensityAnalys
 // New navigation architecture
 const Landing = lazy(() => import("./pages/Landing"));
 const Explore = lazy(() => import("./pages/Explore"));
+const Methodology = lazy(() => import("./pages/Methodology"));
 const SimplifiedDashboard = lazy(() => import("./components/dashboard/SimplifiedDashboard").then(m => ({ default: m.SimplifiedDashboard })));
 const GrowerDashboard = lazy(() => import("./pages/GrowerDashboard"));
 const GrowerSettings = lazy(() => import("./pages/GrowerSettings"));
@@ -202,6 +203,7 @@ function Router() {
         {/* Core Routes */}
         <Route path="/" component={Landing} />
         <Route path="/explore" component={Explore} />
+        <Route path="/methodology" component={Methodology} />
         <Route path="/design-vision" component={DesignVision} />
         <Route path="/welcome" component={SimplifiedDashboard} />
         <Route path="/unified" component={Dashboard} />

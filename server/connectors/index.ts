@@ -30,6 +30,15 @@ export type {
   ClimateIntelligence,
 } from "./bomConnector";
 export { CarbonStandardsConnector, carbonStandardsConnector, type CarbonStandardArticle } from "./carbonStandardsConnector";
+export { QldGlobeConnector, createQldGlobeConnector } from "./qldGlobeConnector";
+export type {
+  TenureType,
+  LotPlanDetails,
+  TenureRecord,
+  PropertyVerificationResult,
+  SugarcaneProductionZone,
+  RoadRestriction,
+} from "./qldGlobeConnector";
 
 import { ConnectorConfig, ConnectorResult, RawSignal } from "./baseConnector";
 import { NSWPlanningConnector } from "./nswPlanningConnector";
@@ -40,6 +49,7 @@ import { IPAustraliaConnector } from "./ipAustraliaConnector";
 import { ABARESConnector } from "./abaresConnector";
 import { BOMConnector } from "./bomConnector";
 import { CarbonStandardsConnector } from "./carbonStandardsConnector";
+import { QldGlobeConnector } from "./qldGlobeConnector";
 
 // Default connector configurations
 export const CONNECTOR_CONFIGS: Record<string, ConnectorConfig> = {
@@ -83,6 +93,11 @@ export const CONNECTOR_CONFIGS: Record<string, ConnectorConfig> = {
     enabled: true,
     rateLimit: 10,
   },
+  qld_globe: {
+    name: "Queensland Globe Property Verification",
+    enabled: true,
+    rateLimit: 30,
+  },
 };
 
 /**
@@ -124,6 +139,10 @@ export async function runAllConnectors(
     {
       key: "carbon_standards",
       connector: new CarbonStandardsConnector(CONNECTOR_CONFIGS.carbon_standards),
+    },
+    {
+      key: "qld_globe",
+      connector: new QldGlobeConnector(CONNECTOR_CONFIGS.qld_globe),
     },
   ];
 
@@ -181,6 +200,7 @@ export async function runConnector(
     abares: ABARESConnector,
     bom: BOMConnector,
     carbon_standards: CarbonStandardsConnector,
+    qld_globe: QldGlobeConnector,
   };
 
   const ConnectorClass = connectorMap[connectorName];

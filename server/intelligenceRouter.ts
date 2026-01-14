@@ -28,6 +28,12 @@ import {
   type FarmBenchmark,
   type ABARESIntelligence,
 } from "./connectors/abaresConnector";
+import {
+  getCurrentACCUPrice,
+  forecastACCUPrice,
+  simulateProjectNPV,
+  ingestACCUPrices,
+} from "./services/accuPriceForecaster";
 
 const router = Router();
 
@@ -945,6 +951,117 @@ async function safeGetBenchmark(
     return null;
   }
 }
+
+// ============================================================================
+// ACCU PRICE FORECASTING ENDPOINTS
+// ============================================================================
+
+/**
+ * GET /api/intelligence/accu/current
+ * Get current ACCU spot price
+ */
+router.get("/accu/current", async (req: Request, res: Response) => {
+  try {
+    const result = await getCurrentACCUPrice();
+
+    res.json({
+      success: true,
+      data: {
+        price: result.price,
+        currency: "AUD",
+        unit: "per ACCU",
+        date: result.date.toISOString(),
+        source: result.source,
+        trend: result.trend,
+      },
+    });
+  } catch (error) {
+    console.error("[Intelligence] ACCU current price error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch current ACCU price",
+    });
+  }
+});
+
+/**
+ * GET /api/intelligence/accu/forecast
+ * Get 90-day ACCU price forecast
+ */
+router.get("/accu/forecast", async (req: Request, res: Response) => {
+  try {
+    const horizonDays = parseInt(req.query.horizon as string) || 90;
+    const forecast = await forecastACCUPrice(horizonDays);
+
+    res.json({
+      success: true,
+      data: forecast,
+    });
+  } catch (error) {
+    console.error("[Intelligence] ACCU forecast error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to generate ACCU price forecast",
+    });
+  }
+});
+
+/**
+ * POST /api/intelligence/accu/npv-simulation
+ * Run Monte Carlo NPV simulation for carbon project
+ */
+const NPVSimulationSchema = z.object({
+  annualACCUs: z.number().min(1).max(10000000),
+  projectDurationYears: z.number().min(1).max(50),
+  discountRate: z.number().min(0).max(0.5).default(0.07),
+  simulations: z.number().min(100).max(100000).optional(),
+});
+
+router.post(
+  "/accu/npv-simulation",
+  validateBody(NPVSimulationSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const params = (req as any).validated;
+      const simulation = await simulateProjectNPV(params);
+
+      res.json({
+        success: true,
+        data: simulation,
+      });
+    } catch (error) {
+      console.error("[Intelligence] NPV simulation error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to run NPV simulation",
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/intelligence/accu/ingest
+ * Ingest latest ACCU prices (admin only)
+ */
+router.post("/accu/ingest", async (req: Request, res: Response) => {
+  try {
+    const result = await ingestACCUPrices();
+
+    res.json({
+      success: result.success,
+      data: {
+        pricesIngested: result.pricesIngested,
+        errors: result.errors,
+      },
+    });
+  } catch (error) {
+    console.error("[Intelligence] ACCU ingest error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to ingest ACCU prices",
+    });
+  }
+});
 
 export const intelligenceRouter = router;
 export default router;
