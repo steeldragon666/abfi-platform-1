@@ -951,30 +951,30 @@ export function PlatformMap({
       {/* Map Container */}
       <div ref={containerRef} className="w-full h-full" />
       
-      {/* Top Controls */}
+      {/* Top Right Controls - Status & Fullscreen */}
       {showControls && (
-        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">
+        <div className="absolute top-4 right-4 z-[1000] flex items-center gap-2">
           {/* Loading indicator */}
           {isLoading && (
-            <Badge variant="secondary" className="bg-white shadow-md">
-              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-              Loading...
+            <Badge variant="secondary" className="bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border border-border/50 px-3 py-1.5">
+              <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+              <span className="text-sm font-medium">Loading...</span>
             </Badge>
           )}
-          
+
           {/* Marker count */}
           {!isLoading && markerCount > 0 && (
-            <Badge variant="secondary" className="bg-white shadow-md">
-              <MapPin className="h-3 w-3 mr-1" />
-              {markerCount} locations
+            <Badge variant="secondary" className="bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border border-border/50 px-3 py-1.5">
+              <MapPin className="h-3.5 w-3.5 mr-2 text-[#D4AF37]" />
+              <span className="text-sm font-medium">{markerCount} locations</span>
             </Badge>
           )}
-          
+
           {/* Fullscreen toggle */}
           <Button
             variant="secondary"
             size="icon"
-            className="h-8 w-8 bg-white shadow-md"
+            className="h-9 w-9 bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border border-border/50"
             onClick={() => setIsFullscreen(!isFullscreen)}
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -984,76 +984,97 @@ export function PlatformMap({
       
       {/* Layer Control Panel - Enhanced with Sheet */}
       {showLayerPanel && (
-        <div className="absolute top-3 left-3 z-[1000]">
+        <div className="absolute top-4 left-4 z-[1000]">
           <Sheet open={layerPanelOpen} onOpenChange={setLayerPanelOpen}>
             <SheetTrigger asChild>
-              <Button variant="secondary" size="sm" className="bg-white shadow-md gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border border-border/50 gap-2 h-9 px-4"
+              >
                 <Layers className="h-4 w-4" />
-                Layers
+                <span className="font-medium">Layers</span>
                 {activeLayerCount > 0 && (
-                  <Badge variant="default" className="ml-1 h-5 min-w-5 px-1.5">
+                  <Badge variant="default" className="ml-1 h-5 min-w-5 px-1.5 bg-[#D4AF37] text-black">
                     {activeLayerCount}
                   </Badge>
                 )}
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[350px] sm:w-[400px] p-0">
-              <SheetHeader className="p-4 border-b">
-                <SheetTitle className="flex items-center gap-2">
-                  <Layers className="h-5 w-5" />
+            <SheetContent side="left" className="w-[380px] sm:w-[420px] p-0">
+              <SheetHeader className="p-5 border-b bg-muted/30">
+                <SheetTitle className="flex items-center gap-3 text-lg">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#D4AF37]/10">
+                    <Layers className="h-5 w-5 text-[#D4AF37]" />
+                  </div>
                   Map Layers
                 </SheetTitle>
-                <SheetDescription>
+                <SheetDescription className="text-sm">
                   Toggle data overlays from Australian government sources
                 </SheetDescription>
               </SheetHeader>
-              
-              <ScrollArea className="h-[calc(100vh-140px)]">
-                <div className="p-4 space-y-6">
+
+              <ScrollArea className="h-[calc(100vh-160px)]">
+                <div className="p-5 space-y-6">
                   {/* Base Layer Selection */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-medium">Base Map</h4>
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-foreground">Base Map</h4>
                     <div className="grid grid-cols-4 gap-2">
                       {Object.entries(BASE_LAYERS).map(([key, config]) => (
                         <Button
                           key={key}
                           variant={layers.baseLayer === key ? 'default' : 'outline'}
                           size="sm"
-                          className="h-auto py-2 flex-col gap-1"
+                          className={cn(
+                            "h-auto py-3 flex-col gap-1.5",
+                            layers.baseLayer === key && "bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90"
+                          )}
                           onClick={() => toggleLayer('baseLayer', key as BaseLayerType)}
                         >
-                          {key === 'street' && <MapIcon className="h-4 w-4" />}
-                          {key === 'satellite' && <Satellite className="h-4 w-4" />}
-                          {key === 'terrain' && <Mountain className="h-4 w-4" />}
-                          {key === 'hybrid' && <Layers className="h-4 w-4" />}
-                          <span className="text-xs">{config.name}</span>
+                          {key === 'street' && <MapIcon className="h-5 w-5" />}
+                          {key === 'satellite' && <Satellite className="h-5 w-5" />}
+                          {key === 'terrain' && <Mountain className="h-5 w-5" />}
+                          {key === 'hybrid' && <Layers className="h-5 w-5" />}
+                          <span className="text-xs font-medium">{config.name}</span>
                         </Button>
                       ))}
                     </div>
                   </div>
-                  
+
                   <Separator />
-                  
+
                   {/* Layer Categories */}
                   {LAYER_CATEGORIES.map((category) => (
-                    <div key={category.id} className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <category.icon className="h-4 w-4 text-muted-foreground" />
-                        <h4 className="text-sm font-medium">{category.label}</h4>
+                    <div key={category.id} className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted">
+                          <category.icon className="h-4 w-4 text-foreground" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-foreground">{category.label}</h4>
+                          <p className="text-xs text-muted-foreground">{category.description}</p>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground -mt-1">{category.description}</p>
-                      
-                      <div className="space-y-2">
+
+                      <div className="space-y-2 pl-11">
                         {category.layers.map((layer) => (
                           <div
                             key={layer.id}
-                            className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                            className={cn(
+                              "flex items-center justify-between p-3 rounded-lg border transition-all",
+                              layers[layer.id]
+                                ? "bg-[#D4AF37]/5 border-[#D4AF37]/30 dark:bg-[#D4AF37]/10"
+                                : "bg-card hover:bg-muted/50 border-border"
+                            )}
                           >
-                            <div className="flex-1 min-w-0">
-                              <Label htmlFor={layer.id} className="text-sm font-medium cursor-pointer">
+                            <div className="flex-1 min-w-0 pr-3">
+                              <Label
+                                htmlFor={layer.id}
+                                className="text-sm font-medium text-foreground cursor-pointer block"
+                              >
                                 {layer.label}
                               </Label>
-                              <p className="text-xs text-muted-foreground truncate">
+                              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                                 {layer.description}
                               </p>
                             </div>
@@ -1061,21 +1082,22 @@ export function PlatformMap({
                               id={layer.id}
                               checked={layer.id !== 'baseLayer' ? (layers[layer.id] as boolean) : false}
                               onCheckedChange={(checked) => toggleLayer(layer.id, checked)}
+                              className="data-[state=checked]:bg-[#D4AF37]"
                             />
                           </div>
                         ))}
                       </div>
                     </div>
                   ))}
-                  
+
                   {/* Data Attribution */}
                   <div className="pt-4 border-t">
-                    <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                      <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                      <Info className="h-5 w-5 flex-shrink-0 text-muted-foreground mt-0.5" />
                       <div>
-                        <p className="font-medium">Data Sources</p>
-                        <p className="mt-1">
-                          Bureau of Meteorology, AREMI, ABBA (Terria), QLD Government, 
+                        <p className="text-sm font-medium text-foreground">Data Sources</p>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                          Bureau of Meteorology, AREMI, ABBA (Terria), QLD Government,
                           Vicmap Planning, and other Australian government datasets.
                         </p>
                       </div>
@@ -1088,111 +1110,147 @@ export function PlatformMap({
         </div>
       )}
       
-      {/* Quick Layer Toggle - Dropdown for minimal view */}
+      {/* Quick Layer Toggle - Moved to second row to prevent overlap */}
       {showLayerPanel && (
-        <div className="absolute top-3 left-28 z-[1000]">
+        <div className="absolute top-16 left-4 z-[1000] flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="h-8 w-8 bg-white shadow-md">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="h-9 bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border border-border/50 gap-2"
+              >
                 <Settings2 className="h-4 w-4" />
+                <span className="font-medium">Quick Toggle</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel>Quick Toggles</DropdownMenuLabel>
+            <DropdownMenuContent align="start" className="w-64">
+              <DropdownMenuLabel className="text-sm font-semibold">Data Layers</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              
+
               <DropdownMenuCheckboxItem
                 checked={layers.feedstocks}
                 onCheckedChange={() => toggleLayer('feedstocks')}
+                className="py-2"
               >
-                <Leaf className="h-4 w-4 mr-2 text-green-600" />
-                Feedstocks
+                <Leaf className="h-4 w-4 mr-3 text-green-600" />
+                <span className="font-medium">Feedstocks</span>
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={layers.demandSignals}
                 onCheckedChange={() => toggleLayer('demandSignals')}
+                className="py-2"
               >
-                <MapPin className="h-4 w-4 mr-2 text-orange-600" />
-                Demand Signals
+                <MapPin className="h-4 w-4 mr-3 text-orange-600" />
+                <span className="font-medium">Demand Signals</span>
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={layers.projects}
                 onCheckedChange={() => toggleLayer('projects')}
+                className="py-2"
               >
-                <Factory className="h-4 w-4 mr-2 text-blue-600" />
-                Projects
+                <Factory className="h-4 w-4 mr-3 text-blue-600" />
+                <span className="font-medium">Projects</span>
               </DropdownMenuCheckboxItem>
-              
+
               <DropdownMenuSeparator />
-              
+              <DropdownMenuLabel className="text-sm font-semibold">Risk Layers</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+
               <DropdownMenuCheckboxItem
                 checked={layers.bushfireHazard}
                 onCheckedChange={() => toggleLayer('bushfireHazard')}
+                className="py-2"
               >
-                <Flame className="h-4 w-4 mr-2 text-red-600" />
-                Bushfire Hazard
+                <Flame className="h-4 w-4 mr-3 text-red-600" />
+                <span className="font-medium">Bushfire Hazard</span>
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={layers.floodplainAssessment}
                 onCheckedChange={() => toggleLayer('floodplainAssessment')}
+                className="py-2"
               >
-                <Waves className="h-4 w-4 mr-2 text-blue-600" />
-                Floodplains
+                <Waves className="h-4 w-4 mr-3 text-blue-600" />
+                <span className="font-medium">Floodplains</span>
               </DropdownMenuCheckboxItem>
-              
+
               <DropdownMenuSeparator />
-              
+              <DropdownMenuLabel className="text-sm font-semibold">Biomass Resources</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+
               <DropdownMenuCheckboxItem
                 checked={layers.croppingResidues}
                 onCheckedChange={() => toggleLayer('croppingResidues')}
+                className="py-2"
               >
-                <Wheat className="h-4 w-4 mr-2 text-amber-600" />
-                Cropping Residues
+                <Wheat className="h-4 w-4 mr-3 text-amber-600" />
+                <span className="font-medium">Cropping Residues</span>
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={layers.electricityNetwork}
                 onCheckedChange={() => toggleLayer('electricityNetwork')}
+                className="py-2"
               >
-                <Zap className="h-4 w-4 mr-2 text-yellow-600" />
-                Electricity Network
+                <Zap className="h-4 w-4 mr-3 text-yellow-600" />
+                <span className="font-medium">Electricity Network</span>
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Risk Analysis Button - Moved here to group with quick toggle */}
+          <Button
+            variant={showRiskPanel ? 'default' : 'secondary'}
+            size="sm"
+            className={cn(
+              "h-9 shadow-lg backdrop-blur-sm border border-border/50 gap-2",
+              showRiskPanel
+                ? "bg-[#D4AF37] text-black hover:bg-[#D4AF37]/90"
+                : "bg-white/95 dark:bg-gray-900/95"
+            )}
+            onClick={() => setShowRiskPanel(!showRiskPanel)}
+          >
+            <BarChart3 className="h-4 w-4" />
+            <span className="font-medium">Risk Analysis</span>
+          </Button>
         </div>
       )}
       
       {/* Zoom Controls */}
       {showControls && (
-        <div className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-1">
+        <div className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-1.5">
           <Button
             variant="secondary"
             size="icon"
-            className="h-8 w-8 bg-white shadow-md"
+            className="h-9 w-9 bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border border-border/50 hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={zoomIn}
+            title="Zoom In"
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
           <Button
             variant="secondary"
             size="icon"
-            className="h-8 w-8 bg-white shadow-md"
+            className="h-9 w-9 bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border border-border/50 hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={zoomOut}
+            title="Zoom Out"
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
           <Button
             variant="secondary"
             size="icon"
-            className="h-8 w-8 bg-white shadow-md"
+            className="h-9 w-9 bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border border-border/50 hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={locateMe}
+            title="My Location"
           >
             <Crosshair className="h-4 w-4" />
           </Button>
           <Button
             variant="secondary"
             size="icon"
-            className="h-8 w-8 bg-white shadow-md"
+            className="h-9 w-9 bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border border-border/50 hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={resetView}
+            title="Reset View"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -1201,39 +1259,39 @@ export function PlatformMap({
       
       {/* Selected Location Info (Earth Engine data) */}
       {selectedLocation && (layers.ndvi || layers.soilMoisture) && (
-        <div className="absolute bottom-3 left-3 z-[1000] bg-white rounded-lg shadow-lg p-3 max-w-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Location Analysis</span>
+        <div className="absolute bottom-3 left-3 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-lg border border-border/50 p-4 max-w-xs">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold text-foreground">Location Analysis</span>
             <Button
               variant="ghost"
               size="icon"
-              className="h-5 w-5"
+              className="h-6 w-6 hover:bg-gray-100 dark:hover:bg-gray-800"
               onClick={() => setSelectedLocation(null)}
             >
-              <X className="h-3 w-3" />
+              <X className="h-3.5 w-3.5" />
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mb-2">
-            {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
+          <p className="text-xs text-muted-foreground mb-3 font-mono">
+            {selectedLocation.lat.toFixed(4)}°, {selectedLocation.lng.toFixed(4)}°
           </p>
-          
+
           {ndviLoading || soilLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Analyzing...
+              <Loader2 className="h-4 w-4 animate-spin text-[#D4AF37]" />
+              <span>Analyzing...</span>
             </div>
           ) : (
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2.5 text-sm">
               {ndviData && (
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">NDVI:</span>
-                  <span className="font-medium">{ndviData.mean.toFixed(2)} ({ndviData.healthCategory})</span>
+                  <span className="font-semibold text-foreground">{ndviData.mean.toFixed(2)} <span className="text-xs font-normal text-muted-foreground">({ndviData.healthCategory})</span></span>
                 </div>
               )}
               {soilData && (
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Soil Moisture:</span>
-                  <span className="font-medium">{soilData.moistureCategory}</span>
+                  <span className="font-semibold text-foreground">{soilData.moistureCategory}</span>
                 </div>
               )}
             </div>
@@ -1241,71 +1299,60 @@ export function PlatformMap({
         </div>
       )}
       
-      {/* Active Layers Legend */}
+      {/* Active Layers Legend - Positioned at bottom left, above location analysis if shown */}
       {activeLayerCount > 0 && (
-        <div className="absolute bottom-3 right-14 z-[1000] bg-white rounded-lg shadow-md p-2 max-w-xs">
-          <div className="flex flex-wrap items-center gap-2 text-xs">
+        <div className={cn(
+          "absolute left-3 z-[1000] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-lg border border-border/50 p-3",
+          selectedLocation && (layers.ndvi || layers.soilMoisture) ? "bottom-[140px]" : "bottom-3"
+        )}>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wide">Active Layers</span>
+            <span className="text-[10px] bg-[#D4AF37]/20 text-[#D4AF37] dark:text-[#D4AF37] px-1.5 py-0.5 rounded font-medium">{activeLayerCount}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 text-xs">
             {layers.feedstocks && (
-              <div className="flex items-center gap-1">
-                <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                <span>Feedstocks</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm" />
+                <span className="text-foreground font-medium">Feedstocks</span>
               </div>
             )}
             {layers.demandSignals && (
-              <div className="flex items-center gap-1">
-                <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-                <span>Demand</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-orange-500 shadow-sm" />
+                <span className="text-foreground font-medium">Demand</span>
               </div>
             )}
             {layers.projects && (
-              <div className="flex items-center gap-1">
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                <span>Projects</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-blue-500 shadow-sm" />
+                <span className="text-foreground font-medium">Projects</span>
               </div>
             )}
             {layers.bushfireHazard && (
-              <div className="flex items-center gap-1">
-                <Flame className="h-3 w-3 text-red-500" />
-                <span>Fire</span>
+              <div className="flex items-center gap-1.5">
+                <Flame className="h-3.5 w-3.5 text-red-500" />
+                <span className="text-foreground font-medium">Fire Risk</span>
               </div>
             )}
             {layers.floodplainAssessment && (
-              <div className="flex items-center gap-1">
-                <Waves className="h-3 w-3 text-blue-500" />
-                <span>Flood</span>
+              <div className="flex items-center gap-1.5">
+                <Waves className="h-3.5 w-3.5 text-blue-500" />
+                <span className="text-foreground font-medium">Flood</span>
               </div>
             )}
             {layers.croppingResidues && (
-              <div className="flex items-center gap-1">
-                <Wheat className="h-3 w-3 text-amber-600" />
-                <span>Biomass</span>
+              <div className="flex items-center gap-1.5">
+                <Wheat className="h-3.5 w-3.5 text-amber-600" />
+                <span className="text-foreground font-medium">Biomass</span>
               </div>
             )}
           </div>
         </div>
       )}
       
-      {/* Biomass Risk Analysis Toggle Button */}
-      {showControls && (
-        <div className="absolute top-3 left-40 z-[1000]">
-          <Button
-            variant={showRiskPanel ? 'default' : 'secondary'}
-            size="sm"
-            className={cn(
-              "shadow-md gap-2",
-              !showRiskPanel && "bg-white"
-            )}
-            onClick={() => setShowRiskPanel(!showRiskPanel)}
-          >
-            <BarChart3 className="h-4 w-4" />
-            Risk Analysis
-          </Button>
-        </div>
-      )}
-      
-      {/* Biomass Risk Analysis Panel */}
+      {/* Biomass Risk Analysis Panel - Positioned below the second row of controls */}
       {showRiskPanel && (
-        <div className="absolute top-14 right-3 z-[1000]">
+        <div className="absolute top-28 right-3 z-[1000]">
           <BiomassRiskPanel
             selectedLocation={selectedLocation}
             onClose={() => setShowRiskPanel(false)}

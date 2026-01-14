@@ -62,27 +62,29 @@ import { cn } from '@/lib/utils';
 // CONSTANTS
 // ============================================================================
 
-// Economics model constants
+// Economics model constants - Updated per protocol (5-yr+ stand)
 const BEEMA_CONSTANTS = {
-  yieldTonnesDMPerHa: 55, // Full yield from Year 3+
-  establishmentYield: 25, // Year 2 yield
-  pricePerTonne: 85, // Base price AUD
-  priceEscalation: 0.03, // 3% annual increase
-  carbonSequestration: 48, // t CO2 per ha per year
-  accuPrice: 30, // AUD per ACCU
+  yieldTonnesDMPerHa: 100, // Full yield from Year 3+ (per protocol)
+  establishmentYield: 40, // Year 2 yield
+  pricePerTonne: 160, // Floor price AUD (intro, first 1000 growers)
+  priceEscalation: 0.03, // CPI + 3% after year 5
+  carbonSequestration: 80, // t CO2 per ha per year (per protocol, 5-yr+ stand)
+  accuPrice: 30, // AUD per ACCU (for 25% buffer pool)
   discountRate: 0.10, // 10% for NPV
   plantingCostPerHa: 4500, // Establishment cost
   harvestCostPerTonne: 35, // Variable harvest cost
-  contractYears: 15,
+  contractYears: 15, // Powerplant Energy guaranteed offtake
   lifespanYears: 30,
+  introSlots: 1000, // First 1,000 growers get floor price
+  offtaker: 'Powerplant Energy Pty Ltd',
 };
 
-// Timeline steps
+// Timeline steps - Updated for 100 t DM yield
 const TIMELINE_STEPS = [
   {
     year: 0,
     title: 'Plant',
-    description: 'Rhizome planting, irrigation setup',
+    description: 'Tissue-culture "energy elite" planting, irrigation setup',
     cashFlow: -4500,
     yield: 0,
   },
@@ -97,22 +99,22 @@ const TIMELINE_STEPS = [
     year: 2,
     title: 'First Harvest',
     description: 'Initial culm harvest begins',
-    cashFlow: 1200,
-    yield: 25,
+    cashFlow: 4900,
+    yield: 40,
   },
   {
     year: 3,
     title: 'Full Yield',
-    description: 'Mature stand, 55 t DM/ha/yr',
-    cashFlow: 3200,
-    yield: 55,
+    description: 'Mature stand, 100 t DM/ha/yr @ $160/t',
+    cashFlow: 12500,
+    yield: 100,
   },
   {
     year: 15,
     title: 'Contract End',
-    description: 'Option to extend or replant',
-    cashFlow: 3800,
-    yield: 55,
+    description: 'Powerplant Energy option to extend 5 yrs at market price',
+    cashFlow: 14200,
+    yield: 100,
   },
   {
     year: 30,
@@ -123,16 +125,18 @@ const TIMELINE_STEPS = [
   },
 ];
 
-// Lender logos (placeholder names - would use actual logos)
-const LENDER_LOGOS = [
-  { name: 'NAB', verified: true },
-  { name: 'CEFC', verified: true },
-  { name: 'Macquarie', verified: true },
-  { name: 'ANZ Green', verified: false },
-  { name: 'CBA AgriGreen', verified: false },
+// Financial institutions under assessment (no "approved" language)
+const FINANCING_PARTNERS = [
+  { name: 'CBA', fullName: 'Commonwealth Bank of Australia', status: 'under_assessment' },
+  { name: 'NAB', fullName: 'National Australia Bank', status: 'under_assessment' },
+  { name: 'Westpac', fullName: 'Westpac Institutional Bank', status: 'under_assessment' },
+  { name: 'ANZ', fullName: 'ANZ Corporate & Commercial', status: 'under_assessment' },
+  { name: 'CEFC', fullName: 'Clean Energy Finance Corporation', status: 'under_assessment' },
+  { name: 'ARENA', fullName: 'Australian Renewable Energy Agency', status: 'grant_component' },
+  { name: 'EFA', fullName: 'Export Finance Australia', status: 'export_credit' },
 ];
 
-// Why Beema cards
+// Why Beema cards - Updated metrics per protocol
 const WHY_BEEMA = [
   {
     icon: Droplets,
@@ -146,8 +150,8 @@ const WHY_BEEMA = [
   {
     icon: Leaf,
     title: 'Carbon Hero',
-    description: 'UNFCCC-approved methodology. Generates ACCUs while producing feedstock - dual revenue stream from day one.',
-    stat: '48 t CO₂',
+    description: '80 t CO₂ ha⁻¹ yr⁻¹ sequestered when grown and fertilised per protocol (5-yr+ stand). Dual revenue from feedstock + ACCUs.',
+    stat: '80 t CO₂',
     statLabel: 'sequestered/ha/yr',
     color: 'text-green-600',
     bgColor: 'bg-green-50',
@@ -155,9 +159,9 @@ const WHY_BEEMA = [
   {
     icon: Banknote,
     title: 'Bankable',
-    description: '15-year offtake contracts already approved by NAB and Clean Energy Finance Corporation. Locked-in revenue certainty.',
-    stat: '15 yrs',
-    statLabel: 'contract term',
+    description: '100 t DM ha⁻¹ yr⁻¹ dry-matter biomass under the same protocol. 15-year guaranteed offtake with Powerplant Energy.',
+    stat: '100 t DM',
+    statLabel: 'biomass/ha/yr',
     color: 'text-amber-600',
     bgColor: 'bg-amber-50',
   },
@@ -197,14 +201,17 @@ function BeemaBambooIcon({ className }: { className?: string }) {
   );
 }
 
-// Economics Calculator Component
+// Economics Calculator Component - Updated defaults
 function EconomicsCalculator() {
   const [hectares, setHectares] = useState(50);
-  const [pricePerTonne, setPricePerTonne] = useState(BEEMA_CONSTANTS.pricePerTonne);
+  
+  // Mock remaining intro slots (would come from beema_intro_slots table)
+  const remainingIntroSlots = 847; // Out of 1,000
   
   const economics = useMemo(() => {
     const years = BEEMA_CONSTANTS.contractYears;
     const discountRate = BEEMA_CONSTANTS.discountRate;
+    const pricePerTonne = BEEMA_CONSTANTS.pricePerTonne; // $160 floor price
     
     // Calculate annual revenues
     let totalRevenue = 0;
@@ -230,13 +237,15 @@ function EconomicsCalculator() {
         harvestCost = BEEMA_CONSTANTS.harvestCostPerTonne * yield_t;
       }
       
-      // Price escalation
-      const adjustedPrice = pricePerTonne * Math.pow(1 + BEEMA_CONSTANTS.priceEscalation, year);
+      // Price escalation: fixed first 5 years, then CPI + 3%
+      const adjustedPrice = year <= 5 
+        ? pricePerTonne 
+        : pricePerTonne * Math.pow(1 + BEEMA_CONSTANTS.priceEscalation, year - 5);
       const revenue = yield_t * adjustedPrice;
       
-      // Carbon credits
+      // Carbon credits (25% buffer pool = 75% of ACCUs sold)
       const carbonRevenue = year >= 1 
-        ? BEEMA_CONSTANTS.carbonSequestration * hectares * BEEMA_CONSTANTS.accuPrice 
+        ? BEEMA_CONSTANTS.carbonSequestration * hectares * BEEMA_CONSTANTS.accuPrice * 0.75
         : 0;
       
       const netCashFlow = revenue + carbonRevenue - harvestCost - plantingCost;
@@ -269,15 +278,20 @@ function EconomicsCalculator() {
       irr = newIrr;
     }
     
+    // Total contract value over 15 years
+    const totalContractValue = cashFlows.reduce((sum, cf) => sum + cf.revenue + cf.carbon, 0);
+    
     return {
       annualGreenTonnes: Math.round(BEEMA_CONSTANTS.yieldTonnesDMPerHa * hectares),
+      annualCarbonTonnes: Math.round(BEEMA_CONSTANTS.carbonSequestration * hectares),
       irr: Math.max(0, Math.min(1, irr)) * 100,
       npv: Math.round(npv),
-      annualCarbonCredits: Math.round(BEEMA_CONSTANTS.carbonSequestration * hectares * BEEMA_CONSTANTS.accuPrice),
+      annualCarbonCredits: Math.round(BEEMA_CONSTANTS.carbonSequestration * hectares * BEEMA_CONSTANTS.accuPrice * 0.75),
       totalRevenue: Math.round(totalRevenue),
+      totalContractValue: Math.round(totalContractValue),
       cashFlows,
     };
-  }, [hectares, pricePerTonne]);
+  }, [hectares]);
   
   return (
     <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
@@ -287,10 +301,46 @@ function EconomicsCalculator() {
           Economics Calculator
         </CardTitle>
         <CardDescription>
-          Drag to see your projected returns
+          Drag to see your projected returns • 15-year guaranteed offtake with Powerplant Energy
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Intro Slots Counter */}
+        <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-amber-600" />
+              <span className="text-sm font-medium text-amber-800">Intro Floor Price: $160/t DM</span>
+            </div>
+            <Badge className="bg-amber-500">
+              {remainingIntroSlots} of 1,000 slots remaining
+            </Badge>
+          </div>
+          <p className="text-xs text-amber-600 mt-1">
+            First 1,000 growers receive floor price + tissue-culture clones at cost (no royalty) + free agronomic protocol pack
+          </p>
+        </div>
+        
+        {/* Default Parameters Display */}
+        <div className="grid grid-cols-4 gap-2 text-center">
+          <div className="p-2 rounded bg-gray-50">
+            <p className="text-lg font-bold text-gray-800">100</p>
+            <p className="text-xs text-gray-500">t DM/ha/yr</p>
+          </div>
+          <div className="p-2 rounded bg-gray-50">
+            <p className="text-lg font-bold text-gray-800">80</p>
+            <p className="text-xs text-gray-500">t CO₂/ha/yr</p>
+          </div>
+          <div className="p-2 rounded bg-gray-50">
+            <p className="text-lg font-bold text-gray-800">$160</p>
+            <p className="text-xs text-gray-500">floor price/t</p>
+          </div>
+          <div className="p-2 rounded bg-gray-50">
+            <p className="text-lg font-bold text-gray-800">15</p>
+            <p className="text-xs text-gray-500">yr contract</p>
+          </div>
+        </div>
+        
         {/* Hectares Slider */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
@@ -329,6 +379,17 @@ function EconomicsCalculator() {
             <p className="text-xs text-green-600">dry matter/year</p>
           </div>
           
+          <div className="p-4 rounded-lg bg-emerald-100">
+            <div className="flex items-center gap-2 mb-1">
+              <Leaf className="h-4 w-4 text-emerald-600" />
+              <span className="text-xs text-emerald-700">Annual Carbon</span>
+            </div>
+            <p className="text-2xl font-bold text-emerald-800">
+              {economics.annualCarbonTonnes.toLocaleString()} t
+            </p>
+            <p className="text-xs text-emerald-600">CO₂ sequestered/year</p>
+          </div>
+          
           <div className="p-4 rounded-lg bg-amber-100">
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="h-4 w-4 text-amber-600" />
@@ -337,7 +398,7 @@ function EconomicsCalculator() {
             <p className="text-2xl font-bold text-amber-800">
               {economics.irr.toFixed(1)}%
             </p>
-            <p className="text-xs text-amber-600">@ ${pricePerTonne}/t indexed</p>
+            <p className="text-xs text-amber-600">@ $160/t (CPI+3% after yr 5)</p>
           </div>
           
           <div className="p-4 rounded-lg bg-blue-100">
@@ -350,16 +411,30 @@ function EconomicsCalculator() {
             </p>
             <p className="text-xs text-blue-600">15-year contract</p>
           </div>
-          
-          <div className="p-4 rounded-lg bg-emerald-100">
+        </div>
+        
+        {/* Additional Metrics Row */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg bg-purple-100">
             <div className="flex items-center gap-2 mb-1">
-              <Leaf className="h-4 w-4 text-emerald-600" />
-              <span className="text-xs text-emerald-700">Carbon Credits</span>
+              <Leaf className="h-4 w-4 text-purple-600" />
+              <span className="text-xs text-purple-700">Carbon Cash (75%)</span>
             </div>
-            <p className="text-2xl font-bold text-emerald-800">
+            <p className="text-2xl font-bold text-purple-800">
               ${(economics.annualCarbonCredits / 1000).toFixed(0)}K
             </p>
-            <p className="text-xs text-emerald-600">ACCUs/year @ $30</p>
+            <p className="text-xs text-purple-600">ACCUs/year @ $30 (25% buffer)</p>
+          </div>
+          
+          <div className="p-4 rounded-lg bg-indigo-100">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="h-4 w-4 text-indigo-600" />
+              <span className="text-xs text-indigo-700">Total Contract Value</span>
+            </div>
+            <p className="text-2xl font-bold text-indigo-800">
+              ${(economics.totalContractValue / 1000000).toFixed(1)}M
+            </p>
+            <p className="text-xs text-indigo-600">15-year total</p>
           </div>
         </div>
         
@@ -453,29 +528,50 @@ function TimelineStepper() {
   );
 }
 
-// Lender Badge Carousel
-function LenderCarousel() {
+// Financing Partners Section (under assessment - no "approved" language)
+function FinancingPartners() {
   return (
-    <div className="flex flex-wrap justify-center gap-4">
-      {LENDER_LOGOS.map((lender, idx) => (
-        <div 
-          key={idx}
-          className={cn(
-            "flex items-center gap-2 px-4 py-3 rounded-lg border-2",
-            lender.verified 
-              ? "border-green-300 bg-green-50"
-              : "border-gray-200 bg-gray-50 opacity-60"
-          )}
-        >
-          <div className="h-8 w-8 rounded bg-gray-200 flex items-center justify-center text-xs font-bold">
-            {lender.name.slice(0, 2)}
+    <div className="space-y-6">
+      {/* Status Banner */}
+      <div className="p-4 rounded-lg bg-blue-50 border border-blue-200 text-center">
+        <Badge variant="outline" className="mb-2 border-blue-300 text-blue-700">
+          Under Assessment — Indicative
+        </Badge>
+        <p className="text-sm text-blue-800">
+          Term-sheet decisions expected <strong>Q3 2026</strong>
+        </p>
+        <p className="text-xs text-blue-600 mt-1">
+          Indicative debt quantum: A$420M covering plantation roll-out and 3 Mt yr⁻¹ pelleting facility
+        </p>
+      </div>
+      
+      {/* Partner Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {FINANCING_PARTNERS.map((partner, idx) => (
+          <div 
+            key={idx}
+            className="flex flex-col items-center p-3 rounded-lg border border-gray-200 bg-white hover:border-blue-300 transition-colors"
+          >
+            <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 mb-2">
+              {partner.name}
+            </div>
+            <span className="text-xs font-medium text-center text-gray-700">{partner.fullName}</span>
+            <Badge 
+              variant="outline" 
+              className={cn(
+                "mt-2 text-[10px]",
+                partner.status === 'grant_component' && "border-green-300 text-green-700",
+                partner.status === 'export_credit' && "border-purple-300 text-purple-700",
+                partner.status === 'under_assessment' && "border-blue-300 text-blue-700"
+              )}
+            >
+              {partner.status === 'grant_component' ? 'Grant Component' : 
+               partner.status === 'export_credit' ? 'Export Credit' : 
+               'Under Assessment'}
+            </Badge>
           </div>
-          <span className="font-medium">{lender.name}</span>
-          {lender.verified && (
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -662,22 +758,66 @@ export default function BeemaBamboo() {
         </div>
       </section>
       
-      {/* Lender Approvals Section */}
+      {/* Offtake & Financing Section */}
       <section className="py-16 bg-white border-t">
         <div className="container mx-auto px-4">
+          {/* Offtake Details */}
+          <div className="max-w-3xl mx-auto mb-12">
+            <h2 className="text-2xl font-bold text-center mb-4">
+              Guaranteed Offtake
+            </h2>
+            <Card className="border-2 border-green-200">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                    <Factory className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Powerplant Energy Pty Ltd</h3>
+                    <p className="text-sm text-muted-foreground">15-year take-or-pay contract</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div className="p-3 rounded bg-green-50">
+                    <p className="text-xl font-bold text-green-700">$160/t</p>
+                    <p className="text-xs text-green-600">Floor price (intro)</p>
+                  </div>
+                  <div className="p-3 rounded bg-green-50">
+                    <p className="text-xl font-bold text-green-700">15 yrs</p>
+                    <p className="text-xs text-green-600">Contract term</p>
+                  </div>
+                  <div className="p-3 rounded bg-green-50">
+                    <p className="text-xl font-bold text-green-700">CPI+3%</p>
+                    <p className="text-xs text-green-600">After year 5</p>
+                  </div>
+                  <div className="p-3 rounded bg-green-50">
+                    <p className="text-xl font-bold text-green-700">+5 yrs</p>
+                    <p className="text-xs text-green-600">Buyer extension option</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-4 text-center">
+                  First 1,000 growers who sign a Grower Accession Deed and plant tissue-cultured "energy elite" Beema receive the floor price guarantee.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Financing Partners */}
           <h2 className="text-2xl font-bold text-center mb-4">
-            Approved by Leading Lenders
+            Project Finance & Carbon Forward Sales
           </h2>
-          <p className="text-center text-muted-foreground mb-8">
-            15-year offtake contracts already accepted for project finance
+          <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Currently under assessment for project finance and forward sale of carbon offsets
           </p>
           
-          <LenderCarousel />
+          <div className="max-w-4xl mx-auto">
+            <FinancingPartners />
+          </div>
           
           <div className="flex justify-center gap-4 mt-8">
             <Badge variant="outline" className="gap-1">
               <Shield className="h-3 w-3" />
-              DSCR 1.42+
+              Target DSCR 1.42+
             </Badge>
             <Badge variant="outline" className="gap-1">
               <Award className="h-3 w-3" />

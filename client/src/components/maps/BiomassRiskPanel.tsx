@@ -196,7 +196,7 @@ function ReturnPeriodGauge({
         
         <p className="text-xs">
           {data.overdue ? (
-            <span className="text-red-600 font-medium">
+            <span className="text-red-600 dark:text-red-400 font-medium">
               Statistically overdue by {Math.abs(yearsUntilDue).toFixed(1)} years
             </span>
           ) : (
@@ -227,11 +227,11 @@ function RiskImpactChart({
         return (
           <div key={hazard} className="space-y-1">
             <div className="flex justify-between text-xs">
-              <span className="capitalize">{hazard}</span>
-              <span className="font-medium text-red-600">-{impact.lossPercent}%</span>
+              <span className="capitalize text-foreground">{hazard}</span>
+              <span className="font-medium text-red-600 dark:text-red-400">-{impact.lossPercent}%</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-red-500 transition-all"
                 style={{ width: `${impact.lossPercent}%` }}
               />
@@ -354,7 +354,7 @@ export function BiomassRiskPanel({
   };
   
   return (
-    <Card className={cn("w-80 shadow-lg", className)}>
+    <Card className={cn("w-80 shadow-lg bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-border/50", className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -504,7 +504,7 @@ export function BiomassRiskPanel({
                 <p className="text-xs text-muted-foreground">vs 10-yr Mean</p>
                 <p className={cn(
                   "font-semibold flex items-center gap-1",
-                  deviationFromMean < 0 ? "text-red-600" : "text-green-600"
+                  deviationFromMean < 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
                 )}>
                   {deviationFromMean < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
                   {deviationFromMean.toFixed(1)}%
@@ -513,7 +513,7 @@ export function BiomassRiskPanel({
             </div>
             
             <div className="text-xs text-muted-foreground">
-              Expected loss: <span className="font-medium text-red-600">
+              Expected loss: <span className="font-medium text-red-600 dark:text-red-400">
                 -{RISK_IMPACTS[activeHazard][riskScenario].lossPercent}%
               </span> (confidence: {RISK_IMPACTS[activeHazard][riskScenario].confidence}%)
             </div>
