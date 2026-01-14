@@ -105,7 +105,9 @@ import {
   Wheat,
   Info,
   Settings2,
+  BarChart3,
 } from 'lucide-react';
+import { BiomassRiskPanel } from './BiomassRiskPanel';
 
 // Fix Leaflet default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -617,6 +619,7 @@ export function PlatformMap({
   const [markerCount, setMarkerCount] = useState(0);
   const [layerPanelOpen, setLayerPanelOpen] = useState(false);
   const [activeLayerCount, setActiveLayerCount] = useState(0);
+  const [showRiskPanel, setShowRiskPanel] = useState(false);
   
   // Data queries
   const { data: feedstocks, isLoading: feedstocksLoading } = trpc.feedstocks.search.useQuery(
@@ -1279,6 +1282,34 @@ export function PlatformMap({
               </div>
             )}
           </div>
+        </div>
+      )}
+      
+      {/* Biomass Risk Analysis Toggle Button */}
+      {showControls && (
+        <div className="absolute top-3 left-40 z-[1000]">
+          <Button
+            variant={showRiskPanel ? 'default' : 'secondary'}
+            size="sm"
+            className={cn(
+              "shadow-md gap-2",
+              !showRiskPanel && "bg-white"
+            )}
+            onClick={() => setShowRiskPanel(!showRiskPanel)}
+          >
+            <BarChart3 className="h-4 w-4" />
+            Risk Analysis
+          </Button>
+        </div>
+      )}
+      
+      {/* Biomass Risk Analysis Panel */}
+      {showRiskPanel && (
+        <div className="absolute top-14 right-3 z-[1000]">
+          <BiomassRiskPanel
+            selectedLocation={selectedLocation}
+            onClose={() => setShowRiskPanel(false)}
+          />
         </div>
       )}
     </div>

@@ -13,6 +13,15 @@ export type {
   BaseLayerType 
 } from './PlatformMap';
 
+// Advanced climate risk analysis panel
+export { BiomassRiskPanel } from './BiomassRiskPanel';
+export type { 
+  RiskScenario, 
+  HazardType, 
+  Season, 
+  CropType 
+} from './BiomassRiskPanel';
+
 // Legacy map components (to be deprecated)
 export { 
   MarketIntelligenceMap, 
