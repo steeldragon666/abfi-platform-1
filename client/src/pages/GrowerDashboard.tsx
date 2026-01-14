@@ -1,16 +1,16 @@
 /**
- * Grower Dashboard - Nextgen Design
+ * ABFI Grower Dashboard - Premium SaaS Experience
  *
  * Features:
- * - Feedstock producer overview
- * - Contract management
- * - Certification tracking
- * - Market opportunity alerts
- * - Typography components for consistent styling
+ * - Generous spacing and clear information hierarchy
+ * - Premium typography and component design
+ * - Logical information architecture
+ * - No cramped elements or maze-like navigation
+ * - High-end iconography and cursor effects
  */
 
 import { useState, useEffect } from "react";
-import { PanelLeftClose, PanelLeft } from "lucide-react";
+import { PanelLeftClose, PanelLeft, Plus, Bell, MapPin, Calendar, TrendingUp, AlertTriangle, Upload, Eye, Clock, Droplets, Thermometer, Shield, Star, ExternalLink, RefreshCw } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -27,6 +27,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from"@/components/ui/collapsible";
+import { PlatformMap } from "@/components/maps/PlatformMap";
+import { CarbonWallet } from "@/components/carbon/CarbonWallet";
+import { RefreshButton } from "@/components/ui/RefreshButton";
 import {
   Leaf,
   FileText,
@@ -34,20 +37,6 @@ import {
   Circle,
   ChevronRight,
   ChevronDown,
-  Plus,
-  Bell,
-  MapPin,
-  Calendar,
-  TrendingUp,
-  AlertTriangle,
-  Upload,
-  Eye,
-  Clock,
-  Droplets,
-  Thermometer,
-  Shield,
-  Star,
-  ExternalLink,
   Sprout,
   DollarSign,
   ArrowRight,
@@ -177,37 +166,69 @@ export default function GrowerDashboard() {
     };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background premium-fade-in">
       {/* Onboarding Modal */}
       <OnboardingModal
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
         userRole="grower"
       />
-      {/* Compact Stats Bar */}
-      <div className="border-b bg-card/50 py-1.5 px-4">
-        <div className="flex items-center justify-center gap-6 text-xs">
-          {QUICK_STATS.map((stat, index) => (
-            <div key={index} className="flex items-center gap-1.5">
-              <stat.icon className={cn("h-3.5 w-3.5", stat.color)} aria-hidden="true" />
-              <span className="font-medium">{stat.value}</span>
-              <span className="text-muted-foreground">{stat.label}</span>
+
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="premium-container flex h-20 items-center justify-between">
+          {/* Logo and Title */}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
+                <Leaf className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="premium-heading-xl text-foreground">Grower Dashboard</h1>
+                <p className="text-sm text-muted-foreground">Manage your feedstock operations</p>
+              </div>
             </div>
-          ))}
+          </div>
+
+          {/* Header Actions */}
+          <div className="flex items-center space-x-3">
+            <RefreshButton
+              onRefresh={() => {
+                // Implement refresh logic
+                console.log('Refreshing dashboard data...');
+              }}
+              isLoading={false}
+              label="Refresh"
+            />
+            <Button variant="ghost" size="sm" className="premium-button">
+              <Bell className="h-5 w-5" />
+            </Button>
+            <Badge variant="secondary" className="px-3 py-1">Premium Account</Badge>
+          </div>
+        </div>
+      </header>
+
+      {/* Quick Stats Bar - Premium Version */}
+      <div className="border-b bg-gradient-to-r from-primary/5 to-secondary/5 py-3 px-4">
+        <div className="premium-container">
+          <div className="flex items-center justify-center gap-8">
+            {QUICK_STATS.map((stat, index) => (
+              <div key={index} className="flex items-center gap-3 px-4 py-2 rounded-lg bg-background/80 backdrop-blur-sm border border-primary/10">
+                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <stat.icon className={cn("h-4 w-4 text-primary")} aria-hidden="true" />
+                </div>
+                <div className="text-center">
+                  <div className="premium-metric text-primary">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground">{stat.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Main Content - Sidebar + Map Layout */}
-      <div className="flex h-[calc(100vh-100px)]">
-        {/* Collapsible Sidebar */}
-        <div
-          className={cn(
-            "border-r bg-card transition-all duration-300 flex flex-col",
-            sidebarOpen ? "w-80" : "w-0 overflow-hidden"
-          )}
-        >
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-4">
+      {/* Main Content - Premium Layout */}
+      <main className="premium-container premium-section">
               {/* Onboarding Progress (if incomplete) */}
               {progressPercent < 100 && (
                 <Card className="border-emerald-200 bg-emerald-50/50">
@@ -576,49 +597,261 @@ export default function GrowerDashboard() {
                   )}
                 </div>
               </div>
-            </div>
-          </ScrollArea>
+        {/* Priority Actions */}
+        <section className="premium-section">
+          <Card className="premium-card">
+            <CardHeader className="pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-warning/10 rounded-lg flex items-center justify-center">
+                  <AlertTriangle className="h-5 w-5 text-warning" />
+                </div>
+                <div>
+                  <CardTitle className="premium-heading">Priority Actions</CardTitle>
+                  <CardDescription className="premium-body">
+                    Complete these high-priority tasks to optimize your feedstock operations
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="premium-stagger space-y-premium">
+                {PRIORITY_ACTIONS.map((action, index) => (
+                  <Link key={action.id} href={action.href}>
+                    <div
+                      className={cn(
+                        "flex items-center justify-between p-6 rounded-xl border transition-all hover:shadow-lg cursor-pointer group",
+                        action.priority === "high"
+                          ? "border-warning/30 bg-warning/5 hover:border-warning/50 hover:bg-warning/10"
+                          : "border-muted hover:border-primary/30 hover:bg-primary/5"
+                      )}
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className={cn(
+                          "w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform",
+                          action.priority === "high"
+                            ? "bg-warning/10"
+                            : "bg-primary/10"
+                        )}>
+                          <action.icon className={cn(
+                            "h-6 w-6",
+                            action.priority === "high"
+                              ? "text-warning"
+                              : "text-primary"
+                          )} />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg mb-1">{action.title}</h3>
+                          <p className="text-muted-foreground">{action.description}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Beema Bamboo & Carbon Assets */}
+        <div className="premium-grid">
+          {/* Beema Bamboo Section */}
+          <Card className="premium-card border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                    <Leaf className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="premium-heading">Base-load Supply – Beema Bamboo</CardTitle>
+                    <CardDescription className="premium-body">15-year guaranteed revenue from perennial biomass</CardDescription>
+                  </div>
+                </div>
+                <Badge className="bg-primary text-white">NEW</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="text-center p-4 rounded-lg bg-background/80">
+                  <p className="text-sm text-muted-foreground mb-1">Hectares Planted</p>
+                  <p className="premium-metric text-primary">50 ha</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-background/80">
+                  <p className="text-sm text-muted-foreground mb-1">First Harvest</p>
+                  <p className="premium-metric text-secondary">Jun 2026</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-background/80">
+                  <p className="text-sm text-muted-foreground mb-1">Projected Annual</p>
+                  <p className="premium-metric text-success">2,750 t DM</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-background/80">
+                  <p className="text-sm text-muted-foreground mb-1">Contract Price</p>
+                  <p className="premium-metric">$85/t + 3%/yr</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-success/10 rounded-lg border border-success/20">
+                <div className="flex items-center space-x-3">
+                  <Shield className="h-5 w-5 text-success" />
+                  <div>
+                    <p className="font-semibold text-success">Verified & Active</p>
+                    <p className="text-sm text-muted-foreground">Contract ends Jun 2039</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="text-success border-success hover:bg-success/10">
+                  View Contract
+                </Button>
+              </div>
+
+              <Button className="w-full premium-button bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90">
+                Learn About Beema
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Carbon Wallet */}
+          <Card className="premium-card border-secondary/20">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
+                    <Droplets className="h-5 w-5 text-secondary" />
+                  </div>
+                  <div>
+                    <CardTitle className="premium-heading">Carbon Assets</CardTitle>
+                    <CardDescription className="premium-body">ACCUs, SMCs & GOs from Clean Energy Regulator</CardDescription>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="text-secondary bg-secondary/10">CorTenX</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <CarbonWallet />
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Map Area */}
-        <div className="flex-1 relative">
-          {/* Sidebar Toggle Button */}
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute top-4 left-4 z-[1002] bg-card/90 backdrop-blur-sm shadow-md"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-            aria-expanded={sidebarOpen}
-          >
-            {sidebarOpen ? (
-              <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <PanelLeft className="h-4 w-4" aria-hidden="true" />
-            )}
-          </Button>
-          
-          {/* Full Screen Map */}
-          <PlatformMap
-            preset="grower"
-            height="100%"
-            showControls={true}
-            showLayerPanel={true}
-            enableFeedstockLayer={true}
-          />
+        {/* Feedstock Listings */}
+        <section className="premium-section">
+          <Card className="premium-card">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="premium-heading">Spot Market Waste</CardTitle>
+                  <CardDescription className="premium-body">
+                    Your verified Beema profile lets buyers trust your spot tonnes—list instantly
+                  </CardDescription>
+                </div>
+                <Button className="premium-button">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Listing
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-premium premium-stagger">
+                {MY_LISTINGS.map((listing, index) => (
+                  <div
+                    key={listing.id}
+                    className="p-6 rounded-xl border border-muted hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer group"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    onClick={() => focusOnListing(listing)}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className={cn(
+                          "w-12 h-12 rounded-lg flex items-center justify-center",
+                          listing.status === "active"
+                            ? "bg-primary/10"
+                            : "bg-secondary/10"
+                        )}>
+                          {listing.type === "Canola" ? (
+                            <Leaf className="h-6 w-6 text-primary" />
+                          ) : (
+                            <Droplets className="h-6 w-6 text-secondary" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                            {listing.name}
+                          </h3>
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <span className="flex items-center space-x-1">
+                              <MapPin className="h-4 w-4" />
+                              <span>{listing.location.label}</span>
+                            </span>
+                            <span>{listing.type}</span>
+                            <Badge variant={listing.status === "active" ? "secondary" : "outline"}
+                                   className={listing.status === "active" ? "text-green-600 bg-green-50" : ""}>
+                              {listing.status === "active" ? "Active" : "Under Review"}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="premium-metric text-success">
+                          ${listing.price}/t
+                        </div>
+                        <div className="flex items-center space-x-1 mt-1">
+                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                          <span className="text-sm font-medium">{listing.rating}</span>
+                        </div>
+                      </div>
+                    </div>
 
-          {/* Quick Add Button - Bottom Right */}
-          <Link href="/feedstock/create">
-            <Button
-              className="absolute bottom-4 right-4 shadow-lg z-[1001]"
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
-              Add Feedstock
-            </Button>
-          </Link>
-        </div>
-      </div>
+                    <div className="grid grid-cols-3 gap-6">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Available Volume</p>
+                        <p className="font-semibold">{listing.volume}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Quality Score</p>
+                        <p className="font-semibold">{listing.quality}/100</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Next Harvest</p>
+                        <p className="font-semibold">{listing.nextHarvest}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Interactive Map */}
+        <section className="premium-section">
+          <Card className="premium-card">
+            <CardHeader className="pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-coastal/10 rounded-lg flex items-center justify-center">
+                  <MapPin className="h-5 w-5 text-coastal" />
+                </div>
+                <div>
+                  <CardTitle className="premium-heading">Feedstock Map</CardTitle>
+                  <CardDescription className="premium-body">
+                    Interactive map of your listings and market opportunities
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-96 rounded-lg overflow-hidden border">
+                <PlatformMap
+                  preset="grower"
+                  height="100%"
+                  showControls={true}
+                  showLayerPanel={true}
+                  enableFeedstockLayer={true}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      </main>
     </div>
   );
 }
