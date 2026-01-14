@@ -118,8 +118,8 @@ const FUEL_PARAMS = {
 // Australian elevation data for major routes
 // In production, would come from GA DEM tiles
 const ROUTE_ELEVATIONS: Record<string, ElevationProfile> = {
-  // Toowoomba Range (notorious for heavy vehicles)
-  "toowoomba_range": {
+  // Toowoomba Range - Uphill (Ipswich to Toowoomba)
+  "toowoomba_range_uphill": {
     startElevation: 130,
     endElevation: 700,
     maxElevation: 710,
@@ -133,9 +133,24 @@ const ROUTE_ELEVATIONS: Record<string, ElevationProfile> = {
       { startKm: 8, endKm: 10, gradient: 10, length: 2, direction: "uphill" },
     ],
   },
+  // Toowoomba Range - Downhill (Toowoomba to Ipswich)
+  "toowoomba_range_downhill": {
+    startElevation: 700,
+    endElevation: 130,
+    maxElevation: 710,
+    minElevation: 130,
+    totalAscent: 0,
+    totalDescent: 570,
+    averageGradient: -5.5,
+    maxGradient: -10,
+    steepSections: [
+      { startKm: 0, endKm: 2, gradient: -10, length: 2, direction: "downhill" },
+      { startKm: 2, endKm: 10, gradient: -7, length: 8, direction: "downhill" },
+    ],
+  },
   
-  // Blue Mountains (Sydney to Lithgow)
-  "blue_mountains": {
+  // Blue Mountains - Uphill (Sydney to Lithgow)
+  "blue_mountains_uphill": {
     startElevation: 50,
     endElevation: 950,
     maxElevation: 1100,
@@ -149,9 +164,24 @@ const ROUTE_ELEVATIONS: Record<string, ElevationProfile> = {
       { startKm: 60, endKm: 70, gradient: 8, length: 10, direction: "uphill" },
     ],
   },
+  // Blue Mountains - Downhill (Lithgow to Sydney)
+  "blue_mountains_downhill": {
+    startElevation: 950,
+    endElevation: 50,
+    maxElevation: 1100,
+    minElevation: 50,
+    totalAscent: 150,
+    totalDescent: 1050,
+    averageGradient: -4.5,
+    maxGradient: -8,
+    steepSections: [
+      { startKm: 0, endKm: 10, gradient: -8, length: 10, direction: "downhill" },
+      { startKm: 25, endKm: 50, gradient: -5, length: 25, direction: "downhill" },
+    ],
+  },
   
-  // Adelaide Hills
-  "adelaide_hills": {
+  // Adelaide Hills - Uphill (Adelaide to Hills)
+  "adelaide_hills_uphill": {
     startElevation: 20,
     endElevation: 450,
     maxElevation: 500,
@@ -164,9 +194,23 @@ const ROUTE_ELEVATIONS: Record<string, ElevationProfile> = {
       { startKm: 5, endKm: 15, gradient: 6, length: 10, direction: "uphill" },
     ],
   },
+  // Adelaide Hills - Downhill (Hills to Adelaide)
+  "adelaide_hills_downhill": {
+    startElevation: 450,
+    endElevation: 20,
+    maxElevation: 500,
+    minElevation: 20,
+    totalAscent: 30,
+    totalDescent: 480,
+    averageGradient: -4,
+    maxGradient: -7,
+    steepSections: [
+      { startKm: 0, endKm: 10, gradient: -6, length: 10, direction: "downhill" },
+    ],
+  },
   
-  // Great Dividing Range (general)
-  "great_dividing_range": {
+  // Great Dividing Range - Westbound (coast to inland)
+  "great_dividing_range_westbound": {
     startElevation: 200,
     endElevation: 800,
     maxElevation: 900,
@@ -177,6 +221,20 @@ const ROUTE_ELEVATIONS: Record<string, ElevationProfile> = {
     maxGradient: 6,
     steepSections: [
       { startKm: 30, endKm: 50, gradient: 5, length: 20, direction: "uphill" },
+    ],
+  },
+  // Great Dividing Range - Eastbound (inland to coast)
+  "great_dividing_range_eastbound": {
+    startElevation: 800,
+    endElevation: 200,
+    maxElevation: 900,
+    minElevation: 200,
+    totalAscent: 100,
+    totalDescent: 700,
+    averageGradient: -3.5,
+    maxGradient: -6,
+    steepSections: [
+      { startKm: 0, endKm: 20, gradient: -5, length: 20, direction: "downhill" },
     ],
   },
   
@@ -352,38 +410,53 @@ async function getElevationProfile(
 
 /**
  * Identify route type based on origin/destination
+ * Returns route type with direction suffix (_uphill or _downhill) for steep routes
  */
 function identifyRouteType(origin: GeoLocation, destination: GeoLocation): string {
-  // Check for Toowoomba Range (Ipswich to Toowoomba)
-  if (
-    (origin.latitude > -27.8 && origin.latitude < -27.2 && origin.longitude > 152.5 && origin.longitude < 153) &&
-    (destination.latitude > -27.8 && destination.latitude < -27.2 && destination.longitude > 151.5 && destination.longitude < 152)
-  ) {
-    return "toowoomba_range";
+  // Helper to check if location is in a region
+  const isInIpswichArea = (loc: GeoLocation) => 
+    loc.latitude > -27.8 && loc.latitude < -27.2 && loc.longitude > 152.5 && loc.longitude < 153;
+  const isInToowoombaArea = (loc: GeoLocation) => 
+    loc.latitude > -27.8 && loc.latitude < -27.2 && loc.longitude > 151.5 && loc.longitude < 152;
+  
+  const isInSydneyArea = (loc: GeoLocation) => 
+    loc.latitude > -34.2 && loc.latitude < -33.5 && loc.longitude > 150.5;
+  const isWestOfBlueMountains = (loc: GeoLocation) => loc.longitude < 150;
+  
+  const isInAdelaideArea = (loc: GeoLocation) => 
+    loc.latitude > -35.2 && loc.latitude < -34.5 && loc.longitude > 138.3 && loc.longitude < 139;
+  const isWestOfAdelaideHills = (loc: GeoLocation) => loc.longitude < 138.5;
+
+  // Check for Toowoomba Range (bidirectional)
+  if (isInIpswichArea(origin) && isInToowoombaArea(destination)) {
+    return "toowoomba_range_uphill";
+  }
+  if (isInToowoombaArea(origin) && isInIpswichArea(destination)) {
+    return "toowoomba_range_downhill";
   }
   
-  // Check for Blue Mountains (Sydney area to west)
-  if (
-    (origin.latitude > -34.2 && origin.latitude < -33.5 && origin.longitude > 150.5) &&
-    (destination.longitude < 150)
-  ) {
-    return "blue_mountains";
+  // Check for Blue Mountains (bidirectional)
+  if (isInSydneyArea(origin) && isWestOfBlueMountains(destination)) {
+    return "blue_mountains_uphill";
+  }
+  if (isWestOfBlueMountains(origin) && isInSydneyArea(destination)) {
+    return "blue_mountains_downhill";
   }
   
-  // Check for Adelaide Hills
-  if (
-    (origin.latitude > -35.2 && origin.latitude < -34.5 && origin.longitude > 138.3 && origin.longitude < 139) &&
-    (destination.longitude < 138.5)
-  ) {
-    return "adelaide_hills";
+  // Check for Adelaide Hills (bidirectional)
+  if (isInAdelaideArea(origin) && isWestOfAdelaideHills(destination)) {
+    return "adelaide_hills_uphill";
+  }
+  if (isWestOfAdelaideHills(origin) && isInAdelaideArea(destination)) {
+    return "adelaide_hills_downhill";
   }
   
-  // Check for Great Dividing Range crossing (general)
-  if (
-    (origin.longitude > 150 && destination.longitude < 148) ||
-    (origin.longitude < 148 && destination.longitude > 150)
-  ) {
-    return "great_dividing_range";
+  // Check for Great Dividing Range crossing (general - bidirectional)
+  if (origin.longitude > 150 && destination.longitude < 148) {
+    return "great_dividing_range_westbound";
+  }
+  if (origin.longitude < 148 && destination.longitude > 150) {
+    return "great_dividing_range_eastbound";
   }
   
   // Default to flat terrain

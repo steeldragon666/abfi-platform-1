@@ -399,7 +399,7 @@ export async function getRegionalSupplyHealth(
       weatherOutlook,
       cropCondition,
       freightStatus: "normal",
-      trend: healthScore > 70 ? "stable" : healthScore > 50 ? "declining" : "declining",
+      trend: healthScore > 85 ? "improving" : healthScore > 60 ? "stable" : "declining",
       trendConfidence: 0.80 + getSeededValue(regionSeed + 4) * 0.15,
     });
   }
