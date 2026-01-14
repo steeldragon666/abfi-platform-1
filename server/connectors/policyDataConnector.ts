@@ -62,7 +62,7 @@ export class PolicyDataConnector extends BaseConnector {
   private static readonly CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
   constructor(config: ConnectorConfig) {
-    super(config);
+    super(config, "policy_data");
   }
 
   /**
@@ -463,14 +463,16 @@ export class PolicyDataConnector extends BaseConnector {
       const consultations = await this.fetchConsultations();
       for (const c of consultations.filter(c => c.relevance === "high")) {
         signals.push({
-          type: "policy",
-          source: "Government Consultation Hub",
+          sourceId: "Government Consultation Hub",
           title: c.title,
           description: `${c.days_remaining} days remaining - ${c.jurisdiction}`,
-          url: c.submission_url,
-          discoveredAt: new Date(),
+          sourceUrl: c.submission_url,
+          detectedAt: new Date(),
+          entityName: c.title,
+          signalType: "regulatory_filing",
+          signalWeight: 0.9,
           confidence: 0.95,
-          metadata: { consultation: c },
+          rawData: { consultation: c },
         });
       }
     } catch (error) {

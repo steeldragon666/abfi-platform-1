@@ -423,8 +423,8 @@ function identifyRouteType(origin: GeoLocation, destination: GeoLocation): strin
     loc.latitude > -34.2 && loc.latitude < -33.5 && loc.longitude > 150.5;
   const isWestOfBlueMountains = (loc: GeoLocation) => loc.longitude < 150;
   
-  const isInAdelaideArea = (loc: GeoLocation) => 
-    loc.latitude > -35.2 && loc.latitude < -34.5 && loc.longitude > 138.3 && loc.longitude < 139;
+  const isInAdelaideArea = (loc: GeoLocation) =>
+    loc.latitude > -35.2 && loc.latitude < -34.5 && loc.longitude > 138.5 && loc.longitude < 139;
   const isWestOfAdelaideHills = (loc: GeoLocation) => loc.longitude < 138.5;
 
   // Check for Toowoomba Range (bidirectional)

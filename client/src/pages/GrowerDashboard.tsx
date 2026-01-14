@@ -44,10 +44,8 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { PlatformMap } from "@/components/maps/PlatformMap";
 import { H3, Body, MetricValue } from "@/components/Typography";
 import { OnboardingModal } from "@/components/OnboardingModal";
-import { CarbonWallet } from "@/components/carbon/CarbonWallet";
 
 // Onboarding checklist items
 const ONBOARDING_CHECKLIST = [
@@ -98,6 +96,7 @@ const MY_LISTINGS = [
     location: { lat: -33.8688, lng: 151.2093, label:"Dubbo, NSW" },
     status:"active",
     volume:"2,500 t/yr",
+    price: 1200,
     rating:"A+",
     nextHarvest:"Mar 2025",
     moisture: 8.2,
@@ -111,6 +110,7 @@ const MY_LISTINGS = [
     location: { lat: -37.8136, lng: 144.9631, label:"Geelong, VIC" },
     status:"pending",
     volume:"800 t/yr",
+    price: 800,
     rating:"B+",
     nextHarvest:"Continuous",
     moisture: null,

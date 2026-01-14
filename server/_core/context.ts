@@ -16,6 +16,7 @@ const TEST_USER: User = {
   loginMethod: "test",
   lastSignedIn: new Date(),
   createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 export type TrpcContext = {

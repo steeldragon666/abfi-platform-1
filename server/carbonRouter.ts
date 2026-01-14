@@ -538,7 +538,7 @@ export const carbonRouter = router({
     .input(z.object({
       eventId: z.string(),
       eventType: z.string(),
-      payload: z.record(z.unknown()),
+      payload: z.record(z.string(), z.unknown()),
       signature: z.string(),
     }))
     .mutation(async ({ input }) => {

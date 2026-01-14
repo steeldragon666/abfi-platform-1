@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { 
@@ -101,11 +101,11 @@ const portalItems = [
 ];
 
 export const PremiumHeader: React.FC = () => {
-  const location = useLocation();
-  const { theme, setTheme } = useTheme();
+  const [location] = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  
-  const isActive = (href: string) => location.pathname === href || location.pathname.startsWith(href + '/');
+
+  const isActive = (href: string) => location === href || location.startsWith(href + '/');
   
   return (
     <header className="sticky top-0 z-50 w-full">
@@ -217,7 +217,7 @@ export const PremiumHeader: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                onClick={() => toggleTheme?.()}
                 className="relative"
               >
                 <Sun className="h-5 w-5 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />

@@ -121,7 +121,7 @@ function BalanceCard({
 }) {
   const info = INSTRUMENT_INFO[balance.instrument] || INSTRUMENT_INFO.ACCU;
   const Icon = info.icon;
-  const priceValue = price?.spotPrice ?? price?.priceAud ?? 0;
+  const priceValue = price?.spotPrice ?? 0;
   const valueAud = priceValue > 0 ? (balance.available ?? 0) * priceValue : null;
   
   return (
@@ -147,7 +147,7 @@ function BalanceCard({
           
           {price && (
             <div className="text-right">
-              <p className="text-sm font-medium">${(price.spotPrice ?? price.priceAud ?? 0).toFixed(2)}</p>
+              <p className="text-sm font-medium">${(price.spotPrice ?? 0).toFixed(2)}</p>
               <p className={cn(
                 "text-xs flex items-center gap-1",
                 (price.change24h ?? 0) >= 0 ? "text-green-600" : "text-red-600"
@@ -448,12 +448,12 @@ export function CarbonWallet() {
   const { data: walletData, isLoading: walletLoading } = trpc.carbon.hasWallet.useQuery();
   const { data: balanceData, isLoading: balanceLoading, refetch: refetchBalance } = trpc.carbon.balance.useQuery(
     undefined,
-    { enabled: walletData?.connected || walletData?.hasWallet }
+    { enabled: walletData?.connected }
   );
   const { data: pricesData } = trpc.carbon.prices.useQuery();
   const { data: impactData } = trpc.carbon.impactStats.useQuery(
     undefined,
-    { enabled: walletData?.connected || walletData?.hasWallet }
+    { enabled: walletData?.connected }
   );
   
   // Mutations
@@ -527,7 +527,7 @@ export function CarbonWallet() {
   })();
   
   // Check if wallet is connected (handle both old and new API)
-  const isWalletConnected = walletData?.connected ?? walletData?.hasWallet ?? false;
+  const isWalletConnected = walletData?.connected ?? false;
   
   // Price lookup helper
   const getPrice = (instrument: string) => {
@@ -616,16 +616,16 @@ export function CarbonWallet() {
           )}
           
           {/* Portfolio Summary */}
-          {balanceData && (balanceData.portfolioValueAud || balanceData.totalValueAud) && (
+          {balanceData && balanceData.portfolioValueAud && (
             <Card className="mt-4">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Total Portfolio Value</p>
                     <p className="text-2xl font-bold">
-                      ${(balanceData.portfolioValueAud ?? balanceData.totalValueAud ?? 0).toLocaleString(undefined, { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
+                      ${(balanceData.portfolioValueAud ?? 0).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
                       })}
                     </p>
                   </div>

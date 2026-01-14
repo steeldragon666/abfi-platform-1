@@ -79,6 +79,43 @@ export abstract class BaseConnector {
     console.log(`[${this.source}] ${message}`);
   }
 
+  protected async fetchWithRetry(
+    url: string,
+    options: RequestInit = {},
+    maxRetries: number = 3
+  ): Promise<Response> {
+    let lastError: Error;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(url, options);
+
+        // If we get a successful response, return it
+        if (response.ok) {
+          return response;
+        }
+
+        // If it's a client error (4xx), don't retry
+        if (response.status >= 400 && response.status < 500) {
+          return response;
+        }
+
+        // For server errors (5xx) or network errors, retry
+        lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
+
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Max 10s
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError!;
+  }
+
   protected logError(message: string, error?: unknown): void {
     console.error(`[${this.source}] ERROR: ${message}`, error);
   }

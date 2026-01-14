@@ -175,12 +175,14 @@ function BOMWarningsLayer() {
         });
       });
 
-      if (features.length > 0) {
-        setWarningsGeoJSON({
-          type: 'FeatureCollection',
-          features,
-        });
-      }
+      // Always set warningsGeoJSON - clear it when no features, set it when features exist
+      setWarningsGeoJSON(features.length > 0 ? {
+        type: 'FeatureCollection',
+        features,
+      } : null);
+    } else {
+      // Clear warnings when no data
+      setWarningsGeoJSON(null);
     }
   }, [warningsData]);
 

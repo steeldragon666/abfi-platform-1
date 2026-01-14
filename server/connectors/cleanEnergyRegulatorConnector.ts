@@ -51,7 +51,7 @@ export class CleanEnergyRegulatorConnector extends BaseConnector {
   private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   constructor(config: ConnectorConfig) {
-    super(config);
+    super(config, "clean_energy_regulator");
   }
 
   /**
@@ -268,14 +268,16 @@ export class CleanEnergyRegulatorConnector extends BaseConnector {
     try {
       const price = await this.fetchACCUPrice();
       signals.push({
-        type: "market_data",
-        source: "Clean Energy Regulator",
+        sourceId: "Clean Energy Regulator",
         title: `ACCU Spot Price: $${price.price}`,
         description: `${price.change_pct >= 0 ? "+" : ""}${price.change_pct}% change`,
-        url: "https://www.cleanenergyregulator.gov.au",
-        discoveredAt: new Date(),
+        sourceUrl: "https://www.cleanenergyregulator.gov.au",
+        detectedAt: new Date(),
+        entityName: "ACCU Market",
+        signalType: "regulatory_filing",
+        signalWeight: 0.9,
         confidence: 0.95,
-        metadata: { price },
+        rawData: { price },
       });
     } catch (error) {
       errors.push(`ACCU price fetch failed: ${error instanceof Error ? error.message : "Unknown"}`);
@@ -284,14 +286,16 @@ export class CleanEnergyRegulatorConnector extends BaseConnector {
     try {
       const stats = await this.fetchMarketStats();
       signals.push({
-        type: "market_data",
-        source: "Clean Energy Regulator",
+        sourceId: "Clean Energy Regulator",
         title: `Carbon Market: ${(stats.total_accus_issued / 1000000).toFixed(1)}M ACCUs issued`,
         description: `30-day volume: ${(stats.volume_30d / 1000).toFixed(0)}K units`,
-        url: "https://www.cleanenergyregulator.gov.au",
-        discoveredAt: new Date(),
+        sourceUrl: "https://www.cleanenergyregulator.gov.au",
+        detectedAt: new Date(),
+        entityName: "Carbon Market",
+        signalType: "regulatory_filing",
+        signalWeight: 0.8,
         confidence: 0.90,
-        metadata: { stats },
+        rawData: { stats },
       });
     } catch (error) {
       errors.push(`Market stats fetch failed: ${error instanceof Error ? error.message : "Unknown"}`);

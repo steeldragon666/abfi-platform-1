@@ -108,7 +108,7 @@ export class PriceDataConnector extends BaseConnector {
   };
 
   constructor(config: ConnectorConfig) {
-    super(config);
+    super(config, "price_data");
   }
 
   /**
@@ -410,14 +410,16 @@ export class PriceDataConnector extends BaseConnector {
     try {
       const summary = await this.getMarketSummary();
       signals.push({
-        type: "market_data",
-        source: "ABFI Price Intelligence",
+        sourceId: "ABFI Price Intelligence",
         title: `Market Health Index: ${summary.marketHealthIndex}%`,
         description: `${summary.totalActiveListings} active listings, avg price change ${summary.priceChangePercent}%`,
-        url: "/price-intelligence",
-        discoveredAt: new Date(),
+        sourceUrl: "/price-intelligence",
+        detectedAt: new Date(),
+        entityName: "Market Intelligence",
+        signalType: "news_mention",
+        signalWeight: 0.7,
         confidence: 0.85,
-        metadata: { summary },
+        rawData: { summary },
       });
     } catch {
       // Silent fail
