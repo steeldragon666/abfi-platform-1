@@ -22,6 +22,7 @@ import {
   Settings,
   HelpCircle,
   BookOpen,
+  Map,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/contexts/UserRoleContext";
@@ -463,6 +464,14 @@ export const PORTAL_CONFIGS: Record<Portal, PortalConfig> = {
 
 // Global navigation items (always visible)
 export const GLOBAL_NAV_ITEMS: NavItem[] = [
+  {
+    id: "map",
+    label: "Map",
+    href: "/map",
+    icon: Map,
+    roles: ["supplier", "buyer", "admin", "guest"],
+    description: "Interactive feedstock and demand map",
+  },
   {
     id: "help",
     label: "Help",

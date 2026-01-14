@@ -51,8 +51,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { UnifiedMap } from "@/components/maps/UnifiedMap";
-import { MapControlsProvider } from "@/contexts/MapControlsContext";
+import { PlatformMap } from "@/components/maps/PlatformMap";
 import { H3, Body, MetricValue } from "@/components/Typography";
 import { OnboardingModal } from "@/components/OnboardingModal";
 
@@ -169,7 +168,7 @@ export default function GrowerDashboard() {
 
   const focusOnListing = (listing: (typeof MY_LISTINGS)[0]) => {
     setSelectedListing(listing.id);
-    // UnifiedMap handles its own map state through MapControlsContext
+    // PlatformMap handles its own map state internally
     };
 
   return (
@@ -490,56 +489,43 @@ export default function GrowerDashboard() {
         </div>
 
         {/* Map Area */}
-        <MapControlsProvider userRole="supplier">
-          <div className="flex-1 relative">
-            {/* Sidebar Toggle Button */}
+        <div className="flex-1 relative">
+          {/* Sidebar Toggle Button */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute top-4 left-4 z-[1002] bg-card/90 backdrop-blur-sm shadow-md"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+            aria-expanded={sidebarOpen}
+          >
+            {sidebarOpen ? (
+              <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <PanelLeft className="h-4 w-4" aria-hidden="true" />
+            )}
+          </Button>
+          
+          {/* Full Screen Map */}
+          <PlatformMap
+            preset="grower"
+            height="100%"
+            showControls={true}
+            showLayerPanel={true}
+            enableFeedstockLayer={true}
+          />
+
+          {/* Quick Add Button - Bottom Right */}
+          <Link href="/feedstock/create">
             <Button
-              variant="outline"
-              size="icon"
-              className="absolute top-4 left-4 z-10 bg-card/90 backdrop-blur-sm shadow-md"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-              aria-expanded={sidebarOpen}
+              className="absolute bottom-4 right-4 shadow-lg z-[1001]"
+              size="sm"
             >
-              {sidebarOpen ? (
-                <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
-              ) : (
-                <PanelLeft className="h-4 w-4" aria-hidden="true" />
-              )}
+              <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+              Add Feedstock
             </Button>
-            {/* Full Screen Map */}
-            <UnifiedMap
-              className="w-full h-full"
-              onEntitySelect={(entity) => {
-              }}
-            />
-
-            {/* Minimal Map Legend - Bottom Left */}
-            <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm p-2 rounded-lg shadow-md border text-xs">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1">
-                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  <span>Active</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  <span>Pending</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Add Button - Bottom Right */}
-            <Link href="/feedstock/create">
-              <Button
-                className="absolute bottom-4 right-4 shadow-lg"
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
-                Add Feedstock
-              </Button>
-            </Link>
-          </div>
-        </MapControlsProvider>
+          </Link>
+        </div>
       </div>
     </div>
   );

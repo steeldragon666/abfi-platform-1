@@ -57,9 +57,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { UnifiedMap } from "@/components/maps/UnifiedMap";
-import { MapControlsProvider } from "@/contexts/MapControlsContext";
-import { MapControlsPanel } from "@/components/layout/MapControlsPanel";
+import { PlatformMap } from "@/components/maps/PlatformMap";
 import { H1, H2, H3, Body, MetricValue, DataLabel } from "@/components/Typography";
 import { CompactCard } from "@/components/ui/CompactCard";
 import { CollapsibleSection } from "@/components/layout/CollapsibleSection";
@@ -386,29 +384,24 @@ export default function DeveloperDashboard() {
         {/* Map/Pipeline Area */}
         <div className="flex-1 relative min-h-[400px] lg:min-h-0 overflow-hidden">
           {activeView === "map" ? (
-            <MapControlsProvider userRole="buyer">
-              <div className="flex h-full">
-                {/* Map Controls Panel */}
-                <MapControlsPanel className="hidden lg:flex" />
-
-                {/* Map Area */}
-                <div className="flex-1 relative">
-                  <UnifiedMap
-                    className="w-full h-full"
-                    onEntitySelect={(entity) => {
-                      }}
-                  />
-
-                  {/* Search Registry Button */}
-                  <Link href="/browse">
-                    <Button className="absolute bottom-4 right-4 shadow-lg z-10" size="lg">
-                      <Search className="h-5 w-5 mr-2" />
-                      Search Registry
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </MapControlsProvider>
+            <div className="relative h-full">
+              <PlatformMap
+                preset="developer"
+                height="100%"
+                showControls={true}
+                showLayerPanel={true}
+                enableFeedstockLayer={true}
+                enableDemandLayer={true}
+              />
+              
+              {/* Search Registry Button */}
+              <Link href="/browse">
+                <Button className="absolute bottom-4 right-4 shadow-lg z-[1001]" size="lg">
+                  <Search className="h-5 w-5 mr-2" />
+                  Search Registry
+                </Button>
+              </Link>
+            </div>
           ) : (
             /* Pipeline Kanban View */
             <div className="h-full p-4 overflow-x-auto">

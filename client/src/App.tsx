@@ -29,6 +29,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const FeedstockCreate = lazy(() => import("./pages/FeedstockCreate"));
 const SendInquiry = lazy(() => import("./pages/SendInquiry"));
 const MapView = lazy(() => import("./pages/MapView"));
+const MapPage = lazy(() => import("./pages/MapPage"));
 const CertificateUpload = lazy(() => import("./pages/CertificateUpload"));
 const SupplierInquiries = lazy(() => import("./pages/SupplierInquiries"));
 const BuyerInquiries = lazy(() => import("./pages/BuyerInquiries"));
@@ -208,18 +209,17 @@ function Router() {
         <Route path="/welcome" component={SimplifiedDashboard} />
         <Route path="/unified" component={Dashboard} />
 
-        {/* Map Routes - using existing MapView */}
-        <Route path="/map" component={MapView} />
-        <Route path="/unified-map" component={MapView} />
-
+        {/* Unified Platform Map - accessible from all portals */}
+        <Route path="/map" component={MapPage} />
+        
         {/* Legacy map routes -> redirect to unified map */}
+        <Route path="/map-view">
+          <Redirect to="/map" />
+        </Route>
+        <Route path="/unified-map">
+          <Redirect to="/map" />
+        </Route>
         <Route path="/feedstock-map">
-          <Redirect to="/map" />
-        </Route>
-        <Route path="/market-intelligence">
-          <Redirect to="/map" />
-        </Route>
-        <Route path="/australian-data">
           <Redirect to="/map" />
         </Route>
 

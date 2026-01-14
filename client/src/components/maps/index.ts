@@ -1,17 +1,25 @@
-export { BiomassMap, BIOFUEL_PROJECTS, WMS_LAYERS, STATUS_COLORS, RATING_COLORS, FUEL_TYPE_COLORS } from "./BiomassMap";
-export type { BiofuelProject, AremiBioenergyGenerator } from "./BiomassMap";
+/**
+ * Maps Components Index
+ * 
+ * Unified mapping components for the ABFI Platform.
+ */
 
-export {
-  MarketIntelligenceMap,
-  LAYER_CONFIGS,
-  LAYER_ACCESS,
-  STATUS_COLORS as MARKET_STATUS_COLORS,
-  FEEDSTOCK_COLORS,
-} from "./MarketIntelligenceMap";
-export type { MapLayerType, MapEntity } from "./MarketIntelligenceMap";
+// New unified platform map
+export { PlatformMap } from './PlatformMap';
+export type { 
+  PlatformMapProps, 
+  MapPreset, 
+  MapMarker, 
+  BaseLayerType 
+} from './PlatformMap';
 
-export { EntityDetailPanel } from "./EntityDetailPanel";
-
-export { UnifiedMap } from "./UnifiedMap";
-
-export { DataOverlayLayers, OverlayLegend } from "./DataOverlayLayers";
+// Legacy map components (to be deprecated)
+export { 
+  MarketIntelligenceMap, 
+  LAYER_CONFIGS, 
+  FEEDSTOCK_COLORS 
+} from './MarketIntelligenceMap';
+export type { MapLayerType, MapEntity } from './MarketIntelligenceMap';
+export { EntityDetailPanel } from './EntityDetailPanel';
+export { UnifiedMap } from './UnifiedMap';
+export { DataOverlayLayers, OverlayLegend } from './DataOverlayLayers';

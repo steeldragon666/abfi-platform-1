@@ -62,7 +62,7 @@ interface LayerConfig {
   category: "supply" | "demand" | "market" | "infrastructure";
 }
 
-const LAYER_CONFIGS: LayerConfig[] = [
+export const LAYER_CONFIGS: LayerConfig[] = [
   { id: "projects", name: "Grower Projects", icon: "🌾", color: "#22c55e", description: "Active growing projects with feedstock", category: "supply" },
   { id: "intentions", name: "Growing Intentions", icon: "🌱", color: "#84cc16", description: "Planned/proposed growing intentions", category: "supply" },
   { id: "demandSignals", name: "Buyer Demand", icon: "📍", color: "#3b82f6", description: "Active buyer demand signals", category: "demand" },
@@ -119,7 +119,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 // Feedstock category colors
-const FEEDSTOCK_COLORS: Record<string, string> = {
+export const FEEDSTOCK_COLORS: Record<string, string> = {
   oilseed: "#22c55e",
   UCO: "#f59e0b",
   tallow: "#8b5cf6",
@@ -1003,5 +1003,4 @@ export function MarketIntelligenceMap({
   );
 }
 
-// Export layer configs and types
-export { LAYER_CONFIGS, LAYER_ACCESS, STATUS_COLORS, FEEDSTOCK_COLORS };
+// Note: LAYER_CONFIGS and FEEDSTOCK_COLORS are exported inline at definition
