@@ -17,6 +17,7 @@ import { aiChatRouter } from "../aiChatRouter";
 import { australianDataRouter } from "../apis/australianDataRouter";
 import { intelligenceRouter } from "../intelligenceRouter";
 import { climateRouter } from "../climateRouter";
+import { marketIntelligenceRouter } from "../marketIntelligenceRouter";
 import { securityHeaders, rateLimit, rateLimitConfigs } from "./security";
 import { createSSERouter } from "./sse";
 import { createDevAuthRouter } from "./devAuth";
@@ -129,6 +130,9 @@ async function startServer() {
 
   // BOM Climate Intelligence API (climate risk, forecasts, warnings)
   app.use("/api/climate", climateRouter);
+
+  // Unified Market Intelligence Hub (news, carbon, social, aggregated)
+  app.use("/api/market-intelligence", marketIntelligenceRouter);
 
   // Server-Sent Events for real-time notifications
   app.use("/api/sse", createSSERouter());

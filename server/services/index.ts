@@ -92,3 +92,67 @@ export type {
   AEMOData,
   RegionalPriceBenchmark,
 } from "./priceDiscoveryEngine";
+
+// News Intelligence (RSS/API scraping)
+export {
+  getNewsFeed,
+  getBreakingAlerts,
+  searchNews,
+  newsIntelligence,
+} from "./newsIntelligence";
+export type {
+  NewsArticle,
+  TrendingTopic,
+  NewsFeed,
+  NewsAlert,
+} from "./newsIntelligence";
+
+// Global Carbon Markets
+export {
+  getMarketPrices,
+  getMarketOverview,
+  getAllMarketsOverview,
+  getHistoricalPrices,
+  detectArbitrageOpportunities,
+  calculateCorrelations,
+  getCarbonMarketDashboard,
+  globalCarbonMarkets,
+} from "./globalCarbonMarkets";
+export type {
+  CarbonPrice,
+  MarketOverview,
+  ArbitrageOpportunity,
+  HistoricalPrice,
+  MarketCorrelation,
+} from "./globalCarbonMarkets";
+
+// Social Sentiment Analysis
+export {
+  getSocialFeed,
+  getTrendingHashtags,
+  getTopInfluencers,
+  getSocialSentimentIndex,
+  searchSocialPosts,
+  getCompanyMentions,
+  socialSentiment,
+} from "./socialSentiment";
+export type {
+  SocialPost,
+  HashtagTrend,
+  Influencer,
+  SocialSentimentIndex,
+} from "./socialSentiment";
+
+// Market Intelligence Hub (Unified Aggregator)
+export {
+  getMarketDashboard,
+  generateExecutiveBriefing,
+  searchIntelligence,
+  detectMarketSignals,
+  marketIntelligenceHub,
+} from "./marketIntelligenceHub";
+export type {
+  MarketSignal,
+  MarketDashboard,
+  ExecutiveBriefing,
+} from "./marketIntelligenceHub";
