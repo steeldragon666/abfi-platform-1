@@ -48,6 +48,9 @@ import {
   Shield,
   Star,
   ExternalLink,
+  Sprout,
+  DollarSign,
+  ArrowRight,
 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
@@ -296,12 +299,75 @@ export default function GrowerDashboard() {
                 </div>
               </div>
 
-              {/* My Listings */}
+              {/* Beema Bamboo Base-Load Section */}
+              <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                <CardHeader className="pb-2 pt-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2 text-gray-900">
+                      <Sprout className="h-4 w-4 text-green-600" />
+                      Base-load Supply
+                    </CardTitle>
+                    <Badge className="bg-green-600 text-white text-[10px]">
+                      NEW
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-xs">
+                    Beema Bamboo - 15-year contracted revenue
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pb-4 space-y-3">
+                  {/* Mock Beema plot data - would come from API */}
+                  <div className="p-3 rounded-lg bg-white border border-green-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">Hectares Planted</span>
+                      <span className="text-sm font-semibold">50 ha</span>
+                    </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">First Harvest</span>
+                      <span className="text-sm font-semibold">Jun 2026</span>
+                    </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">Projected Annual</span>
+                      <span className="text-sm font-semibold text-green-700">2,750 t DM</span>
+                    </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">Contracted Price</span>
+                      <span className="text-sm font-semibold">$85/t + 3%/yr</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Contract End</span>
+                      <span className="text-sm font-semibold">Jun 2039</span>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-green-100">
+                      <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Verified & Active
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  {/* CTA for users without Beema */}
+                  <div className="text-center pt-2">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Lock in 15-year revenue certainty
+                    </p>
+                    <Link href="/beema-bamboo">
+                      <Button size="sm" variant="outline" className="w-full gap-2 border-green-300 text-green-700 hover:bg-green-50">
+                        <Sprout className="h-4 w-4" />
+                        Learn About Beema
+                        <ArrowRight className="h-3 w-3" />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Spot Market Listings */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <H3 className="text-sm  flex items-center gap-2">
+                  <H3 className="text-sm flex items-center gap-2">
                     <Leaf className="h-4 w-4 text-[#D4AF37]" aria-hidden="true" />
-                    My Listings
+                    Spot Market Waste
                   </H3>
                   <Link href="/feedstock/create">
                     <Button size="sm" variant="outline" className="h-7 text-xs">
@@ -310,6 +376,9 @@ export default function GrowerDashboard() {
                     </Button>
                   </Link>
                 </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Your verified Beema profile lets buyers trust your spot tonnes—list instantly.
+                </p>
 
                 <div className="space-y-2">
                   {MY_LISTINGS.length === 0 ? (
