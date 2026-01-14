@@ -23,6 +23,7 @@ import {
   HelpCircle,
   BookOpen,
   Map,
+  Sprout,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/contexts/UserRoleContext";
@@ -464,6 +465,15 @@ export const PORTAL_CONFIGS: Record<Portal, PortalConfig> = {
 
 // Global navigation items (always visible)
 export const GLOBAL_NAV_ITEMS: NavItem[] = [
+  {
+    id: "beema",
+    label: "Beema Bamboo",
+    href: "/beema-bamboo",
+    icon: Sprout,
+    roles: ["supplier", "buyer", "admin", "guest"],
+    description: "Australia's perennial biofuel base-load",
+    badge: { type: "new" },
+  },
   {
     id: "map",
     label: "Map",

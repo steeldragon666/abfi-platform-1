@@ -27,6 +27,8 @@ import { earthEngineRouter } from "./earthEngineRouter";
 import { projectRegistryRouter } from "./projectRegistryRouter";
 import { projectAssessmentRouter } from "./projectAssessmentRouter";
 import { climateIntelligenceHubRouter } from "./climateIntelligenceHubRouter";
+// ABFI v6.0 Beema Bamboo (Perennial Biofuel Feedstock)
+import { beemaRouter } from "./beemaRouter";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
@@ -115,6 +117,11 @@ export const appRouter = router({
   projectRegistry: projectRegistryRouter,
   projectAssessment: projectAssessmentRouter,
   climateHub: climateIntelligenceHubRouter,
+
+  // ============================================================================
+  // BEEMA BAMBOO - PERENNIAL BIOFUEL FEEDSTOCK (Phase 6)
+  // ============================================================================
+  beema: beemaRouter,
 
   // ============================================================================
   // AUDIT & COMPLIANCE (Phase 8)

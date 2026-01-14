@@ -175,6 +175,9 @@ const ProjectRegistryDetail = lazy(() => import("./pages/ProjectRegistryDetail")
 const ClimateIntelligenceHub = lazy(() => import("./pages/ClimateIntelligenceHub"));
 const ClaimProject = lazy(() => import("./pages/ClaimProject"));
 
+// Beema Bamboo (perennial biofuel feedstock)
+const BeemaBamboo = lazy(() => import("./pages/BeemaBamboo"));
+
 // Loading fallback component
 function PageLoader() {
   return (
@@ -209,6 +212,9 @@ function Router() {
         <Route path="/welcome" component={SimplifiedDashboard} />
         <Route path="/unified" component={Dashboard} />
 
+        {/* Beema Bamboo - perennial biofuel feedstock */}
+        <Route path="/beema-bamboo" component={BeemaBamboo} />
+        
         {/* Unified Platform Map - accessible from all portals */}
         <Route path="/map" component={MapPage} />
         
