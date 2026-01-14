@@ -1877,31 +1877,49 @@ australianDataRouter.get("/bom/forecast", async (req, res) => {
       return res.json(cached);
     }
 
-    // Generate 7-day forecasts
+    // Deterministic seeded random helper
+    const seededRandom = (seed: number): number => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
+    
+    // Generate 7-day forecasts with deterministic values
     const generateForecast = (stationInfo: typeof BOM_STATIONS[string]) => {
       const forecasts = [];
       const now = new Date();
 
-      // Base conditions
+      // Base conditions based on location
       const latFactor = Math.abs(stationInfo.lat);
       const baseMaxTemp = 32 - (latFactor - 25) * 0.6;
       const baseMinTemp = baseMaxTemp - 12;
+      
+      // Create station seed from coordinates
+      const stationSeed = Math.abs(stationInfo.lat * 100 + stationInfo.lon * 10);
 
       for (let day = 0; day < 7; day++) {
         const date = new Date(now);
         date.setDate(date.getDate() + day);
+        
+        // Create unique seed for each day at this station
+        const daySeed = stationSeed + day * 7 + date.getDate();
 
-        const variation = (Math.random() - 0.5) * 6;
+        const variation = (seededRandom(daySeed) - 0.5) * 6;
         const maxTemp = Math.round((baseMaxTemp + variation) * 10) / 10;
         const minTemp = Math.round((baseMinTemp + variation) * 10) / 10;
-        const rainChance = Math.round(Math.random() * 60);
-        const rainAmount = rainChance > 30 ? Math.round(Math.random() * 15 * 10) / 10 : 0;
+        const rainChance = Math.round(seededRandom(daySeed + 1) * 60);
+        const rainAmount = rainChance > 30 ? Math.round(seededRandom(daySeed + 2) * 15 * 10) / 10 : 0;
 
+        // Deterministic condition selection
+        const conditionSeed = Math.floor(seededRandom(daySeed + 3) * 3);
         const conditions = rainChance > 50
-          ? ["Showers", "Rain", "Storms"][Math.floor(Math.random() * 3)]
+          ? ["Showers", "Rain", "Storms"][conditionSeed]
           : rainChance > 20
-            ? ["Partly Cloudy", "Cloudy"][Math.floor(Math.random() * 2)]
-            : ["Sunny", "Mostly Sunny", "Fine"][Math.floor(Math.random() * 3)];
+            ? ["Partly Cloudy", "Cloudy"][conditionSeed % 2]
+            : ["Sunny", "Mostly Sunny", "Fine"][conditionSeed];
+        
+        // Deterministic wind direction
+        const windDirections = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+        const windIndex = Math.floor(seededRandom(daySeed + 4) * 8);
 
         forecasts.push({
           date: date.toISOString().split("T")[0],
@@ -1911,10 +1929,10 @@ australianDataRouter.get("/bom/forecast", async (req, res) => {
           minTemp,
           rainChance,
           rainAmount,
-          uvIndex: Math.round(6 + Math.random() * 6),
-          humidity: Math.round(40 + Math.random() * 35),
-          windSpeed: Math.round(10 + Math.random() * 20),
-          windDirection: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.floor(Math.random() * 8)],
+          uvIndex: Math.round(6 + seededRandom(daySeed + 5) * 6),
+          humidity: Math.round(40 + seededRandom(daySeed + 6) * 35),
+          windSpeed: Math.round(10 + seededRandom(daySeed + 7) * 20),
+          windDirection: windDirections[windIndex],
           agricultureOutlook: {
             harvestConditions: rainChance < 30 && maxTemp < 38 ? "Good" : rainChance > 50 ? "Poor" : "Fair",
             sprayWindow: rainChance < 20 ? "Favorable" : "Unfavorable",
@@ -2031,25 +2049,42 @@ australianDataRouter.get("/bom/fire-danger", async (req, res) => {
       ],
     };
 
-    // Add random variation to ratings based on "current conditions"
+    // Deterministic seeded random helper for fire danger variation
+    const seededRandom = (seed: number): number => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
+    
+    // Add deterministic variation to ratings based on date and district name
     const addVariation = (districts: typeof fireDistricts[string]) => {
-      return districts.map((d) => ({
-        ...d,
-        rating: Math.max(0, Math.min(4, d.rating + (Math.random() > 0.7 ? 1 : 0) - (Math.random() > 0.8 ? 1 : 0))),
-        ratingInfo: FIRE_DANGER_RATINGS[d.rating as keyof typeof FIRE_DANGER_RATINGS],
-        validFrom: new Date().toISOString(),
-        validTo: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      }));
+      const today = new Date().getDate();
+      return districts.map((d, idx) => {
+        const districtSeed = d.name.charCodeAt(0) + today + idx;
+        const variation = seededRandom(districtSeed) > 0.7 ? 1 : 0;
+        const decrease = seededRandom(districtSeed + 1) > 0.8 ? 1 : 0;
+        return {
+          ...d,
+          rating: Math.max(0, Math.min(4, d.rating + variation - decrease)),
+          ratingInfo: FIRE_DANGER_RATINGS[d.rating as keyof typeof FIRE_DANGER_RATINGS],
+          validFrom: new Date().toISOString(),
+          validTo: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        };
+      });
     };
 
     let districts: any[] = [];
     if (state && fireDistricts[String(state).toUpperCase()]) {
       districts = addVariation(fireDistricts[String(state).toUpperCase()]);
     } else {
-      districts = Object.values(fireDistricts).flat().map((d) => ({
-        ...d,
-        rating: Math.max(0, Math.min(4, d.rating + (Math.random() > 0.7 ? 1 : 0))),
-      })).map((d) => ({
+      const today = new Date().getDate();
+      districts = Object.values(fireDistricts).flat().map((d, idx) => {
+        const districtSeed = d.name.charCodeAt(0) + today + idx;
+        const variation = seededRandom(districtSeed) > 0.7 ? 1 : 0;
+        return {
+          ...d,
+          rating: Math.max(0, Math.min(4, d.rating + variation)),
+        };
+      }).map((d) => ({
         ...d,
         ratingInfo: FIRE_DANGER_RATINGS[d.rating as keyof typeof FIRE_DANGER_RATINGS],
         validFrom: new Date().toISOString(),

@@ -240,8 +240,10 @@ function parseRSSXML(xml: string, feed: RSSFeedConfig): NewsArticle[] {
       
       // Only include articles with some relevance to bioenergy
       if (relevance > 0 || feed.category === "industry" || feed.category === "carbon") {
+        // Create deterministic ID from title hash
+        const titleHash = title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0).toString(36);
         articles.push({
-          id: `${feed.category}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `${feed.category}-${Date.now()}-${titleHash}`,
           title,
           summary,
           source: feed.name,

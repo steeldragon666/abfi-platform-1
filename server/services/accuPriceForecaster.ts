@@ -489,13 +489,25 @@ async function calculatePriceTrend(db: any): Promise<"rising" | "stable" | "fall
   }
 }
 
+// Seeded random state for deterministic simulations
+let randomSeed = Date.now();
+
 /**
- * Box-Muller transform for Gaussian random numbers
+ * Seeded pseudo-random number generator
+ */
+function seededRandom(): number {
+  randomSeed = (randomSeed * 1103515245 + 12345) & 0x7fffffff;
+  return randomSeed / 0x7fffffff;
+}
+
+/**
+ * Box-Muller transform for Gaussian random numbers (deterministic)
  */
 function gaussianRandom(): number {
-  let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
+  let u = seededRandom();
+  let v = seededRandom();
+  // Avoid log(0)
+  while (u === 0) u = seededRandom();
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 

@@ -340,14 +340,22 @@ export async function getRegionalSupplyHealth(
   const targetRegions = regions || Object.keys(REGIONAL_BASELINES);
   const results: RegionalSupplyHealth[] = [];
   
-  for (const region of targetRegions) {
+  // Deterministic seeded value helper
+  const getSeededValue = (seed: number): number => (Math.sin(seed) + 1) / 2;
+  
+  for (let i = 0; i < targetRegions.length; i++) {
+    const region = targetRegions[i];
     // Get state from region name
     const state = inferStateFromRegion(region);
     
-    // Calculate health score from various factors
-    const cropScore = 0.75 + Math.random() * 0.2;  // Would come from ABARES
-    const weatherScore = 0.7 + Math.random() * 0.25;  // Would come from BOM
-    const supplierScore = 0.8 + Math.random() * 0.15;  // Would come from internal data
+    // Create deterministic seed from region name
+    const regionSeed = region.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const monthSeed = new Date().getMonth();
+    
+    // Calculate health score from various factors (deterministic)
+    const cropScore = 0.75 + getSeededValue(regionSeed + 1) * 0.2;  // Would come from ABARES
+    const weatherScore = 0.7 + getSeededValue(regionSeed + 2 + monthSeed) * 0.25;  // Would come from BOM
+    const supplierScore = 0.8 + getSeededValue(regionSeed + 3) * 0.15;  // Would come from internal data
     
     const healthScore = Math.round(
       (cropScore * 0.4 + weatherScore * 0.35 + supplierScore * 0.25) * 100
@@ -375,20 +383,24 @@ export async function getRegionalSupplyHealth(
     else if (cropScore >= 0.5) cropCondition = "fair";
     else cropCondition = "poor";
     
+    // Deterministic supplier and reliability values
+    const activeSuppliers = 20 + (regionSeed % 35);
+    const averageReliability = 80 + (regionSeed % 15);
+    
     results.push({
       region,
       state,
       overallHealth,
       healthScore,
-      activeSuppliers: Math.floor(10 + Math.random() * 50),
+      activeSuppliers,
       totalAvailableVolume: Object.values(REGIONAL_BASELINES[region] || {})
         .reduce((sum, vol) => sum + vol, 0) / 4,  // Quarterly
-      averageReliability: 75 + Math.random() * 20,
+      averageReliability,
       weatherOutlook,
       cropCondition,
       freightStatus: "normal",
       trend: healthScore > 70 ? "stable" : healthScore > 50 ? "declining" : "declining",
-      trendConfidence: 0.75 + Math.random() * 0.2,
+      trendConfidence: 0.80 + getSeededValue(regionSeed + 4) * 0.15,
     });
   }
   
@@ -478,8 +490,10 @@ async function getHistoricalPerformanceScore(
     // Query historical delivery performance
     // Would analyze past 12 months of deliveries
     
-    // For now, return moderate-high score
-    return 0.75 + Math.random() * 0.15;
+    // Deterministic score based on region and feedstock
+    const seed = regionCode.charCodeAt(0) + (feedstockType.charCodeAt(0) || 0);
+    const seededValue = (Math.sin(seed) + 1) / 2;
+    return 0.75 + seededValue * 0.15;
   } catch (error) {
     return 0.8;
   }
@@ -494,7 +508,9 @@ async function getFreightCapacityScore(regionCode: string): Promise<number> {
   }
   
   // Default good freight capacity for major agricultural regions
-  return 0.85 + Math.random() * 0.1;
+  // Deterministic value based on region code
+  const regionSeed = regionCode.charCodeAt(0);
+  return 0.88 + (regionSeed % 10) * 0.01;
 }
 
 async function getSeasonalScore(horizonDays: number): Promise<number> {
@@ -589,16 +605,21 @@ function calculateReliabilityScore(supplier: any): {
   deliveryCount: number;
 } {
   // In production, would query actual delivery history
-  // For now, generate realistic scores based on verification status
+  // Deterministic scores based on supplier properties
   const isVerified = supplier.verified || false;
   const baseScore = isVerified ? 75 : 60;
   
+  // Create seed from supplier id or name
+  const supplierId = supplier.id || supplier.name || "default";
+  const seed = String(supplierId).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const seededValue = (Math.sin(seed) + 1) / 2; // 0 to 1
+  
   return {
-    overall: baseScore + Math.random() * 20,
-    onTime: baseScore + Math.random() * 25,
-    volumeAccuracy: baseScore + Math.random() * 20,
-    qualityConsistency: baseScore + Math.random() * 18,
-    deliveryCount: Math.floor(5 + Math.random() * 50),
+    overall: Math.round(baseScore + seededValue * 20),
+    onTime: Math.round(baseScore + ((seed % 25) / 25) * 25),
+    volumeAccuracy: Math.round(baseScore + ((seed % 20) / 20) * 20),
+    qualityConsistency: Math.round(baseScore + ((seed % 18) / 18) * 18),
+    deliveryCount: 15 + (seed % 40),
   };
 }
 

@@ -486,7 +486,7 @@ function generateVegetationAlerts(ndvi: number, evi: number): string[] {
 // Demo data generators for when Earth Engine is not available
 
 function generateDemoNDVI(point: GeoPoint): NDVIResult {
-  // Generate realistic demo NDVI based on approximate Australian geography
+  // Generate deterministic demo NDVI based on approximate Australian geography
   const isCoastal = point.lng > 145 || point.lng < 120;
   const isTropical = point.lat > -20;
 
@@ -494,7 +494,10 @@ function generateDemoNDVI(point: GeoPoint): NDVIResult {
   if (isCoastal) baseNDVI += 0.15;
   if (isTropical) baseNDVI += 0.1;
 
-  const variation = (Math.random() - 0.5) * 0.1;
+  // Deterministic variation based on coordinates
+  const locationSeed = Math.abs(point.lat * 100 + point.lng * 10);
+  const seededValue = (Math.sin(locationSeed) + 1) / 2; // 0 to 1
+  const variation = (seededValue - 0.5) * 0.1;
   const mean = Math.max(0, Math.min(1, baseNDVI + variation));
 
   return {
@@ -524,10 +527,14 @@ function generateDemoVegetationHealth(point: GeoPoint): VegetationHealthResult {
 }
 
 function generateDemoSoilMoisture(point: GeoPoint): SoilMoistureResult {
-  // Generate realistic soil moisture based on location
+  // Generate deterministic soil moisture based on location
   const isWet = point.lng > 145 && point.lat > -30;
   const baseMoisture = isWet ? 0.28 : 0.18;
-  const variation = (Math.random() - 0.5) * 0.1;
+  
+  // Deterministic variation based on coordinates
+  const locationSeed = Math.abs(point.lat * 100 + point.lng * 10);
+  const seededValue = (Math.sin(locationSeed + 5) + 1) / 2; // Different offset from NDVI
+  const variation = (seededValue - 0.5) * 0.1;
 
   const surfaceMoisture = Math.max(0, Math.min(0.5, baseMoisture + variation));
   const rootZoneMoisture = surfaceMoisture * 1.1;

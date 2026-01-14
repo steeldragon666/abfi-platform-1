@@ -761,7 +761,12 @@ export class ABARESConnector extends BaseConnector {
       { state: "WA", plantedAreaHa: 4500000, expectedYieldTonnesPerHa: 1.6, seasonalConditions: "average" },
     ];
 
-    for (const data of wheatData) {
+    for (let idx = 0; idx < wheatData.length; idx++) {
+      const data = wheatData[idx];
+      // Deterministic comparison values based on state and current month
+      const stateSeed = (data.state?.charCodeAt(0) || 0) + new Date().getMonth();
+      const seededValue = Math.sin(stateSeed) * 10;
+      
       forecasts.push({
         reportDate: new Date(),
         season: currentSeason,
@@ -773,8 +778,8 @@ export class ABARESConnector extends BaseConnector {
         confidenceLower: data.expectedYieldTonnesPerHa! * 0.85,
         confidenceUpper: data.expectedYieldTonnesPerHa! * 1.15,
         forecastType: "revised",
-        comparedToPreviousYear: Math.round((Math.random() - 0.5) * 20),
-        comparedTo5YearAvg: Math.round((Math.random() - 0.3) * 15),
+        comparedToPreviousYear: Math.round(seededValue),
+        comparedTo5YearAvg: Math.round(seededValue * 0.7 + 3),
         seasonalConditions: data.seasonalConditions as CropForecast["seasonalConditions"],
       });
     }
@@ -787,7 +792,11 @@ export class ABARESConnector extends BaseConnector {
       { state: "WA", plantedAreaHa: 1600000, expectedYieldTonnesPerHa: 1.9 },
     ];
 
-    for (const data of barleyData) {
+    for (let idx = 0; idx < barleyData.length; idx++) {
+      const data = barleyData[idx];
+      const stateSeed = (data.state?.charCodeAt(0) || 0) + new Date().getMonth() + 10;
+      const seededValue = Math.sin(stateSeed) * 10;
+      
       forecasts.push({
         reportDate: new Date(),
         season: currentSeason,
@@ -799,8 +808,8 @@ export class ABARESConnector extends BaseConnector {
         confidenceLower: data.expectedYieldTonnesPerHa! * 0.85,
         confidenceUpper: data.expectedYieldTonnesPerHa! * 1.15,
         forecastType: "revised",
-        comparedToPreviousYear: Math.round((Math.random() - 0.5) * 20),
-        comparedTo5YearAvg: Math.round((Math.random() - 0.3) * 15),
+        comparedToPreviousYear: Math.round(seededValue),
+        comparedTo5YearAvg: Math.round(seededValue * 0.7 + 2),
         seasonalConditions: "average",
       });
     }
@@ -813,7 +822,11 @@ export class ABARESConnector extends BaseConnector {
       { state: "WA", plantedAreaHa: 1400000, expectedYieldTonnesPerHa: 1.2 },
     ];
 
-    for (const data of canolaData) {
+    for (let idx = 0; idx < canolaData.length; idx++) {
+      const data = canolaData[idx];
+      const stateSeed = (data.state?.charCodeAt(0) || 0) + new Date().getMonth() + 20;
+      const seededValue = Math.sin(stateSeed) * 12;
+      
       forecasts.push({
         reportDate: new Date(),
         season: currentSeason,
@@ -825,8 +838,8 @@ export class ABARESConnector extends BaseConnector {
         confidenceLower: data.expectedYieldTonnesPerHa! * 0.80,
         confidenceUpper: data.expectedYieldTonnesPerHa! * 1.20,
         forecastType: "revised",
-        comparedToPreviousYear: Math.round((Math.random() - 0.5) * 25),
-        comparedTo5YearAvg: Math.round((Math.random() - 0.3) * 20),
+        comparedToPreviousYear: Math.round(seededValue),
+        comparedTo5YearAvg: Math.round(seededValue * 0.8 + 2),
         seasonalConditions: "average",
       });
     }
@@ -855,7 +868,11 @@ export class ABARESConnector extends BaseConnector {
       { state: "NSW", plantedAreaHa: 280000, expectedYieldTonnesPerHa: 3.5 },
     ];
 
-    for (const data of sorghumData) {
+    for (let idx = 0; idx < sorghumData.length; idx++) {
+      const data = sorghumData[idx];
+      const stateSeed = (data.state?.charCodeAt(0) || 0) + new Date().getMonth() + 30;
+      const seededValue = Math.sin(stateSeed) * 10;
+      
       forecasts.push({
         reportDate: new Date(),
         season: currentSeason,
@@ -867,8 +884,8 @@ export class ABARESConnector extends BaseConnector {
         confidenceLower: data.expectedYieldTonnesPerHa! * 0.85,
         confidenceUpper: data.expectedYieldTonnesPerHa! * 1.15,
         forecastType: "revised",
-        comparedToPreviousYear: Math.round((Math.random() - 0.5) * 20),
-        comparedTo5YearAvg: Math.round((Math.random() - 0.3) * 15),
+        comparedToPreviousYear: Math.round(seededValue),
+        comparedTo5YearAvg: Math.round(seededValue * 0.7 + 1),
         seasonalConditions: "average",
       });
     }
@@ -897,8 +914,10 @@ export class ABARESConnector extends BaseConnector {
         const date = new Date(now);
         date.setMonth(date.getMonth() - i);
 
-        // Add some realistic price variation
-        const variation = 1 + (Math.sin(i / 6) * 0.15) + ((Math.random() - 0.5) * 0.1);
+        // Add deterministic price variation based on commodity and month
+        const priceSeed = commodity.name.charCodeAt(0) + i * 7;
+        const deterministicVariation = Math.sin(priceSeed / 5) * 0.05;
+        const variation = 1 + (Math.sin(i / 6) * 0.15) + deterministicVariation;
         const price = Math.round(commodity.basePrice * variation);
 
         prices.push({
@@ -936,7 +955,15 @@ export class ABARESConnector extends BaseConnector {
       ACT: { avgGrossMargin: 400, avgArea: 800 },
     };
 
-    for (const [state, data] of Object.entries(stateData)) {
+    const stateKeys = Object.keys(stateData);
+    for (let idx = 0; idx < stateKeys.length; idx++) {
+      const state = stateKeys[idx];
+      const data = stateData[state as AustralianState];
+      
+      // Deterministic financial ratios based on state
+      const stateSeed = state.charCodeAt(0) + new Date().getMonth();
+      const seededValue = Math.sin(stateSeed) * 0.5 + 0.5; // 0 to 1 range
+      
       benchmarks.push({
         financialYear: currentFY,
         farmSizeCategory: "medium",
@@ -946,12 +973,12 @@ export class ABARESConnector extends BaseConnector {
         avgOperatingCostsPerHa: data.avgGrossMargin * 0.65,
         avgNetFarmIncome: data.avgGrossMargin * data.avgArea * 0.35,
         medianNetFarmIncome: data.avgGrossMargin * data.avgArea * 0.30,
-        debtToAssetRatio: 0.18 + Math.random() * 0.15,
-        returnOnCapital: 0.03 + Math.random() * 0.04,
-        equityRatio: 0.75 + Math.random() * 0.15,
+        debtToAssetRatio: Math.round((0.18 + seededValue * 0.12) * 100) / 100,
+        returnOnCapital: Math.round((0.035 + seededValue * 0.03) * 1000) / 1000,
+        equityRatio: Math.round((0.78 + seededValue * 0.10) * 100) / 100,
         avgFarmAreaHa: data.avgArea,
         avgCroppedAreaHa: data.avgArea * 0.7,
-        sampleSize: 150 + Math.floor(Math.random() * 200),
+        sampleSize: 180 + (state.charCodeAt(0) % 10) * 15,
         confidenceLevel: 0.95,
       });
     }

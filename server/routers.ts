@@ -2351,7 +2351,7 @@ export const appRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
-        const accessToken = Math.random().toString(36).substring(2, 15);
+        const accessToken = Date.now().toString(36) + crypto.randomUUID().replace(/-/g, '').substring(0, 10);
 
         const accessId = await db.createLenderAccess({
           ...input,
@@ -4125,7 +4125,7 @@ export const appRouter = router({
         }
 
         // Generate certificate data
-        const certificateNumber = `ABFI-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        const certificateNumber = `ABFI-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6).toUpperCase()}`;
         const issueDate = new Date();
         const validUntil = new Date();
         validUntil.setFullYear(validUntil.getFullYear() + 1); // Valid for 1 year

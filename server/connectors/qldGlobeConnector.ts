@@ -469,18 +469,26 @@ export class QldGlobeConnector extends BaseConnector {
   private async fetchLotPlanDetails(lotPlan: string): Promise<LotPlanDetails> {
     const { lot, plan, planType } = this.parseLotPlan(lotPlan);
 
+    // Deterministic values based on lot/plan identifiers
+    const lotSeed = lot ? parseInt(lot, 10) || lot.charCodeAt(0) : 0;
+    const planSeed = plan ? plan.charCodeAt(0) + (plan.charCodeAt(1) || 0) : 0;
+    const combinedSeed = lotSeed + planSeed;
+    
+    // Deterministic pseudo-random based on seed
+    const seededValue = (Math.sin(combinedSeed) + 1) / 2; // 0 to 1 range
+
     // In production, would query QSpatial cadastre layer
-    // For now, return simulated data
+    // For now, return deterministic simulated data
     return {
       lotPlan,
       lot,
       plan,
       planType: planType as LotPlanDetails["planType"],
       localGovernment: "Example Regional Council",
-      areaHa: 250 + Math.random() * 500,
+      areaHa: Math.round((250 + seededValue * 500) * 10) / 10,
       centroid: {
-        latitude: -27 + Math.random() * 5,
-        longitude: 150 + Math.random() * 3,
+        latitude: Math.round((-27 + seededValue * 5) * 10000) / 10000,
+        longitude: Math.round((150 + seededValue * 3) * 10000) / 10000,
       },
     };
   }

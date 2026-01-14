@@ -260,10 +260,11 @@ export async function estimateYieldFromSatellite(
     yieldVariability: ndviData.ndviStdDev < 0.08 ? "low" : ndviData.ndviStdDev < 0.15 ? "medium" : "high",
     fieldHealthScore,
     healthIssues,
-    comparedToRegionalAverage: Math.round((Math.random() - 0.3) * 30),
-    comparedToHistorical: Math.round((Math.random() - 0.4) * 20),
+    // Deterministic comparison values based on NDVI
+    comparedToRegionalAverage: Math.round((ndviData.meanNDVI - 0.55) * 60),
+    comparedToHistorical: Math.round((ndviData.meanNDVI - 0.52) * 50),
     satelliteSource: "sentinel-2",
-    cloudCoverPercent: Math.round(Math.random() * 20),
+    cloudCoverPercent: Math.round(Math.abs((ndviData.meanNDVI * 100) % 20)),
     processingMethod: "NDVI regression (simulated)",
   };
 }
@@ -330,13 +331,16 @@ function simulateImageAnalysis(
   const thresholds = QUALITY_CONFIG.moistureThresholds[feedstockType as keyof typeof QUALITY_CONFIG.moistureThresholds]
     || QUALITY_CONFIG.moistureThresholds.default;
 
-  // Generate realistic moisture content
+  // Generate deterministic moisture content based on feedstock type and image count
+  const moistureSeed = feedstockType.charCodeAt(0) + imageCount * 3;
+  const seededVariation = (Math.sin(moistureSeed) + 1) / 2; // 0 to 1
+  
   let moistureContentPercent: number;
   if (expectedMoistureRange) {
-    moistureContentPercent = expectedMoistureRange.min + Math.random() * (expectedMoistureRange.max - expectedMoistureRange.min);
+    moistureContentPercent = expectedMoistureRange.min + seededVariation * (expectedMoistureRange.max - expectedMoistureRange.min);
   } else {
-    // Generate around optimal with some variance
-    moistureContentPercent = thresholds.optimal + (Math.random() - 0.5) * 6;
+    // Generate around optimal with deterministic variance
+    moistureContentPercent = thresholds.optimal + (seededVariation - 0.5) * 6;
   }
   moistureContentPercent = Math.round(moistureContentPercent * 10) / 10;
 
@@ -355,19 +359,20 @@ function simulateImageAnalysis(
   // Confidence based on image count (more images = higher confidence)
   const moistureConfidence = Math.min(0.95, 0.7 + imageCount * 0.05);
 
-  // Simulate contamination detection
-  const contaminationRoll = Math.random();
+  // Deterministic contamination detection based on moisture and feedstock
+  const contaminationSeed = feedstockType.charCodeAt(0) + moistureContentPercent;
+  const contaminationValue = (Math.sin(contaminationSeed) + 1) / 2;
   let contaminationRisk: "low" | "medium" | "high" = "low";
   const contaminationDetails: ContaminationDetail[] = [];
 
-  if (contaminationRoll < 0.1) {
+  if (contaminationValue < 0.1) {
     contaminationRisk = "high";
     contaminationDetails.push({
       type: "foreign_material",
       confidence: 0.85,
       description: "Stone or metal debris detected",
     });
-  } else if (contaminationRoll < 0.25) {
+  } else if (contaminationValue < 0.25) {
     contaminationRisk = "medium";
     contaminationDetails.push({
       type: "soil",
@@ -376,8 +381,8 @@ function simulateImageAnalysis(
     });
   }
 
-  // Small chance of mold detection
-  if (moistureContentPercent > thresholds.wet && Math.random() < 0.3) {
+  // Mold detection based on high moisture
+  if (moistureContentPercent > thresholds.wet && moistureContentPercent % 10 < 3) {
     contaminationDetails.push({
       type: "mold",
       confidence: 0.72,
@@ -386,10 +391,11 @@ function simulateImageAnalysis(
     contaminationRisk = "medium";
   }
 
-  // Dry matter yield estimation (kg/m³)
+  // Dry matter yield estimation (kg/m³) - deterministic
   const baseYield = feedstockType === "sugarcane" ? 250 : 150;
   const moistureAdjustment = (100 - moistureContentPercent) / 100;
-  const dryMatterYieldEstimate = Math.round(baseYield * moistureAdjustment * (0.9 + Math.random() * 0.2));
+  const yieldVariationFactor = 0.95 + (seededVariation * 0.1); // 0.95 to 1.05
+  const dryMatterYieldEstimate = Math.round(baseYield * moistureAdjustment * yieldVariationFactor);
 
   return {
     moistureContentPercent,
@@ -428,12 +434,14 @@ function simulateNDVIAnalysis(
     baseNDVI -= 0.05;
   }
 
-  // Add some random variation
-  baseNDVI += (Math.random() - 0.5) * 0.15;
+  // Add deterministic variation based on coordinates
+  const locationSeed = Math.abs(latitude * 100 + longitude * 10);
+  const seededVariation = (Math.sin(locationSeed) + 1) / 2; // 0 to 1
+  baseNDVI += (seededVariation - 0.5) * 0.15;
   baseNDVI = Math.max(0.2, Math.min(0.85, baseNDVI));
 
-  // Generate statistics
-  const stdDev = 0.05 + Math.random() * 0.12;
+  // Generate statistics with deterministic values
+  const stdDev = 0.05 + seededVariation * 0.12;
   const minNDVI = Math.max(0.1, baseNDVI - stdDev * 2.5);
   const maxNDVI = Math.min(0.9, baseNDVI + stdDev * 1.5);
 

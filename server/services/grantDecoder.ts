@@ -260,10 +260,13 @@ export async function checkGrantCompliance(
   const recommendations: string[] = [];
 
   // Simulate milestone compliance check
+  let milestoneIndex = 0;
   for (const [milestoneId, progress] of Object.entries(projectReportData.milestoneProgress)) {
     if (!progress.completed) {
-      // Check if overdue
-      const simulatedDueDate = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000);
+      // Deterministic due date based on milestone ID
+      const milestoneIdSeed = milestoneId.charCodeAt(0) + (milestoneId.charCodeAt(1) || 0) + milestoneIndex;
+      const deterministicDays = (milestoneIdSeed % 25) + 5; // 5-30 days ago
+      const simulatedDueDate = new Date(Date.now() - deterministicDays * 24 * 60 * 60 * 1000);
       if (simulatedDueDate < new Date()) {
         const daysOverdue = Math.floor((Date.now() - simulatedDueDate.getTime()) / (24 * 60 * 60 * 1000));
         missedDeadlines.push({
@@ -281,6 +284,7 @@ export async function checkGrantCompliance(
         });
       }
     } else if (!progress.evidence || progress.evidence.length === 0) {
+    milestoneIndex++;
       documentationGaps.push(`Missing evidence documentation for milestone ${milestoneId}`);
     }
   }

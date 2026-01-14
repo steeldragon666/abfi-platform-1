@@ -19,21 +19,21 @@ import {
 function generateMatchId(): string {
   const date = new Date();
   const dateStr = date.toISOString().slice(0, 10).replace(/-/g, "");
-  const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-  return `ABFI-MATCH-${dateStr}-${random}`;
+  const uniqueId = crypto.randomUUID().replace(/-/g, "").substring(0, 5).toUpperCase();
+  return `ABFI-MATCH-${dateStr}-${uniqueId}`;
 }
 
 function generateContractNumber(): string {
   const year = new Date().getFullYear();
-  const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-  return `ABFI-CON-${year}-${random}`;
+  const uniqueId = crypto.randomUUID().replace(/-/g, "").substring(0, 5).toUpperCase();
+  return `ABFI-CON-${year}-${uniqueId}`;
 }
 
 function generateDeliveryId(): string {
   const date = new Date();
   const dateStr = date.toISOString().slice(0, 10).replace(/-/g, "");
-  const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-  return `ABFI-DEL-${dateStr}-${random}`;
+  const uniqueId = crypto.randomUUID().replace(/-/g, "").substring(0, 5).toUpperCase();
+  return `ABFI-DEL-${dateStr}-${uniqueId}`;
 }
 
 // Haversine distance calculation

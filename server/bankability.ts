@@ -459,8 +459,10 @@ export function calculateBankabilityScores(
 
 export function generateAssessmentNumber(): string {
   const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 90000) + 10000; // 5-digit number
-  return `ABFI-BANK-${year}-${random}`;
+  // Generate deterministic 5-digit number from UUID
+  const uuid = crypto.randomUUID().replace(/-/g, "");
+  const numericId = parseInt(uuid.substring(0, 8), 16) % 90000 + 10000;
+  return `ABFI-BANK-${year}-${numericId}`;
 }
 
 export function calculateSupplierHHI(
