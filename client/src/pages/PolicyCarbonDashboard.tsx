@@ -608,9 +608,9 @@ export default function PolicyCarbonDashboard() {
                     />
                     {accuPrice && (
                       <p className="text-xs text-gray-600">
-                        Current ACCU spot: ${accuPrice.price} (
-                        {accuPrice.change >= 0 ?"+" :""}
-                        {accuPrice.change_pct.toFixed(1)}%)
+                        Current ACCU spot: ${accuPrice?.price ?? 0} (
+                        {(accuPrice?.change ?? 0) >= 0 ?"+" :""}
+                        {(accuPrice?.change_pct ?? 0).toFixed(1)}%)
                       </p>
                     )}
                   </div>
