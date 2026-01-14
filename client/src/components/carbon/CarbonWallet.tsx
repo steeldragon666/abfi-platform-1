@@ -119,9 +119,10 @@ function BalanceCard({
   price?: CarbonPrice;
   onRetire: (instrument: string, maxQty: number) => void;
 }) {
-  const info = INSTRUMENT_INFO[balance.instrument];
+  const info = INSTRUMENT_INFO[balance.instrument] || INSTRUMENT_INFO.ACCU;
   const Icon = info.icon;
-  const valueAud = price ? balance.available * price.spotPrice : null;
+  const priceValue = price?.spotPrice ?? price?.priceAud ?? 0;
+  const valueAud = priceValue > 0 ? (balance.available ?? 0) * priceValue : null;
   
   return (
     <Card className={cn("relative overflow-hidden", balance.available > 0 && "border-l-4 border-l-green-500")}>
