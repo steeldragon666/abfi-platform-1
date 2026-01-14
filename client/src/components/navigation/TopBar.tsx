@@ -35,23 +35,23 @@ export function TopBar({ className }: TopBarProps) {
       )}
       role="banner"
     >
-      {/* Left Section: Menu + Brand */}
+      {/* Left Section: Menu (mobile only) + Brand */}
       <div className="flex items-center h-full">
-        {/* Menu Button */}
+        {/* Mobile Menu Button - Hidden on desktop since sidebar is persistent */}
         <Button
           variant="ghost"
           size="icon"
-          className="h-14 w-14 rounded-none border-r hover:bg-gray-50 dark:hover:bg-gray-900"
+          className="h-14 w-14 rounded-none border-r hover:bg-gray-50 dark:hover:bg-gray-900 lg:hidden"
           onClick={() => setMobileMenuOpen(true)}
           aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </Button>
 
-        {/* Brand Logo */}
+        {/* Brand Logo - Hidden on desktop (shown in sidebar) */}
         <Link
           href="/"
-          className="flex items-center gap-3 h-full px-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+          className="flex items-center gap-3 h-full px-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset lg:hidden"
           aria-label="ABFI Home"
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#B8962E] shadow-sm">
@@ -68,10 +68,13 @@ export function TopBar({ className }: TopBarProps) {
         </Link>
       </div>
 
-      {/* Center Section: Portal Switcher */}
-      <div className="hidden lg:flex flex-1 justify-center px-4">
+      {/* Center Section: Portal Switcher - Only on tablet (hidden on desktop, in sidebar) */}
+      <div className="hidden md:flex lg:hidden flex-1 justify-center px-4">
         <PortalSwitcher />
       </div>
+
+      {/* Spacer for desktop */}
+      <div className="hidden lg:block flex-1" />
 
       {/* Right Section: Actions */}
       <div className="flex items-center h-full ml-auto">

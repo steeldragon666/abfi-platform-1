@@ -7,7 +7,7 @@ import { PORTAL_CONFIGS, type Portal } from "@/config/navigation";
 
 interface PortalSwitcherProps {
   className?: string;
-  variant?: "default" | "compact";
+  variant?: "default" | "compact" | "sidebar";
 }
 
 export function PortalSwitcher({ className, variant = "default" }: PortalSwitcherProps) {
@@ -109,28 +109,32 @@ export function PortalSwitcher({ className, variant = "default" }: PortalSwitche
         onKeyDown={handleKeyDown}
         className={cn(
           "min-h-[44px] gap-2",
-          variant === "compact" ? "px-2" : "px-3"
+          variant === "compact" && "px-2",
+          variant === "default" && "px-3",
+          variant === "sidebar" && "w-full px-2 justify-start bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800"
         )}
       >
         <div
           className={cn(
-            "flex items-center justify-center rounded-md",
-            variant === "compact" ? "h-8 w-8" : "h-9 w-9",
+            "flex items-center justify-center rounded-md shrink-0",
+            variant === "compact" ? "h-8 w-8" : "h-8 w-8",
             portalConfig.bgColor
           )}
         >
           <CurrentIcon
-            className={cn("h-5 w-5", portalConfig.color)}
+            className={cn("h-4 w-4", portalConfig.color)}
             aria-hidden="true"
           />
         </div>
-        {variant === "default" && (
+        {(variant === "default" || variant === "sidebar") && (
           <>
-            <div className="flex flex-col items-start text-left">
-              <span className="text-sm font-medium">{portalConfig.label}</span>
-              <span className="text-xs text-muted-foreground hidden sm:block">
-                {portalConfig.description}
-              </span>
+            <div className="flex flex-col items-start text-left flex-1 min-w-0">
+              <span className="text-sm font-medium truncate">{portalConfig.label}</span>
+              {variant === "default" && (
+                <span className="text-xs text-muted-foreground hidden sm:block truncate">
+                  {portalConfig.description}
+                </span>
+              )}
             </div>
             <ChevronDown
               className={cn(
@@ -148,8 +152,9 @@ export function PortalSwitcher({ className, variant = "default" }: PortalSwitche
         <div
           className={cn(
             "absolute z-50 mt-2 w-72 rounded-lg border shadow-lg",
-            "bg-white dark:bg-gray-900", // Solid background for legibility
-            "animate-in fade-in-0 zoom-in-95"
+            "bg-white dark:bg-gray-900",
+            "animate-in fade-in-0 zoom-in-95",
+            variant === "sidebar" ? "left-0" : "left-1/2 -translate-x-1/2"
           )}
         >
           <div className="p-2">

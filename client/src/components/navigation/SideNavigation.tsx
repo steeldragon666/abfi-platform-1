@@ -1,12 +1,21 @@
+import { Link } from "wouter";
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { usePortal } from "@/contexts/PortalContext";
 import { NavItem, NavSection, NavSeparator } from "./NavItem";
 import { PortalSwitcher } from "./PortalSwitcher";
 import { GLOBAL_NAV_ITEMS } from "@/config/navigation";
 import { useUserRole } from "@/contexts/UserRoleContext";
+
+// Portal accent colors for subtle theming
+const PORTAL_COLORS: Record<string, string> = {
+  grower: "#059669",      // Emerald
+  developer: "#2563EB",   // Blue
+  lender: "#7C3AED",      // Purple
+  government: "#475569",  // Slate
+};
 
 interface SideNavigationProps {
   className?: string;
@@ -30,20 +39,78 @@ export function SideNavigation({ className }: SideNavigationProps) {
     item.roles.includes(role)
   );
 
+  const portalColor = PORTAL_COLORS[portalConfig.id] || PORTAL_COLORS.grower;
+
   return (
     <TooltipProvider>
       <aside
         className={cn(
           "flex flex-col h-full border-r transition-all duration-300",
-          "bg-white dark:bg-gray-950", // Solid background for legibility
+          "bg-white dark:bg-gray-950",
           sidebarCollapsed ? "w-16" : "w-64",
           className
         )}
         role="navigation"
         aria-label="Main navigation"
       >
-        {/* Primary Navigation - TopBar has the PortalSwitcher */}
-        <div className="flex-1 overflow-y-auto py-4 px-2 pt-6">
+        {/* Sidebar Header - Brand + Portal Switcher */}
+        <div className="shrink-0 border-b">
+          {/* Portal accent bar */}
+          <div
+            className="h-1 transition-colors duration-300"
+            style={{ backgroundColor: portalColor }}
+            aria-hidden="true"
+          />
+
+          {/* Brand Logo */}
+          <div className={cn(
+            "flex items-center h-14 px-3",
+            sidebarCollapsed ? "justify-center" : "justify-start"
+          )}>
+            {sidebarCollapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#B8962E] shadow-sm hover:shadow-md transition-shadow"
+                    aria-label="ABFI Home"
+                  >
+                    <span className="text-sm font-bold text-white tracking-tight">AB</span>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">ABFI Platform</TooltipContent>
+              </Tooltip>
+            ) : (
+              <Link
+                href="/"
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                aria-label="ABFI Home"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#B8962E] shadow-sm">
+                  <span className="text-sm font-bold text-white tracking-tight">AB</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-base font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+                    ABFI
+                  </span>
+                  <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider -mt-0.5">
+                    Platform
+                  </span>
+                </div>
+              </Link>
+            )}
+          </div>
+
+          {/* Portal Switcher */}
+          {!sidebarCollapsed && (
+            <div className="px-3 pb-3">
+              <PortalSwitcher variant="sidebar" />
+            </div>
+          )}
+        </div>
+
+        {/* Primary Navigation */}
+        <div className="flex-1 overflow-y-auto py-4 px-2">
           <NavSection
             label={portalConfig.label}
             collapsed={sidebarCollapsed}

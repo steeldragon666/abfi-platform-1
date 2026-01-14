@@ -2,10 +2,9 @@ import { ReactNode, useState } from "react";
 import { cn } from "@/lib/utils";
 import { PortalProvider, usePortal } from "@/contexts/PortalContext";
 import { TopBar } from "@/components/navigation/TopBar";
-import { MobileSideNavigation } from "@/components/navigation/SideNavigation";
+import { SideNavigation, MobileSideNavigation } from "@/components/navigation/SideNavigation";
 import { QuickActions } from "@/components/navigation/QuickActions";
-import { TrustHeader } from "@/components/layout/TrustHeader";
-import { IntelligenceRail } from "@/components/layout/IntelligenceRail";
+import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 import { ProvenanceFooter } from "@/components/layout/ProvenanceFooter";
 
 interface PortalLayoutProps {
@@ -14,11 +13,10 @@ interface PortalLayoutProps {
 }
 
 function PortalLayoutInner({ children, className }: PortalLayoutProps) {
-  const { portalConfig } = usePortal();
-  const [railCollapsed, setRailCollapsed] = useState(false);
+  const { portalConfig, sidebarCollapsed } = usePortal();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-gray-950">
       {/* Skip Link for Accessibility - WCAG 2.1 AA */}
       <a
         href="#main-content"
@@ -34,51 +32,39 @@ function PortalLayoutInner({ children, className }: PortalLayoutProps) {
         Skip to main content
       </a>
 
-      {/* Top Navigation Bar */}
-      <TopBar />
+      <div className="flex h-screen">
+        {/* Desktop Sidebar - Persistent */}
+        <div className="hidden lg:block">
+          <SideNavigation />
+        </div>
 
-      <div className="flex h-[calc(100vh-4rem)]">
-        {/* Sidebar Overlay - Always use hamburger menu */}
+        {/* Mobile Sidebar Overlay */}
         <MobileSideNavigation />
 
         {/* Main Content Area */}
-        <main
-          id="main-content"
-          className={cn(
-            "flex-1 overflow-y-auto",
-            "transition-all duration-300",
-            className
-          )}
-          role="main"
-          aria-label={`${portalConfig.label} portal content`}
-        >
-          <div className="mx-auto flex h-full w-full max-w-[1440px] flex-col px-8 py-6">
-            <TrustHeader />
-            <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-12">
-              <section
-                className={cn(
-                  "min-w-0",
-                  railCollapsed ? "lg:col-span-11" : "lg:col-span-9"
-                )}
-                aria-label="Primary content"
-              >
-                {children}
-              </section>
-              <div
-                className={cn(
-                  "lg:col-span-3",
-                  railCollapsed && "lg:col-span-1"
-                )}
-              >
-                <IntelligenceRail
-                  collapsed={railCollapsed}
-                  onToggle={() => setRailCollapsed((prev) => !prev)}
-                />
-              </div>
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top Navigation Bar */}
+          <TopBar />
+
+          {/* Breadcrumbs */}
+          <Breadcrumbs />
+
+          {/* Scrollable Content */}
+          <main
+            id="main-content"
+            className={cn(
+              "flex-1 overflow-y-auto",
+              className
+            )}
+            role="main"
+            aria-label={`${portalConfig.label} portal content`}
+          >
+            <div className="mx-auto w-full max-w-[1280px] px-6 py-6 lg:px-8">
+              {children}
+              <ProvenanceFooter />
             </div>
-            <ProvenanceFooter />
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
 
       {/* Mobile Quick Actions */}
