@@ -1,0 +1,816 @@
+/* ==========================================================================
+   ABFI Platform - 2026 Seasonal Design System
+   "Australian Summer Dusk" - High-End Designer Colourway
+   
+   Inspired by: Australian outback sunsets, eucalyptus forests, and coastal waters
+   Season: Q1 2026 (Southern Hemisphere Summer)
+   
+   Typography: Satoshi (primary), JetBrains Mono (numeric)
+   ========================================================================== */
+
+/* ==========================================================================
+   FONT IMPORTS - Premium Typography
+   Satoshi: Modern geometric sans-serif with distinctive character
+   JetBrains Mono: Superior tabular figures for financial data
+   ========================================================================== */
+
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ==========================================================================
+   SEASONAL COLOUR PALETTE - "Australian Summer Dusk"
+   
+   Concept: The golden hour light of an Australian summer evening,
+   where warm ochres meet deep eucalyptus greens and coastal teals.
+   ========================================================================== */
+
+:root {
+  /* ============================================
+     CORE PALETTE - Summer Dusk
+     ============================================ */
+  
+  /* Ochre Gold - Primary accent (sunset warmth) */
+  --dusk-ochre-50: #FFF9E8;
+  --dusk-ochre-100: #FFF0C7;
+  --dusk-ochre-200: #FFE08A;
+  --dusk-ochre-300: #FFCB4D;
+  --dusk-ochre-400: #FFB524;
+  --dusk-ochre-500: #F59E0B; /* Primary */
+  --dusk-ochre-600: #D97706;
+  --dusk-ochre-700: #B45309;
+  --dusk-ochre-800: #92400E;
+  --dusk-ochre-900: #78350F;
+  
+  /* Eucalyptus - Secondary (Australian bush) */
+  --eucalyptus-50: #ECFDF5;
+  --eucalyptus-100: #D1FAE5;
+  --eucalyptus-200: #A7F3D0;
+  --eucalyptus-300: #6EE7B7;
+  --eucalyptus-400: #34D399;
+  --eucalyptus-500: #10B981; /* Primary */
+  --eucalyptus-600: #059669;
+  --eucalyptus-700: #047857;
+  --eucalyptus-800: #065F46;
+  --eucalyptus-900: #064E3B;
+  
+  /* Coastal Teal - Tertiary (ocean influence) */
+  --coastal-50: #F0FDFA;
+  --coastal-100: #CCFBF1;
+  --coastal-200: #99F6E4;
+  --coastal-300: #5EEAD4;
+  --coastal-400: #2DD4BF;
+  --coastal-500: #14B8A6; /* Primary */
+  --coastal-600: #0D9488;
+  --coastal-700: #0F766E;
+  --coastal-800: #115E59;
+  --coastal-900: #134E4A;
+  
+  /* Terracotta - Accent (red earth) */
+  --terracotta-50: #FEF2F2;
+  --terracotta-100: #FEE2E2;
+  --terracotta-200: #FECACA;
+  --terracotta-300: #FCA5A5;
+  --terracotta-400: #F87171;
+  --terracotta-500: #EF4444;
+  --terracotta-600: #DC2626;
+  --terracotta-700: #B91C1C;
+  --terracotta-800: #991B1B;
+  --terracotta-900: #7F1D1D;
+  
+  /* Charcoal - Neutrals (bushfire ash) */
+  --charcoal-50: #FAFAFA;
+  --charcoal-100: #F4F4F5;
+  --charcoal-200: #E4E4E7;
+  --charcoal-300: #D4D4D8;
+  --charcoal-400: #A1A1AA;
+  --charcoal-500: #71717A;
+  --charcoal-600: #52525B;
+  --charcoal-700: #3F3F46;
+  --charcoal-800: #27272A;
+  --charcoal-900: #18181B;
+  --charcoal-950: #09090B;
+
+  /* ============================================
+     TYPOGRAPHY SYSTEM
+     ============================================ */
+  
+  --font-display: 'Satoshi', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Satoshi', system-ui, sans-serif;
+  --font-body: 'Satoshi', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-numeric: 'JetBrains Mono', ui-monospace, monospace;
+  
+  /* Type Scale - More distinctive sizing */
+  --text-2xs: 0.625rem;    /* 10px */
+  --text-xs: 0.75rem;      /* 12px */
+  --text-sm: 0.8125rem;    /* 13px */
+  --text-base: 0.9375rem;  /* 15px - slightly larger for readability */
+  --text-lg: 1.0625rem;    /* 17px */
+  --text-xl: 1.25rem;      /* 20px */
+  --text-2xl: 1.5rem;      /* 24px */
+  --text-3xl: 1.875rem;    /* 30px */
+  --text-4xl: 2.25rem;     /* 36px */
+  --text-5xl: 3rem;        /* 48px */
+  --text-6xl: 3.75rem;     /* 60px */
+  
+  /* Letter Spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+
+  /* ============================================
+     SPACING & LAYOUT
+     ============================================ */
+  
+  --radius-xs: 0.125rem;   /* 2px */
+  --radius-sm: 0.25rem;    /* 4px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.5rem;    /* 24px */
+  --radius-3xl: 2rem;      /* 32px */
+  --radius-full: 9999px;
+  
+  /* ============================================
+     SHADOWS - Soft, layered depth
+     ============================================ */
+  
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+  
+  /* Colored shadows for depth */
+  --shadow-ochre: 0 4px 14px -3px rgb(245 158 11 / 0.25);
+  --shadow-eucalyptus: 0 4px 14px -3px rgb(16 185 129 / 0.25);
+  --shadow-coastal: 0 4px 14px -3px rgb(20 184 166 / 0.25);
+  
+  /* ============================================
+     ANIMATIONS
+     ============================================ */
+  
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  --duration-instant: 75ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-slower: 600ms;
+}
+
+/* ==========================================================================
+   LIGHT MODE - Australian Summer Day
+   ========================================================================== */
+
+:root,
+.light {
+  /* Surfaces */
+  --background: 30 20% 99%;              /* Warm white */
+  --foreground: 240 10% 8%;              /* Near black */
+  
+  --card: 0 0% 100%;                     /* Pure white */
+  --card-foreground: 240 10% 8%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 8%;
+  
+  /* Primary - Ochre Gold */
+  --primary: 38 92% 50%;                 /* #F59E0B */
+  --primary-foreground: 0 0% 0%;
+  
+  /* Secondary - Eucalyptus */
+  --secondary: 160 84% 39%;              /* #10B981 */
+  --secondary-foreground: 0 0% 100%;
+  
+  /* Muted */
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 4% 46%;
+  
+  /* Accent - Coastal */
+  --accent: 174 72% 40%;                 /* #14B8A6 */
+  --accent-foreground: 0 0% 100%;
+  
+  /* Destructive - Terracotta */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  
+  /* Borders */
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 38 92% 50%;
+  
+  /* Semantic */
+  --success: 160 84% 39%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
+  --info: 199 89% 48%;
+  --info-foreground: 0 0% 100%;
+  
+  /* Charts - Summer Dusk palette */
+  --chart-1: 38 92% 50%;                 /* Ochre */
+  --chart-2: 160 84% 39%;                /* Eucalyptus */
+  --chart-3: 174 72% 40%;                /* Coastal */
+  --chart-4: 240 4% 46%;                 /* Charcoal */
+  --chart-5: 0 84% 60%;                  /* Terracotta */
+  
+  /* Sidebar */
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 240 10% 8%;
+  --sidebar-primary: 38 92% 50%;
+  --sidebar-primary-foreground: 0 0% 0%;
+  --sidebar-accent: 30 20% 97%;
+  --sidebar-accent-foreground: 240 10% 8%;
+  --sidebar-border: 240 6% 92%;
+  --sidebar-ring: 38 92% 50%;
+}
+
+/* ==========================================================================
+   DARK MODE - Australian Summer Night
+   ========================================================================== */
+
+.dark {
+  /* Surfaces - Deep charcoal with warmth */
+  --background: 240 10% 6%;              /* Warm dark */
+  --foreground: 0 0% 98%;
+  
+  --card: 240 10% 8%;
+  --card-foreground: 0 0% 98%;
+  
+  --popover: 240 10% 8%;
+  --popover-foreground: 0 0% 98%;
+  
+  /* Primary - Brighter ochre for dark mode */
+  --primary: 38 95% 56%;
+  --primary-foreground: 0 0% 0%;
+  
+  /* Secondary - Lighter eucalyptus */
+  --secondary: 160 70% 45%;
+  --secondary-foreground: 0 0% 0%;
+  
+  /* Muted */
+  --muted: 240 6% 14%;
+  --muted-foreground: 240 5% 60%;
+  
+  /* Accent - Brighter coastal */
+  --accent: 174 65% 45%;
+  --accent-foreground: 0 0% 0%;
+  
+  /* Destructive */
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  
+  /* Borders */
+  --border: 240 6% 18%;
+  --input: 240 6% 18%;
+  --ring: 38 95% 56%;
+  
+  /* Sidebar */
+  --sidebar: 240 10% 8%;
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-primary: 38 95% 56%;
+  --sidebar-primary-foreground: 0 0% 0%;
+  --sidebar-accent: 240 6% 12%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 240 6% 16%;
+  --sidebar-ring: 38 95% 56%;
+}
+
+/* ==========================================================================
+   TYPOGRAPHY CLASSES
+   ========================================================================== */
+
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: var(--tracking-tighter);
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+.font-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+.font-numeric {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Display Headlines */
+.text-display-xl {
+  font-family: var(--font-display);
+  font-size: var(--text-6xl);
+  font-weight: 900;
+  letter-spacing: var(--tracking-tighter);
+  line-height: 1;
+}
+
+.text-display-lg {
+  font-family: var(--font-display);
+  font-size: var(--text-5xl);
+  font-weight: 900;
+  letter-spacing: var(--tracking-tighter);
+  line-height: 1.05;
+}
+
+.text-display {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 900;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+}
+
+/* Financial/Metric Typography */
+.text-metric-xl {
+  font-family: var(--font-numeric);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-tight);
+}
+
+.text-metric-lg {
+  font-family: var(--font-numeric);
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-metric {
+  font-family: var(--font-numeric);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-metric-sm {
+  font-family: var(--font-numeric);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   PREMIUM COMPONENT STYLES
+   ========================================================================== */
+
+/* Glassmorphism Cards */
+.card-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow-lg);
+}
+
+.dark .card-glass {
+  background: rgba(24, 24, 27, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Premium Gradient Cards */
+.card-gradient-ochre {
+  background: linear-gradient(135deg, 
+    var(--dusk-ochre-50) 0%, 
+    var(--dusk-ochre-100) 100%
+  );
+  border: 1px solid var(--dusk-ochre-200);
+}
+
+.card-gradient-eucalyptus {
+  background: linear-gradient(135deg, 
+    var(--eucalyptus-50) 0%, 
+    var(--eucalyptus-100) 100%
+  );
+  border: 1px solid var(--eucalyptus-200);
+}
+
+.card-gradient-coastal {
+  background: linear-gradient(135deg, 
+    var(--coastal-50) 0%, 
+    var(--coastal-100) 100%
+  );
+  border: 1px solid var(--coastal-200);
+}
+
+/* Premium Buttons */
+.btn-premium {
+  position: relative;
+  background: linear-gradient(135deg, 
+    var(--dusk-ochre-500) 0%, 
+    var(--dusk-ochre-600) 100%
+  );
+  color: black;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-ochre);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  overflow: hidden;
+}
+
+.btn-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.2) 0%, 
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+.btn-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgb(245 158 11 / 0.4);
+}
+
+.btn-premium:active {
+  transform: translateY(0);
+}
+
+/* Success Button */
+.btn-success {
+  background: linear-gradient(135deg, 
+    var(--eucalyptus-500) 0%, 
+    var(--eucalyptus-600) 100%
+  );
+  color: white;
+  box-shadow: var(--shadow-eucalyptus);
+}
+
+.btn-success:hover {
+  box-shadow: 0 8px 25px -5px rgb(16 185 129 / 0.4);
+}
+
+/* ==========================================================================
+   UNIQUE ICONOGRAPHY SYSTEM
+   Custom icon styles for ABFI
+   ========================================================================== */
+
+/* Icon Container Base */
+.icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+/* Icon Sizes */
+.icon-xs { width: 1.5rem; height: 1.5rem; }
+.icon-sm { width: 2rem; height: 2rem; }
+.icon-md { width: 2.5rem; height: 2.5rem; }
+.icon-lg { width: 3rem; height: 3rem; }
+.icon-xl { width: 4rem; height: 4rem; }
+
+/* Icon Variants */
+.icon-ochre {
+  background: linear-gradient(135deg, var(--dusk-ochre-100), var(--dusk-ochre-200));
+  color: var(--dusk-ochre-700);
+}
+
+.icon-eucalyptus {
+  background: linear-gradient(135deg, var(--eucalyptus-100), var(--eucalyptus-200));
+  color: var(--eucalyptus-700);
+}
+
+.icon-coastal {
+  background: linear-gradient(135deg, var(--coastal-100), var(--coastal-200));
+  color: var(--coastal-700);
+}
+
+.icon-charcoal {
+  background: linear-gradient(135deg, var(--charcoal-100), var(--charcoal-200));
+  color: var(--charcoal-700);
+}
+
+/* Animated Icon Rings */
+.icon-ring {
+  position: relative;
+}
+
+.icon-ring::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid currentColor;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.icon-ring:hover::after {
+  opacity: 0.3;
+  transform: scale(1);
+}
+
+/* ==========================================================================
+   STATUS INDICATORS
+   ========================================================================== */
+
+/* Pulse Animation for Live Status */
+@keyframes status-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+.status-live {
+  position: relative;
+}
+
+.status-live::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--eucalyptus-500);
+  border-radius: 50%;
+  animation: status-pulse 2s var(--ease-smooth) infinite;
+}
+
+/* Status Badges */
+.badge-status-active {
+  background: linear-gradient(135deg, var(--eucalyptus-100), var(--eucalyptus-200));
+  color: var(--eucalyptus-800);
+  border: 1px solid var(--eucalyptus-300);
+}
+
+.badge-status-pending {
+  background: linear-gradient(135deg, var(--dusk-ochre-100), var(--dusk-ochre-200));
+  color: var(--dusk-ochre-800);
+  border: 1px solid var(--dusk-ochre-300);
+}
+
+.badge-status-warning {
+  background: linear-gradient(135deg, var(--terracotta-100), var(--terracotta-200));
+  color: var(--terracotta-800);
+  border: 1px solid var(--terracotta-300);
+}
+
+/* ==========================================================================
+   DATA VISUALIZATION ENHANCEMENTS
+   ========================================================================== */
+
+/* Chart Container */
+.chart-container {
+  background: linear-gradient(180deg, 
+    hsl(var(--card)) 0%, 
+    hsl(var(--muted) / 0.3) 100%
+  );
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+}
+
+/* Metric Cards */
+.metric-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--dusk-ochre-500), 
+    var(--eucalyptus-500)
+  );
+}
+
+/* Trend Indicators */
+.trend-up {
+  color: var(--eucalyptus-600);
+}
+
+.trend-down {
+  color: var(--terracotta-600);
+}
+
+.trend-neutral {
+  color: var(--charcoal-500);
+}
+
+/* ==========================================================================
+   MAP STYLING
+   ========================================================================== */
+
+/* Map Container */
+.map-container {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Map Markers */
+.marker-feedstock {
+  background: var(--eucalyptus-500);
+  border: 3px solid white;
+  box-shadow: var(--shadow-eucalyptus);
+}
+
+.marker-facility {
+  background: var(--dusk-ochre-500);
+  border: 3px solid white;
+  box-shadow: var(--shadow-ochre);
+}
+
+.marker-transport {
+  background: var(--coastal-500);
+  border: 3px solid white;
+  box-shadow: var(--shadow-coastal);
+}
+
+/* ==========================================================================
+   PORTAL-SPECIFIC THEMING
+   ========================================================================== */
+
+/* Grower Portal */
+.portal-grower {
+  --portal-primary: var(--eucalyptus-500);
+  --portal-primary-light: var(--eucalyptus-100);
+  --portal-primary-dark: var(--eucalyptus-700);
+}
+
+/* Developer Portal */
+.portal-developer {
+  --portal-primary: var(--coastal-500);
+  --portal-primary-light: var(--coastal-100);
+  --portal-primary-dark: var(--coastal-700);
+}
+
+/* Lender Portal */
+.portal-lender {
+  --portal-primary: var(--dusk-ochre-500);
+  --portal-primary-light: var(--dusk-ochre-100);
+  --portal-primary-dark: var(--dusk-ochre-700);
+}
+
+/* Government Portal */
+.portal-government {
+  --portal-primary: var(--charcoal-700);
+  --portal-primary-light: var(--charcoal-100);
+  --portal-primary-dark: var(--charcoal-900);
+}
+
+/* Portal Indicator Bar */
+.portal-indicator-bar {
+  height: 3px;
+  background: linear-gradient(90deg, 
+    var(--portal-primary) 0%, 
+    var(--portal-primary-light) 100%
+  );
+}
+
+/* ==========================================================================
+   MICRO-INTERACTIONS
+   ========================================================================== */
+
+/* Hover Lift */
+.hover-lift {
+  transition: transform var(--duration-fast) var(--ease-smooth),
+              box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Hover Glow */
+.hover-glow {
+  transition: box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 30px -5px var(--portal-primary);
+}
+
+/* Press Scale */
+.press-scale {
+  transition: transform var(--duration-instant) var(--ease-smooth);
+}
+
+.press-scale:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   LOADING STATES
+   ========================================================================== */
+
+/* Skeleton Shimmer */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted) / 0.5) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Spinner */
+@keyframes spinner-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid hsl(var(--muted));
+  border-top-color: var(--dusk-ochre-500);
+  border-radius: 50%;
+  animation: spinner-rotate 0.8s linear infinite;
+}
+
+/* ==========================================================================
+   RESPONSIVE UTILITIES
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  :root {
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 2rem;
+    --text-4xl: 2.5rem;
+    --text-5xl: 3rem;
+  }
+  
+  .text-display-xl {
+    font-size: var(--text-4xl);
+  }
+  
+  .text-display-lg {
+    font-size: var(--text-3xl);
+  }
+  
+  .text-display {
+    font-size: var(--text-2xl);
+  }
+}
+
+/* ==========================================================================
+   PRINT STYLES
+   ========================================================================== */
+
+@media print {
+  .card-glass,
+  .card-gradient-ochre,
+  .card-gradient-eucalyptus,
+  .card-gradient-coastal {
+    background: white !important;
+    backdrop-filter: none !important;
+  }
+  
+  .btn-premium,
+  .btn-success {
+    background: #333 !important;
+    color: white !important;
+    box-shadow: none !important;
+  }
+}

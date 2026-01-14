@@ -1,10 +1,16 @@
 /* ==========================================================================
-   ABFI Platform - Sovereign Market Infrastructure Typography System
-   Fonts: Inter (UI + numeric, tabular figures)
+   ABFI Platform - 2026 Seasonal Design System
+   "Australian Summer Dusk" - High-End Designer Colourway
+   
+   Typography: Satoshi (primary), JetBrains Mono (numeric)
+   Season: Q1 2026 (Southern Hemisphere Summer)
    ========================================================================== */
 
-/* Import Fontsource packages - Latin-only for smaller bundle (~70% reduction)
-   Includes font-display: swap by default for faster rendering */
+/* Import Premium Fonts - Satoshi for distinctive character */
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* Fallback: Fontsource Inter for offline/fast loading */
 @import '@fontsource/inter/latin-400.css';
 @import '@fontsource/inter/latin-500.css';
 @import '@fontsource/inter/latin-600.css';
@@ -14,6 +20,9 @@
 
 @import "tailwindcss";
 @import "tw-animate-css";
+
+/* Import 2026 Seasonal Design System */
+@import "./styles/design-system-2026.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -79,14 +88,15 @@
   --content-max-width: 1280px;
 
   /* ============================================
-     TYPOGRAPHY - Inter Only
+     TYPOGRAPHY - Satoshi + JetBrains Mono
+     Premium typography for high-end designer aesthetic
      ============================================ */
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
-  --font-heading: "Inter", system-ui, sans-serif;
-  --font-display: "Inter", system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-  --font-numeric: "Inter", system-ui, sans-serif;
+  --font-sans: "Satoshi", "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: "Satoshi", "Inter", system-ui, sans-serif;
+  --font-heading: "Satoshi", "Inter", system-ui, sans-serif;
+  --font-display: "Satoshi", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  --font-numeric: "JetBrains Mono", "Inter", system-ui, sans-serif;
 
   /* Type Scale - Refined for clean hierarchy */
   --text-xs: 0.75rem;      /* 12px */
