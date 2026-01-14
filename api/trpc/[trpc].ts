@@ -896,6 +896,178 @@ const authRouter = router({
   }),
 });
 
+// =============================================================================
+// Mock Policy & Carbon Data
+// =============================================================================
+
+function getMockPolicyKPIs() {
+  return [
+    { label: "Active Policies", value: 12, subtitle: "Across all jurisdictions" },
+    { label: "Under Review", value: 5, subtitle: "Expected decisions in 2025" },
+    { label: "ACCU Price", value: 34.5, subtitle: "Current spot price" },
+    { label: "Consultations Open", value: 3, subtitle: "Submissions closing soon" },
+  ];
+}
+
+function getMockPolicyTimeline(year: number) {
+  return [
+    { jurisdiction: "Federal", date: `${year}-03-15`, title: "SAF Mandate Consultation Opens", type: "consultation", status: "completed" },
+    { jurisdiction: "NSW", date: `${year}-06-01`, title: "Bioenergy Action Plan Review", type: "review", status: "upcoming" },
+    { jurisdiction: "QLD", date: `${year}-09-15`, title: "Waste-to-Energy Policy Update", type: "policy", status: "upcoming" },
+    { jurisdiction: "VIC", date: `${year}-12-01`, title: "Renewable Gas Target Announcement", type: "announcement", status: "upcoming" },
+  ];
+}
+
+function getMockPolicyKanban() {
+  return {
+    columns: [
+      { id: "proposed", title: "Proposed", items: [
+        { id: 1, title: "National SAF Mandate", jurisdiction: "Federal", priority: "high" },
+        { id: 2, title: "Carbon Border Adjustment", jurisdiction: "Federal", priority: "medium" },
+      ]},
+      { id: "review", title: "Under Review", items: [
+        { id: 3, title: "Bioenergy Roadmap Update", jurisdiction: "NSW", priority: "high" },
+      ]},
+      { id: "enacted", title: "Enacted", items: [
+        { id: 4, title: "Safeguard Mechanism Reform", jurisdiction: "Federal", priority: "high" },
+        { id: 5, title: "Renewable Energy Target Extension", jurisdiction: "Federal", priority: "medium" },
+      ]},
+    ],
+  };
+}
+
+function getMockMandateScenarios() {
+  return [
+    { id: 1, name: "Base Case", safMandate: 0, biodieselMandate: 2, greenGasTarget: 5, projectedDemand: 500000 },
+    { id: 2, name: "Moderate Growth", safMandate: 2, biodieselMandate: 5, greenGasTarget: 10, projectedDemand: 1200000 },
+    { id: 3, name: "Aggressive", safMandate: 5, biodieselMandate: 10, greenGasTarget: 15, projectedDemand: 2500000 },
+  ];
+}
+
+function getMockOfftakeMarket() {
+  return {
+    totalVolume: 850000,
+    averagePrice: 145,
+    contractCount: 23,
+    topBuyers: [
+      { name: "Qantas", volume: 150000, avgPrice: 160 },
+      { name: "BP Australia", volume: 120000, avgPrice: 142 },
+      { name: "Ampol", volume: 95000, avgPrice: 138 },
+    ],
+  };
+}
+
+function getMockACCUPrice() {
+  const basePrice = 34.5;
+  const history = [];
+  for (let i = 90; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const variation = (Math.sin(i / 15) * 3) + ((90 - i) / 30);
+    history.push({
+      date: date.toISOString().split("T")[0],
+      price: Math.round((basePrice + variation) * 100) / 100,
+      volume: Math.floor(Math.random() * 50000) + 10000,
+    });
+  }
+  return {
+    currentPrice: basePrice,
+    change24h: 0.5,
+    change7d: 1.2,
+    history,
+  };
+}
+
+function getMockCarbonStandardsNews() {
+  return [
+    { id: 1, title: "ACCU Market Sees Record Trading Volume", source: "Carbon Pulse", date: new Date().toISOString(), category: "market" },
+    { id: 2, title: "New Methodology for Agricultural Carbon Credits", source: "Clean Energy Regulator", date: new Date(Date.now() - 86400000).toISOString(), category: "regulation" },
+    { id: 3, title: "International Carbon Credit Standards Align", source: "ICAO", date: new Date(Date.now() - 172800000).toISOString(), category: "international" },
+  ];
+}
+
+const policyRouter = router({
+  getKPIs: publicProcedure.query(() => getMockPolicyKPIs()),
+  
+  getTimeline: publicProcedure
+    .input(z.object({ year: z.number().default(2025) }))
+    .query(({ input }) => getMockPolicyTimeline(input.year)),
+  
+  getKanban: publicProcedure.query(() => getMockPolicyKanban()),
+  
+  getMandateScenarios: publicProcedure.query(() => getMockMandateScenarios()),
+  
+  getOfftakeMarket: publicProcedure.query(() => getMockOfftakeMarket()),
+  
+  getACCUPrice: publicProcedure.query(() => getMockACCUPrice()),
+  
+  getCarbonStandardsNews: publicProcedure
+    .input(z.object({ limit: z.number().default(20), source: z.string().default("all") }))
+    .query(({ input }) => getMockCarbonStandardsNews().slice(0, input.limit)),
+});
+
+// =============================================================================
+// Mock Carbon Wallet Data (CorTenX Integration)
+// =============================================================================
+
+function getMockCarbonBalance() {
+  return {
+    accu: { balance: 1240, valueAud: 42780, change24h: 1.2 },
+    smc: { balance: 85, valueAud: 4250, change24h: -0.5 },
+    go: { balance: 320, valueAud: 9600, change24h: 0.8 },
+    lgc: { balance: 150, valueAud: 6750, change24h: 0.3 },
+    totalValueAud: 63380,
+  };
+}
+
+function getMockCarbonPrices() {
+  return [
+    { instrument: "ACCU", priceAud: 34.50, change24h: 0.5 },
+    { instrument: "SMC", priceAud: 50.00, change24h: -0.25 },
+    { instrument: "GO", priceAud: 30.00, change24h: 0.15 },
+    { instrument: "LGC", priceAud: 45.00, change24h: 0.1 },
+  ];
+}
+
+function getMockCarbonHistory() {
+  return [
+    { id: 1, txnType: "IN", instrument: "ACCU", qty: 500, registryHash: "0x1234...abcd", createdAt: new Date(Date.now() - 86400000).toISOString() },
+    { id: 2, txnType: "RETIRE", instrument: "ACCU", qty: 100, registryHash: "0x5678...efgh", retirementNote: "Beema delivery verification", createdAt: new Date(Date.now() - 172800000).toISOString() },
+    { id: 3, txnType: "IN", instrument: "GO", qty: 200, registryHash: "0x9abc...ijkl", createdAt: new Date(Date.now() - 259200000).toISOString() },
+  ];
+}
+
+function getMockImpactStats() {
+  return {
+    totalRetired: 1240,
+    carsOffRoad: 270,
+    householdsOffset: 156,
+    treesEquivalent: 18600,
+  };
+}
+
+const carbonRouter = router({
+  hasWallet: publicProcedure.query(() => ({ hasWallet: true, walletId: "demo-wallet-123" })),
+  
+  balance: publicProcedure.query(() => getMockCarbonBalance()),
+  
+  prices: publicProcedure.query(() => getMockCarbonPrices()),
+  
+  history: publicProcedure.query(() => getMockCarbonHistory()),
+  
+  impactStats: publicProcedure.query(() => getMockImpactStats()),
+  
+  retire: publicProcedure
+    .input(z.object({ instrument: z.string(), qty: z.number(), narrative: z.string().optional() }))
+    .mutation(({ input }) => ({
+      success: true,
+      txnId: Math.floor(Math.random() * 1000000),
+      registryHash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`,
+      retiredQty: input.qty,
+      instrument: input.instrument,
+    })),
+});
+
 // API router for Vercel
 const apiRouter = router({
   system: router({
@@ -903,10 +1075,10 @@ const apiRouter = router({
       .input(z.object({ timestamp: z.number().min(0).optional() }).optional())
       .query(() => ({
         ok: true,
-        version: "2.10.0",
+        version: "2.11.0",
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || "production",
-        hasRouter: { prices: true, auth: true, climateHub: true, rsie: true, projectRegistry: true, feedstocks: true, futures: true, admin: true, demandSignals: true, bankability: true, stressTesting: true },
+        hasRouter: { prices: true, auth: true, climateHub: true, rsie: true, projectRegistry: true, feedstocks: true, futures: true, admin: true, demandSignals: true, bankability: true, stressTesting: true, policy: true, carbon: true },
       })),
   }),
   prices: pricesRouter,
@@ -920,6 +1092,8 @@ const apiRouter = router({
   demandSignals: demandSignalsRouter,
   bankability: bankabilityRouter,
   stressTesting: stressTestingRouter,
+  policy: policyRouter,
+  carbon: carbonRouter,
 });
 
 export const config = {
