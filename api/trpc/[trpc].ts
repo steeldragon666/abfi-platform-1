@@ -911,10 +911,10 @@ function getMockPolicyKPIs() {
 
 function getMockPolicyTimeline(year: number) {
   return [
-    { jurisdiction: "Federal", date: `${year}-03-15`, title: "SAF Mandate Consultation Opens", type: "consultation", status: "completed" },
-    { jurisdiction: "NSW", date: `${year}-06-01`, title: "Bioenergy Action Plan Review", type: "review", status: "upcoming" },
-    { jurisdiction: "QLD", date: `${year}-09-15`, title: "Waste-to-Energy Policy Update", type: "policy", status: "upcoming" },
-    { jurisdiction: "VIC", date: `${year}-12-01`, title: "Renewable Gas Target Announcement", type: "announcement", status: "upcoming" },
+    { jurisdiction: "Federal", date: `${year}-03-15`, title: "SAF Mandate Consultation Opens", event_type: "consultation_open", status: "completed" },
+    { jurisdiction: "NSW", date: `${year}-06-01`, title: "Bioenergy Action Plan Review", event_type: "review", status: "upcoming" },
+    { jurisdiction: "QLD", date: `${year}-09-15`, title: "Waste-to-Energy Policy Update", event_type: "enacted", status: "upcoming" },
+    { jurisdiction: "VIC", date: `${year}-12-01`, title: "Renewable Gas Target Announcement", event_type: "announcement", status: "upcoming" },
   ];
 }
 
@@ -980,9 +980,9 @@ function getMockACCUPrice() {
 
 function getMockCarbonStandardsNews() {
   return [
-    { id: 1, title: "ACCU Market Sees Record Trading Volume", source: "Carbon Pulse", date: new Date().toISOString(), category: "market" },
-    { id: 2, title: "New Methodology for Agricultural Carbon Credits", source: "Clean Energy Regulator", date: new Date(Date.now() - 86400000).toISOString(), category: "regulation" },
-    { id: 3, title: "International Carbon Credit Standards Align", source: "ICAO", date: new Date(Date.now() - 172800000).toISOString(), category: "international" },
+    { id: 1, title: "ACCU Market Sees Record Trading Volume", source: "Carbon Pulse", publishedDate: new Date().toISOString(), category: "market", relevance: "high", excerpt: "Australian carbon credit unit trading volumes reached a new monthly record in December.", keywords: ["ACCU", "trading", "volume"] },
+    { id: 2, title: "New Methodology for Agricultural Carbon Credits", source: "Clean Energy Regulator", publishedDate: new Date(Date.now() - 86400000).toISOString(), category: "regulation", relevance: "high", excerpt: "The CER has released updated methodology guidelines for soil carbon measurement.", keywords: ["methodology", "agriculture", "CER"] },
+    { id: 3, title: "International Carbon Credit Standards Align", source: "ICAO", publishedDate: new Date(Date.now() - 172800000).toISOString(), category: "international", relevance: "medium", excerpt: "Major international bodies agree on common standards for aviation carbon credits.", keywords: ["CORSIA", "SAF", "international"] },
   ];
 }
 
