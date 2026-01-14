@@ -311,7 +311,7 @@ export default function PolicyCarbonDashboard() {
                                         :"bg-orange-100 text-orange-800"
                                   }
                                 >
-                                  {event.event_type.replace("_","")}
+                                  {(event.event_type || "pending").replace("_"," ")}
                                 </Badge>
                                 <span className="text-sm text-gray-600">
                                   {formatDate(event.date)}
@@ -464,10 +464,10 @@ export default function PolicyCarbonDashboard() {
                                       :"bg-gray-100 text-gray-800 border-gray-300"
                                 }
                               >
-                                {article.relevance} relevance
+                                {article.relevance || "medium"} relevance
                               </Badge>
                               <span className="text-xs text-gray-500">
-                                {article.category.replace("_","")}
+                                {(article.category || "general").replace("_"," ")}
                               </span>
                             </div>
                             <H4 className="text-sm mb-1">
@@ -480,7 +480,7 @@ export default function PolicyCarbonDashboard() {
                             )}
                             <div className="flex items-center gap-4 mt-2">
                               <span className="text-xs text-gray-500">
-                                {new Date(article.publishedDate).toLocaleDateString("en-AU", {
+                                {new Date(article.publishedDate || article.date || Date.now()).toLocaleDateString("en-AU", {
                                   day:"numeric",
                                   month:"short",
                                   year:"numeric",
