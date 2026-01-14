@@ -255,8 +255,10 @@ export class QldGlobeConnector extends BaseConnector {
       // or QSpatial native title layer
 
       // For now, check if in known native title regions
-      const isInNorthQld = latitude < -15 && longitude > 142 && longitude < 147;
-      const isInCapeYork = latitude < -13;
+      // Note: In Southern Hemisphere, latitudes closer to 0 are further north
+      // Cape York Peninsula spans approximately -10° to -16° latitude
+      const isInNorthQld = latitude > -20 && latitude < -15 && longitude > 142 && longitude < 147;
+      const isInCapeYork = latitude > -16 && latitude < -10 && longitude > 142 && longitude < 146;
       const isInOutback = longitude < 142;
 
       if (isInCapeYork) {

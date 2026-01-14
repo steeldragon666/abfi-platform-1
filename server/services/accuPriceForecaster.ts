@@ -286,11 +286,12 @@ export async function forecastACCUPrice(
     ? ((currentPrice - yearAgo.price) / yearAgo.price) * 100
     : 0;
 
-  // Risk metrics from forecast distribution
-  const forecastPrices = forecasts.map(f => f.predictedPrice);
-  const sortedForecasts = [...forecastPrices].sort((a, b) => a - b);
-  const downsideRisk = sortedForecasts[Math.floor(sortedForecasts.length * 0.05)];
-  const upsideTarget = sortedForecasts[Math.floor(sortedForecasts.length * 0.95)];
+  // Risk metrics from confidence bounds (probabilistic, not deterministic)
+  // Use the 5th and 95th percentile confidence bounds at the forecast horizon
+  // These represent true probabilistic risk bounds, not just sorted time series values
+  const horizonForecast = forecasts[forecasts.length - 1];
+  const downsideRisk = horizonForecast?.confidenceLower ?? currentPrice * 0.85;
+  const upsideTarget = horizonForecast?.confidenceUpper ?? currentPrice * 1.15;
 
   return {
     generatedAt: new Date(),
