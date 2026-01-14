@@ -91,11 +91,11 @@ export default function PolicyCarbonDashboard() {
   // Carbon calculator mutation
   const calculateMutation = trpc.policy.calculateCarbon.useMutation();
 
-  const policyKPIs = kpisQuery.data || [];
-  const timeline = timelineQuery.data || [];
+  const policyKPIs = Array.isArray(kpisQuery.data) ? kpisQuery.data : [];
+  const timeline = Array.isArray(timelineQuery.data) ? timelineQuery.data : [];
   const kanban = kanbanQuery.data;
-  const mandateScenarios = scenariosQuery.data || [];
-  const offtakeMarket = offtakeQuery.data || [];
+  const mandateScenarios = Array.isArray(scenariosQuery.data) ? scenariosQuery.data : [];
+  const offtakeMarket = Array.isArray(offtakeQuery.data) ? offtakeQuery.data : [];
   const accuPrice = accuQuery.data;
   const carbonNews = carbonNewsQuery.data;
   const calcResult = calculateMutation.data;
@@ -432,7 +432,7 @@ export default function PolicyCarbonDashboard() {
                       <Skeleton key={i} className="h-24" />
                     ))}
                   </div>
-                ) : carbonNews && carbonNews.articles && carbonNews.articles.length > 0 ? (
+                ) : carbonNews && Array.isArray(carbonNews.articles) && carbonNews.articles.length > 0 ? (
                   <div className="space-y-3">
                     {carbonNews.articles.map((article: any) => (
                       <div
