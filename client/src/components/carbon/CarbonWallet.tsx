@@ -146,13 +146,13 @@ function BalanceCard({
           
           {price && (
             <div className="text-right">
-              <p className="text-sm font-medium">${price.spotPrice.toFixed(2)}</p>
+              <p className="text-sm font-medium">${(price.spotPrice ?? price.priceAud ?? 0).toFixed(2)}</p>
               <p className={cn(
                 "text-xs flex items-center gap-1",
-                price.change24h >= 0 ? "text-green-600" : "text-red-600"
+                (price.change24h ?? 0) >= 0 ? "text-green-600" : "text-red-600"
               )}>
-                {price.change24h >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                {price.change24h >= 0 ? '+' : ''}{price.change24h.toFixed(2)}%
+                {(price.change24h ?? 0) >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                {(price.change24h ?? 0) >= 0 ? '+' : ''}{(price.change24h ?? 0).toFixed(2)}%
               </p>
             </div>
           )}
