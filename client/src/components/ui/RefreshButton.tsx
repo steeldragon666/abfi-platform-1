@@ -6,7 +6,7 @@
  */
 
 import { RefreshCw } from 'lucide-react';
-import { Button, ButtonProps } from './button';
+import { Button, ButtonProps } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
 interface RefreshButtonProps extends Omit<ButtonProps, 'onClick'> {
