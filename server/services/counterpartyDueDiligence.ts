@@ -311,16 +311,10 @@ export async function runDailyABNMonitoring(): Promise<{
             if (supplier.userId) {
               await db.insert(notifications).values({
                 userId: supplier.userId,
-                type: alert.type === "status_change" ? "alert" : "warning",
+                type: "verification_update",
                 title: `ABN Alert: ${supplier.companyName}`,
-                message: alert.message,
+                message: `${alert.message} (ABN: ${supplier.abn}, Severity: ${alert.severity})`,
                 read: false,
-                metadata: {
-                  abn: supplier.abn,
-                  alertType: alert.type,
-                  severity: alert.severity,
-                  riskScore: result.riskScore,
-                },
               });
             }
           }
@@ -358,16 +352,10 @@ export async function runDailyABNMonitoring(): Promise<{
             if (buyer.userId) {
               await db.insert(notifications).values({
                 userId: buyer.userId,
-                type: alert.type === "status_change" ? "alert" : "warning",
+                type: "verification_update",
                 title: `ABN Alert: ${buyer.companyName}`,
-                message: alert.message,
+                message: `${alert.message} (ABN: ${buyer.abn}, Severity: ${alert.severity})`,
                 read: false,
-                metadata: {
-                  abn: buyer.abn,
-                  alertType: alert.type,
-                  severity: alert.severity,
-                  riskScore: result.riskScore,
-                },
               });
             }
           }
@@ -410,15 +398,33 @@ export async function calculateFraudScore(
   let fraudScore = 0;
   
   // Get entity data
-  const entity = entityType === "supplier"
-    ? await db.select().from(suppliers).where(eq(suppliers.id, entityId)).limit(1)
-    : await db.select().from(buyers).where(eq(buyers.id, entityId)).limit(1);
+  let entityData: { abn: string; companyName: string; updatedAt: Date; verificationStatus?: string } | null = null;
   
-  if (entity.length === 0) {
-    return { fraudScore: 0, fraudIndicators: [], riskLevel: "low" };
+  if (entityType === "supplier") {
+    const supplierResult = await db.select().from(suppliers).where(eq(suppliers.id, entityId)).limit(1);
+    if (supplierResult.length > 0) {
+      entityData = {
+        abn: supplierResult[0].abn,
+        companyName: supplierResult[0].companyName,
+        updatedAt: supplierResult[0].updatedAt,
+        verificationStatus: supplierResult[0].verificationStatus,
+      };
+    }
+  } else {
+    const buyerResult = await db.select().from(buyers).where(eq(buyers.id, entityId)).limit(1);
+    if (buyerResult.length > 0) {
+      entityData = {
+        abn: buyerResult[0].abn,
+        companyName: buyerResult[0].companyName,
+        updatedAt: buyerResult[0].updatedAt,
+        verificationStatus: undefined, // Buyers don't have verificationStatus
+      };
+    }
   }
   
-  const entityData = entity[0];
+  if (!entityData) {
+    return { fraudScore: 0, fraudIndicators: [], riskLevel: "low" };
+  }
   
   // Factor 1: Days since ABN registration (new businesses are higher risk)
   // This would require storing registration date from ABR lookup
@@ -435,10 +441,14 @@ export async function calculateFraudScore(
   // Factor 2: GST registration
   // Would check if GST registered for businesses with significant turnover
   
-  // Factor 3: Verification status
-  if (!entityData.verified) {
+  // Factor 3: Verification status (only applicable for suppliers)
+  if (entityData.verificationStatus && entityData.verificationStatus !== "verified") {
     fraudScore += 20;
     fraudIndicators.push("Entity not verified");
+  } else if (!entityData.verificationStatus && entityType === "buyer") {
+    // Buyers don't have verification status, add minor risk
+    fraudScore += 10;
+    fraudIndicators.push("Buyer verification not available");
   }
   
   // Factor 4: Transaction patterns
@@ -472,16 +482,40 @@ export async function getCounterpartyRiskProfile(
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  // Get entity data
-  const entity = entityType === "supplier"
-    ? await db.select().from(suppliers).where(eq(suppliers.id, entityId)).limit(1)
-    : await db.select().from(buyers).where(eq(buyers.id, entityId)).limit(1);
+  // Get entity data with normalized structure
+  let entityData: { 
+    abn: string; 
+    companyName: string; 
+    updatedAt: Date; 
+    verificationStatus?: string;
+  } | null = null;
   
-  if (entity.length === 0) {
+  if (entityType === "supplier") {
+    const supplierResult = await db.select().from(suppliers).where(eq(suppliers.id, entityId)).limit(1);
+    if (supplierResult.length > 0) {
+      entityData = {
+        abn: supplierResult[0].abn,
+        companyName: supplierResult[0].companyName,
+        updatedAt: supplierResult[0].updatedAt,
+        verificationStatus: supplierResult[0].verificationStatus,
+      };
+    }
+  } else {
+    const buyerResult = await db.select().from(buyers).where(eq(buyers.id, entityId)).limit(1);
+    if (buyerResult.length > 0) {
+      entityData = {
+        abn: buyerResult[0].abn,
+        companyName: buyerResult[0].companyName,
+        updatedAt: buyerResult[0].updatedAt,
+        verificationStatus: undefined, // Buyers don't have verificationStatus
+      };
+    }
+  }
+  
+  if (!entityData) {
     return null;
   }
   
-  const entityData = entity[0];
   const abn = entityData.abn || "";
   
   // Get fraud score
@@ -506,7 +540,7 @@ export async function getCounterpartyRiskProfile(
   // Generate recommendations
   const recommendations: string[] = [];
   
-  if (!entityData.verified) {
+  if (!entityData.verificationStatus || entityData.verificationStatus !== "verified") {
     recommendations.push("Complete entity verification process");
   }
   
@@ -537,7 +571,7 @@ export async function getCounterpartyRiskProfile(
     fraudScore,
     fraudIndicators,
     lastVerified: entityData.updatedAt || new Date(),
-    verificationStatus: entityData.verified ? "verified" : "pending",
+    verificationStatus: entityData.verificationStatus === "verified" ? "verified" : "pending",
     recommendations,
   };
 }

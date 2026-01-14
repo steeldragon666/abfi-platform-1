@@ -273,7 +273,7 @@ function generatePosts(count: number, seed?: number): SocialPost[] {
     const hashtagMatches = content.match(/#\w+/g) || [];
     // Add relevant hashtags
     const additionalHashtags = TRACKED_HASHTAGS.filter((_, idx) => (postSeed + idx) % 4 === 0).slice(0, 2);
-    const allHashtags = [...new Set([...hashtagMatches, ...additionalHashtags])];
+    const allHashtags = Array.from(new Set([...hashtagMatches, ...additionalHashtags]));
     
     // Sentiment score
     const sentimentScore = sentimentType === "positive" ? 30 + (postSeed % 50)
@@ -427,7 +427,7 @@ export async function getTrendingHashtags(limit: number = 10): Promise<HashtagTr
   // Convert to trends
   const trends: HashtagTrend[] = [];
   
-  for (const [hashtag, data] of hashtagCounts.entries()) {
+  for (const [hashtag, data] of Array.from(hashtagCounts.entries())) {
     if (data.count24h >= 2) {
       trends.push({
         hashtag,
@@ -435,7 +435,7 @@ export async function getTrendingHashtags(limit: number = 10): Promise<HashtagTr
         postCount7d: data.count7d,
         avgSentiment: data.posts.length > 0 ? data.sentimentSum / data.posts.length : 0,
         topPosts: data.posts
-          .sort((a, b) => b.engagementRate - a.engagementRate)
+          .sort((a: SocialPost, b: SocialPost) => b.engagementRate - a.engagementRate)
           .slice(0, 3),
         momentum: data.count7d > 0 ? (data.count24h * 7) / data.count7d : data.count24h,
         peakTime: data.posts.length > 0 ? data.posts[0].publishedAt : new Date(),
@@ -444,7 +444,7 @@ export async function getTrendingHashtags(limit: number = 10): Promise<HashtagTr
   }
   
   return trends
-    .sort((a, b) => b.momentum - a.momentum)
+    .sort((a: HashtagTrend, b: HashtagTrend) => b.momentum - a.momentum)
     .slice(0, limit);
 }
 

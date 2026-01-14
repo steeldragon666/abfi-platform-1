@@ -5175,6 +5175,7 @@ export const stealthSignals = mysqlTable(
       "news_mention",
       "regulatory_filing",
       "partnership_announcement",
+      "resource_estimate",
     ]).notNull(),
     signalWeight: decimal("signalWeight", { precision: 5, scale: 2 }).default("1"),
     confidence: decimal("confidence", { precision: 5, scale: 2 }).default("50"),

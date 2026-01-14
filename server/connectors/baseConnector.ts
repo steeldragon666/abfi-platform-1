@@ -34,7 +34,8 @@ export type SignalType =
   | "job_posting"
   | "news_mention"
   | "regulatory_filing"
-  | "partnership_announcement";
+  | "partnership_announcement"
+  | "resource_estimate";
 
 export interface ConnectorConfig {
   name: string;

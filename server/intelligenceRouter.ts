@@ -1184,7 +1184,7 @@ router.post(
 const ComplianceCheckSchema = z.object({
   agreementId: z.string(),
   reportDate: z.string().transform(s => new Date(s)),
-  milestoneProgress: z.record(z.object({
+  milestoneProgress: z.record(z.string(), z.object({
     completed: z.boolean(),
     completionDate: z.string().transform(s => new Date(s)).optional(),
     evidence: z.array(z.string()).optional(),

@@ -173,7 +173,7 @@ export class QldGlobeConnector extends BaseConnector {
             signalType: "resource_estimate",
             signalWeight: 0.7,
             confidence: 0.8,
-            rawData: zone,
+            rawData: zone as unknown as Record<string, unknown>,
             metadata: {
               region: zone.millRegion,
               trashAvailability: zone.estimatedTrashAvailability,

@@ -206,7 +206,6 @@ export async function forecastACCUPrice(
         prices = dbPrices.map(p => ({
           date: p.date,
           price: parseFloat(p.price),
-          volume: p.volume ? parseFloat(p.volume) : undefined,
           source: (p.source || "database") as ACCUPricePoint["source"],
         }));
       }
@@ -444,7 +443,8 @@ export async function ingestACCUPrices(): Promise<{
           await db.insert(accuPriceHistory).values({
             date: pricePoint.date,
             price: String(pricePoint.price),
-            volume: pricePoint.volume ? String(pricePoint.volume) : null,
+            change: "0",
+            changePct: "0",
             source: pricePoint.source,
           });
           pricesIngested++;

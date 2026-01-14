@@ -491,7 +491,8 @@ function calculateQualityGrade(
     grade = "A";
     reasons.push("Optimal moisture content");
     reasons.push("No contamination detected");
-  } else if (moistureScore >= 0.65 && contaminationRisk !== "high") {
+  } else if (moistureScore >= 0.65) {
+    // contaminationRisk is "low" or "medium" here (high was handled above)
     grade = "B";
     if (moistureScore < 0.85) {
       reasons.push(`Moisture content (${moisturePercent}%) slightly off optimal (${thresholds.optimal}%)`);

@@ -642,7 +642,10 @@ export const unifiedMapRouter = router({
       // Generate deterministic forward availability data based on feedstock and month
       const availability = [];
       const now = new Date();
-      const feedstockSeed = feedstockTypeId || 1;
+      // Convert string ID to numeric seed
+      const feedstockSeed = feedstockTypeId 
+        ? feedstockTypeId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 100
+        : 1;
       
       for (let i = 0; i < months; i++) {
         const month = new Date(now);

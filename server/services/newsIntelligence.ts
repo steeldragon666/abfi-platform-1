@@ -422,7 +422,7 @@ function extractKeywords(text: string): string[] {
     }
   }
   
-  return [...new Set(keywords)].slice(0, 10);
+  return Array.from(new Set(keywords)).slice(0, 10);
 }
 
 // ============================================================================
@@ -453,7 +453,7 @@ function identifyTrendingTopics(articles: NewsArticle[]): TrendingTopic[] {
   // Convert to trending topics
   const trending: TrendingTopic[] = [];
   
-  for (const [topic, data] of topicCounts.entries()) {
+  for (const [topic, data] of Array.from(topicCounts.entries())) {
     if (data.count >= 2) {
       // Find related keywords
       const relatedKeywords = new Set<string>();
@@ -475,8 +475,8 @@ function identifyTrendingTopics(articles: NewsArticle[]): TrendingTopic[] {
         articleCount: data.count,
         sentimentAvg: data.sentimentSum / data.count,
         momentum,
-        relatedKeywords: [...relatedKeywords].slice(0, 5),
-        peakTime: data.articles.reduce((latest, a) => 
+        relatedKeywords: Array.from(relatedKeywords).slice(0, 5),
+        peakTime: data.articles.reduce((latest: Date, a: NewsArticle) => 
           a.publishedAt > latest ? a.publishedAt : latest, 
           new Date(0)
         ),
