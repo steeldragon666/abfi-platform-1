@@ -228,6 +228,9 @@ function Router() {
         <Route path="/feedstock-map">
           <Redirect to="/map" />
         </Route>
+        <Route path="/australian-data">
+          <Redirect to="/map" />
+        </Route>
 
         {/* Role-specific dashboards (will be deprecated - redirect to unified) */}
         <Route path="/grower/dashboard" component={GrowerDashboard} />

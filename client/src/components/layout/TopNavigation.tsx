@@ -90,7 +90,7 @@ const menuGroups = {
       { icon: TrendingUp, label: 'Lending Sentiment', path: '/lending-sentiment' },
       { icon: BarChart3, label: 'Feedstock Prices', path: '/feedstock-prices' },
       { icon: Clock, label: 'Policy & Carbon', path: '/policy-carbon' },
-      { icon: Map, label: 'Australian Data', path: '/australian-data' },
+      { icon: Map, label: 'Australian Data', path: '/map' },
     ],
   },
   platform: {
