@@ -9,8 +9,8 @@
  *   </MapContainer>
  */
 
-import { TileLayer, WMSTileLayer, GeoJSON, useMap } from 'react-leaflet';
-import { useEffect, useState } from 'react';
+import { TileLayer, WMSTileLayer, GeoJSON, useMap, useMapEvents } from 'react-leaflet';
+import { useEffect, useState, useCallback } from 'react';
 import { trpc } from '@/lib/trpc';
 import {
   ALL_OVERLAYS,
@@ -275,10 +275,18 @@ function SugarcaneZonesLayer({ opacity }: { opacity: number }) {
 
 /**
  * Property Cadastre Layer
+ * Only visible at zoom level 12+ for performance
  */
 function CadastreLayer({ opacity }: { opacity: number }) {
   const map = useMap();
-  const zoom = map.getZoom();
+  const [zoom, setZoom] = useState(map.getZoom());
+
+  // Listen for zoom changes and update state to trigger re-render
+  useMapEvents({
+    zoomend: () => {
+      setZoom(map.getZoom());
+    },
+  });
 
   // Only show cadastre at zoom level 12+
   if (zoom < 12) return null;
