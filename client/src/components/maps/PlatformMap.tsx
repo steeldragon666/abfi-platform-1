@@ -48,6 +48,9 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { cn } from '@/lib/utils';
+import { ProjectsLayer } from './ProjectsLayer';
+import { ProjectClaimingModal } from '../projects/ProjectClaimingModal';
+import { ABFIMethodologyExplainer } from '../projects/ABFIMethodologyExplainer';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +59,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -620,6 +624,8 @@ export function PlatformMap({
   const [layerPanelOpen, setLayerPanelOpen] = useState(false);
   const [activeLayerCount, setActiveLayerCount] = useState(0);
   const [showRiskPanel, setShowRiskPanel] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [showMethodologyExplainer, setShowMethodologyExplainer] = useState(false);
   
   // Data queries
   const { data: feedstocks, isLoading: feedstocksLoading } = trpc.feedstocks.search.useQuery(
@@ -1153,6 +1159,16 @@ export function PlatformMap({
                 <span className="font-medium">Projects</span>
               </DropdownMenuCheckboxItem>
 
+              {layers.projects && (
+                <DropdownMenuItem
+                  onClick={() => setShowMethodologyExplainer(true)}
+                  className="py-2"
+                >
+                  <Info className="h-4 w-4 mr-3 text-purple-600" />
+                  <span className="font-medium">ABFI Methodology</span>
+                </DropdownMenuItem>
+              )}
+
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-sm font-semibold">Risk Layers</DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -1349,7 +1365,16 @@ export function PlatformMap({
           </div>
         </div>
       )}
-      
+
+      {/* ABFI Projects Layer */}
+      <ProjectsLayer
+        visible={layers.projects}
+        selectedTiers={[1, 2, 3, 4]}
+        onProjectSelect={(project) => {
+          setSelectedProject(project);
+        }}
+      />
+
       {/* Biomass Risk Analysis Panel - Positioned below the second row of controls */}
       {showRiskPanel && (
         <div className="absolute top-28 right-3 z-[1000]">
@@ -1359,6 +1384,25 @@ export function PlatformMap({
           />
         </div>
       )}
+
+      {/* Project Claiming Modal */}
+      {selectedProject && (
+        <ProjectClaimingModal
+          project={selectedProject}
+          isOpen={!!selectedProject}
+          onClose={() => setSelectedProject(null)}
+          onClaimSuccess={() => {
+            setSelectedProject(null);
+            // Could refetch projects data here
+          }}
+        />
+      )}
+
+      {/* ABFI Methodology Explainer */}
+      <ABFIMethodologyExplainer
+        isOpen={showMethodologyExplainer}
+        onClose={() => setShowMethodologyExplainer(false)}
+      />
     </div>
   );
 }

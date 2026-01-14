@@ -771,7 +771,7 @@ export class BOMConnector extends BaseConnector {
       confidence: relevance,
       rawData: {
         source: "bom_warnings",
-        type: "weather_alert",
+        signalType: "regulatory_filing",
         warningType: warning.type,
         severity: warning.severity,
         affectedAreas: warning.affectedAreas,
@@ -798,7 +798,7 @@ export class BOMConnector extends BaseConnector {
       confidence: 0.5,
       rawData: {
         source: "bom_observations",
-        type: "weather_observation",
+        signalType: "news_mention",
         stationId: observation.stationId,
         stationName: observation.stationName,
         temperature: observation.temperature,
@@ -841,7 +841,7 @@ export class BOMConnector extends BaseConnector {
           confidence: relevance,
           rawData: {
             source: "bom_seasonal",
-            type: "climate_outlook",
+            signalType: "regulatory_filing",
             region: outlook.region,
             validPeriod: outlook.validPeriod,
             belowMedianProbability: rainBelow,

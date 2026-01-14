@@ -6845,6 +6845,237 @@ export const bioenergyProjects = mysqlTable(
 export type BioenergyProject = typeof bioenergyProjects.$inferSelect;
 export type InsertBioenergyProject = typeof bioenergyProjects.$inferInsert;
 
+// ============================================================================
+// ABFI BANKABILITY ASSESSMENT FRAMEWORK
+// ============================================================================
+
+/**
+ * ABFI Assessment Framework Metadata
+ */
+export const abfiAssessmentFrameworks = mysqlTable(
+  "abfi_assessment_frameworks",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    version: varchar("version", { length: 20 }).notNull().unique(),
+    frameworkName: varchar("framework_name", { length: 100 }).notNull(),
+    description: text("description"),
+    assessmentDate: date("assessment_date").notNull(),
+    analyst: varchar("analyst", { length: 255 }),
+    pillarWeights: json("pillar_weights").$type<Record<string, number>>().notNull(),
+    ratingScale: json("rating_scale").$type<Record<string, any>>().notNull(),
+    tierDefinitions: json("tier_definitions").$type<Array<any>>().notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    versionIdx: index("abfi_frameworks_version_idx").on(table.version),
+    activeIdx: index("abfi_frameworks_active_idx").on(table.isActive),
+  })
+);
+
+/**
+ * ABFI Bankability Assessments
+ */
+export const abfiBankabilityAssessments = mysqlTable(
+  "abfi_bankability_assessments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    assessmentId: varchar("assessment_id", { length: 50 }).notNull().unique(),
+    projectName: varchar("project_name", { length: 255 }).notNull(),
+    shortName: varchar("short_name", { length: 100 }),
+    status: mysqlEnum("status", [
+      "OPERATIONAL",
+      "UNDER_CONSTRUCTION",
+      "FEED",
+      "PRE_FEED",
+      "DEMONSTRATION",
+      "PROPOSED",
+      "ON_HOLD",
+      "FAILED",
+    ]).notNull(),
+
+    // Location data
+    siteLocation: varchar("site_location", { length: 255 }),
+    state: mysqlEnum("state", [
+      "NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"
+    ]),
+    latitude: decimal("latitude", { precision: 10, scale: 8 }),
+    longitude: decimal("longitude", { precision: 11, scale: 8 }),
+
+    // Technology & capacity
+    technology: varchar("technology", { length: 255 }),
+    feedstock: varchar("feedstock", { length: 255 }),
+    capacityValue: decimal("capacity_value", { precision: 10, scale: 2 }),
+    capacityUnit: varchar("capacity_unit", { length: 50 }),
+
+    // 5-Pillar Scores (0-10 scale)
+    volumeSecurityScore: decimal("volume_security_score", { precision: 3, scale: 1 }),
+    volumeSecurityJustification: text("volume_security_justification"),
+
+    counterpartyQualityScore: decimal("counterparty_quality_score", { precision: 3, scale: 1 }),
+    counterpartyQualityJustification: text("counterparty_quality_justification"),
+
+    contractStructureScore: decimal("contract_structure_score", { precision: 3, scale: 1 }),
+    contractStructureJustification: text("contract_structure_justification"),
+
+    concentrationRiskScore: decimal("concentration_risk_score", { precision: 3, scale: 1 }),
+    concentrationRiskJustification: text("concentration_risk_justification"),
+
+    operationalReadinessScore: decimal("operational_readiness_score", { precision: 3, scale: 1 }),
+    operationalReadinessJustification: text("operational_readiness_justification"),
+
+    // Overall assessment
+    overallScore: decimal("overall_score", { precision: 3, scale: 1 }).notNull(),
+    rating: varchar("rating", { length: 5 }).notNull(),
+    tier: int("tier").notNull(),
+    tierLabel: varchar("tier_label", { length: 20 }).notNull(),
+    rank: int("rank"),
+
+    // Key findings
+    keyStrengths: json("key_strengths").$type<string[]>(),
+    keyRisks: json("key_risks").$type<string[]>(),
+    criticalIssues: json("critical_issues").$type<string[]>(),
+
+    // Funding data
+    totalCost: decimal("total_cost", { precision: 12, scale: 2 }),
+    arenaFunding: decimal("arena_funding", { precision: 12, scale: 2 }),
+    arenaPercentage: decimal("arena_percentage", { precision: 5, scale: 2 }),
+
+    // Framework reference
+    frameworkVersion: varchar("framework_version", { length: 20 }).notNull(),
+
+    // Claim status for project developers
+    claimedByUserId: int("claimed_by_user_id").references(() => users.id),
+    claimStatus: mysqlEnum("claim_status", ["unclaimed", "pending", "verified", "rejected"]).default("unclaimed"),
+    claimedAt: timestamp("claimed_at"),
+    claimVerifiedAt: timestamp("claim_verified_at"),
+
+    // Evidence uploads for improvement
+    evidenceDocuments: json("evidence_documents").$type<Array<any>>(),
+
+    // Metadata
+    isPublic: boolean("is_public").default(true).notNull(),
+    lastUpdatedBy: int("last_updated_by").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    assessmentIdIdx: index("abfi_assessments_id_idx").on(table.assessmentId),
+    statusIdx: index("abfi_assessments_status_idx").on(table.status),
+    stateIdx: index("abfi_assessments_state_idx").on(table.state),
+    ratingIdx: index("abfi_assessments_rating_idx").on(table.rating),
+    tierIdx: index("abfi_assessments_tier_idx").on(table.tier),
+    scoreIdx: index("abfi_assessments_score_idx").on(table.overallScore),
+    claimStatusIdx: index("abfi_assessments_claim_idx").on(table.claimStatus),
+    locationIdx: index("abfi_assessments_location_idx").on(table.latitude, table.longitude),
+  })
+);
+
+/**
+ * ABFI Assessment Proponents
+ */
+export const abfiAssessmentProponents = mysqlTable(
+  "abfi_assessment_proponents",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    assessmentId: int("assessment_id").notNull().references(() => abfiBankabilityAssessments.id, { onDelete: "cascade" }),
+    proponentName: varchar("proponent_name", { length: 255 }).notNull(),
+    proponentRole: varchar("proponent_role", { length: 100 }),
+    proponentType: varchar("proponent_type", { length: 100 }),
+    asxCode: varchar("asx_code", { length: 10 }),
+  },
+  (table) => ({
+    assessmentIdx: index("abfi_proponents_assessment_idx").on(table.assessmentId),
+    nameIdx: index("abfi_proponents_name_idx").on(table.proponentName),
+  })
+);
+
+/**
+ * ABFI Assessment Evidence
+ */
+export const abfiAssessmentEvidence = mysqlTable(
+  "abfi_assessment_evidence",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    assessmentId: int("assessment_id").notNull().references(() => abfiBankabilityAssessments.id, { onDelete: "cascade" }),
+    evidenceType: mysqlEnum("evidence_type", [
+      "document", "certificate", "contract", "permit", "assessment", "other"
+    ]).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    description: text("description"),
+    documentUrl: varchar("document_url", { length: 500 }),
+    documentKey: varchar("document_key", { length: 500 }),
+    uploadedBy: int("uploaded_by").notNull().references(() => users.id),
+    uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+    relevantPillars: json("relevant_pillars").$type<string[]>(),
+    verificationStatus: mysqlEnum("verification_status", [
+      "pending", "verified", "rejected"
+    ]).default("pending"),
+    verifiedBy: int("verified_by").references(() => users.id),
+    verifiedAt: timestamp("verified_at"),
+    verificationNotes: text("verification_notes"),
+  },
+  (table) => ({
+    assessmentIdx: index("abfi_evidence_assessment_idx").on(table.assessmentId),
+    typeIdx: index("abfi_evidence_type_idx").on(table.evidenceType),
+    verificationIdx: index("abfi_evidence_verification_idx").on(table.verificationStatus),
+  })
+);
+
+/**
+ * ABFI Assessment Improvement Suggestions
+ */
+export const abfiAssessmentImprovements = mysqlTable(
+  "abfi_assessment_improvements",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    assessmentId: int("assessment_id").notNull().references(() => abfiBankabilityAssessments.id, { onDelete: "cascade" }),
+    pillarName: varchar("pillar_name", { length: 50 }).notNull(),
+    improvementType: mysqlEnum("improvement_type", [
+      "contract", "partnership", "evidence", "process", "other"
+    ]).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    description: text("description"),
+    estimatedImpact: decimal("estimated_impact", { precision: 3, scale: 1 }),
+    implementationComplexity: mysqlEnum("implementation_complexity", [
+      "low", "medium", "high"
+    ]).notNull(),
+    timelineMonths: int("timeline_months"),
+    costEstimate: decimal("cost_estimate", { precision: 10, scale: 2 }),
+    costCurrency: varchar("cost_currency", { length: 3 }).default("AUD"),
+    abfiServiceRecommended: boolean("abfi_service_recommended").default(false),
+    serviceDescription: text("service_description"),
+    status: mysqlEnum("status", [
+      "suggested", "in_progress", "completed", "dismissed"
+    ]).default("suggested"),
+    createdBy: int("created_by").notNull().references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    assessmentIdx: index("abfi_improvements_assessment_idx").on(table.assessmentId),
+    pillarIdx: index("abfi_improvements_pillar_idx").on(table.pillarName),
+    statusIdx: index("abfi_improvements_status_idx").on(table.status),
+  })
+);
+
+// Type exports
+export type ABFIAssessmentFramework = typeof abfiAssessmentFrameworks.$inferSelect;
+export type InsertABFIAssessmentFramework = typeof abfiAssessmentFrameworks.$inferInsert;
+
+export type ABFIBankabilityAssessment = typeof abfiBankabilityAssessments.$inferSelect;
+export type InsertABFIBankabilityAssessment = typeof abfiBankabilityAssessments.$inferInsert;
+
+export type ABFIAssessmentProponent = typeof abfiAssessmentProponents.$inferSelect;
+export type InsertABFIAssessmentProponent = typeof abfiAssessmentProponents.$inferInsert;
+
+export type ABFIAssessmentEvidence = typeof abfiAssessmentEvidence.$inferSelect;
+export type InsertABFIAssessmentEvidence = typeof abfiAssessmentEvidence.$inferInsert;
+
+export type ABFIAssessmentImprovement = typeof abfiAssessmentImprovements.$inferSelect;
+export type InsertABFIAssessmentImprovement = typeof abfiAssessmentImprovements.$inferInsert;
+
 /**
  * Project Claims
  * Tracks claims from operators wanting to manage their project profiles
