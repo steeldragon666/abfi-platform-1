@@ -51,12 +51,14 @@ import {
   Sprout,
   DollarSign,
   ArrowRight,
+  Wallet,
 } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { PlatformMap } from "@/components/maps/PlatformMap";
 import { H3, Body, MetricValue } from "@/components/Typography";
 import { OnboardingModal } from "@/components/OnboardingModal";
+import { CarbonWallet } from "@/components/carbon/CarbonWallet";
 
 // Onboarding checklist items
 const ONBOARDING_CHECKLIST = [
@@ -359,6 +361,27 @@ export default function GrowerDashboard() {
                       </Button>
                     </Link>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Carbon Wallet Section */}
+              <Card className="border-green-200">
+                <CardHeader className="pb-2 pt-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2 text-gray-900">
+                      <Wallet className="h-4 w-4 text-green-600" />
+                      Carbon Assets
+                    </CardTitle>
+                    <Badge variant="outline" className="text-[10px] border-green-300 text-green-700">
+                      CorTenX
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-xs">
+                    ACCUs, SMCs & GOs from Clean Energy Regulator
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <CarbonWallet />
                 </CardContent>
               </Card>
               

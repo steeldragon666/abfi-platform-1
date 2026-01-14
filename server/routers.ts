@@ -29,6 +29,8 @@ import { projectAssessmentRouter } from "./projectAssessmentRouter";
 import { climateIntelligenceHubRouter } from "./climateIntelligenceHubRouter";
 // ABFI v6.0 Beema Bamboo (Perennial Biofuel Feedstock)
 import { beemaRouter } from "./beemaRouter";
+// ABFI v6.1 Carbon Registry (Trovio CorTenX Integration)
+import { carbonRouter } from "./carbonRouter";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
@@ -122,6 +124,11 @@ export const appRouter = router({
   // BEEMA BAMBOO - PERENNIAL BIOFUEL FEEDSTOCK (Phase 6)
   // ============================================================================
   beema: beemaRouter,
+
+  // ============================================================================
+  // CARBON REGISTRY - TROVIO CORTENX INTEGRATION (Phase 6.1)
+  // ============================================================================
+  carbon: carbonRouter,
 
   // ============================================================================
   // AUDIT & COMPLIANCE (Phase 8)

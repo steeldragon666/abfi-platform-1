@@ -6954,3 +6954,255 @@ export const climateLocationData = mysqlTable(
 
 export type ClimateLocationData = typeof climateLocationData.$inferSelect;
 export type InsertClimateLocationData = typeof climateLocationData.$inferInsert;
+
+// ============================================================================
+// TROVIO CORTENX CARBON REGISTRY INTEGRATION
+// ============================================================================
+
+/**
+ * Custody Tokens
+ * Stores encrypted OAuth tokens for CER/CorTenX delegation
+ * ABFI acts as custodian; growers retain legal title via sub-wallets
+ */
+export const custodyTokens = mysqlTable(
+  "custody_tokens",
+  {
+    userId: int("user_id").primaryKey().references(() => users.id),
+    encAccess: text("enc_access").notNull(), // AES-256-GCM encrypted
+    encRefresh: text("enc_refresh").notNull(),
+    subWalletId: varchar("sub_wallet_id", { length: 40 }).notNull(),
+    delegationScopes: text("delegation_scopes"), // transfer,receive,retire,read
+    walletStatus: mysqlEnum("wallet_status", ["active", "suspended", "revoked"]).default("active"),
+    lastBalanceSync: timestamp("last_balance_sync"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    subWalletIdx: index("custody_tokens_sub_wallet_idx").on(table.subWalletId),
+    statusIdx: index("custody_tokens_status_idx").on(table.walletStatus),
+  })
+);
+
+export type CustodyToken = typeof custodyTokens.$inferSelect;
+export type InsertCustodyToken = typeof custodyTokens.$inferInsert;
+
+/**
+ * Carbon Transactions
+ * Mirrors all CorTenX transactions for audit and dashboard display
+ */
+export const carbonTxn = mysqlTable(
+  "carbon_txn",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("user_id").notNull().references(() => users.id),
+    txnType: mysqlEnum("txn_type", ["IN", "OUT", "RETIRE", "BUNDLE_LOCK", "BUNDLE_RELEASE"]).notNull(),
+    instrument: mysqlEnum("instrument", ["ACCU", "SMC", "GO", "LGC", "BUNDLE"]).notNull(),
+    qty: int("qty").notNull(),
+    unitSerialStart: varchar("unit_serial_start", { length: 50 }),
+    unitSerialEnd: varchar("unit_serial_end", { length: 50 }),
+    registryHash: varchar("registry_hash", { length: 64 }).notNull(),
+    registryUrl: varchar("registry_url", { length: 255 }),
+    counterpartyWallet: varchar("counterparty_wallet", { length: 40 }),
+    retirementNote: text("retirement_note"),
+    retirementBeneficiary: varchar("retirement_beneficiary", { length: 255 }),
+    projectId: int("project_id"),
+    deliveryId: int("delivery_id"),
+    bundleId: int("bundle_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index("carbon_txn_user_idx").on(table.userId),
+    typeIdx: index("carbon_txn_type_idx").on(table.txnType),
+    instrumentIdx: index("carbon_txn_instrument_idx").on(table.instrument),
+    hashIdx: index("carbon_txn_hash_idx").on(table.registryHash),
+    createdIdx: index("carbon_txn_created_idx").on(table.createdAt),
+  })
+);
+
+export type CarbonTxn = typeof carbonTxn.$inferSelect;
+export type InsertCarbonTxn = typeof carbonTxn.$inferInsert;
+
+/**
+ * Carbon Balance Cache
+ * Real-time balance updated via CorTenX webhooks
+ */
+export const carbonBalance = mysqlTable(
+  "carbon_balance",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("user_id").notNull().references(() => users.id),
+    subWalletId: varchar("sub_wallet_id", { length: 40 }).notNull(),
+    
+    // Unit balances
+    accuBalance: int("accu_balance").default(0),
+    smcBalance: int("smc_balance").default(0),
+    goBalance: int("go_balance").default(0),
+    lgcBalance: int("lgc_balance").default(0),
+    
+    // Locked in bundles
+    accuLocked: int("accu_locked").default(0),
+    smcLocked: int("smc_locked").default(0),
+    goLocked: int("go_locked").default(0),
+    lgcLocked: int("lgc_locked").default(0),
+    
+    // Lifetime stats
+    totalRetired: int("total_retired").default(0),
+    totalReceived: int("total_received").default(0),
+    totalTransferred: int("total_transferred").default(0),
+    
+    // Value tracking
+    portfolioValueAud: decimal("portfolio_value_aud", { precision: 12, scale: 2 }),
+    lastPriceUpdate: timestamp("last_price_update"),
+    
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    userIdx: uniqueIndex("carbon_balance_user_idx").on(table.userId),
+    walletIdx: index("carbon_balance_wallet_idx").on(table.subWalletId),
+  })
+);
+
+export type CarbonBalance = typeof carbonBalance.$inferSelect;
+export type InsertCarbonBalance = typeof carbonBalance.$inferInsert;
+
+/**
+ * Carbon Bundles
+ * Bundled certificates tradeable on Australian Carbon Exchange
+ */
+export const carbonBundles = mysqlTable(
+  "carbon_bundles",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("user_id").notNull().references(() => users.id),
+    bundleSerial: varchar("bundle_serial", { length: 50 }).notNull(),
+    bundleType: mysqlEnum("bundle_type", ["FEEDSTOCK_CARBON", "FEEDSTOCK_CARBON_GO", "CARBON_ONLY"]).notNull(),
+    status: mysqlEnum("status", ["draft", "locked", "listed", "sold", "cancelled"]).default("draft"),
+    
+    // Bundle contents
+    accuQty: int("accu_qty").default(0),
+    smcQty: int("smc_qty").default(0),
+    goQty: int("go_qty").default(0),
+    lgcQty: int("lgc_qty").default(0),
+    feedstockTonnes: decimal("feedstock_tonnes", { precision: 10, scale: 2 }),
+    feedstockType: varchar("feedstock_type", { length: 50 }),
+    
+    // Registry references
+    lockTxHash: varchar("lock_tx_hash", { length: 64 }),
+    releaseTxHash: varchar("release_tx_hash", { length: 64 }),
+    
+    // ACX listing
+    acxListingId: varchar("acx_listing_id", { length: 50 }),
+    listPriceAud: decimal("list_price_aud", { precision: 12, scale: 2 }),
+    soldPriceAud: decimal("sold_price_aud", { precision: 12, scale: 2 }),
+    buyerWallet: varchar("buyer_wallet", { length: 40 }),
+    
+    // Metadata
+    description: text("description"),
+    vintageYear: int("vintage_year"),
+    projectMethodology: varchar("project_methodology", { length: 100 }),
+    
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index("carbon_bundles_user_idx").on(table.userId),
+    serialIdx: uniqueIndex("carbon_bundles_serial_idx").on(table.bundleSerial),
+    statusIdx: index("carbon_bundles_status_idx").on(table.status),
+  })
+);
+
+export type CarbonBundle = typeof carbonBundles.$inferSelect;
+export type InsertCarbonBundle = typeof carbonBundles.$inferInsert;
+
+/**
+ * Carbon Prices
+ * Cached carbon credit prices from various sources
+ */
+export const carbonPrices = mysqlTable(
+  "carbon_prices",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    instrument: mysqlEnum("instrument", ["ACCU", "SMC", "GO", "LGC", "EU_ETS", "NZU"]).notNull(),
+    priceType: mysqlEnum("price_type", ["spot", "forward_1m", "forward_3m", "forward_6m", "forward_12m"]).notNull(),
+    priceAud: decimal("price_aud", { precision: 10, scale: 2 }).notNull(),
+    priceSource: varchar("price_source", { length: 50 }).notNull(),
+    bidPrice: decimal("bid_price", { precision: 10, scale: 2 }),
+    askPrice: decimal("ask_price", { precision: 10, scale: 2 }),
+    volume24h: int("volume_24h"),
+    fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    instrumentIdx: index("carbon_prices_instrument_idx").on(table.instrument),
+    fetchedIdx: index("carbon_prices_fetched_idx").on(table.fetchedAt),
+    uniquePrice: unique("carbon_prices_unique").on(table.instrument, table.priceType, table.priceSource),
+  })
+);
+
+export type CarbonPrice = typeof carbonPrices.$inferSelect;
+export type InsertCarbonPrice = typeof carbonPrices.$inferInsert;
+
+/**
+ * Auto-Retirement Rules
+ * Configurable rules for automatic ACCU retirement on delivery
+ */
+export const carbonAutoRetireRules = mysqlTable(
+  "carbon_auto_retire_rules",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("user_id").notNull().references(() => users.id),
+    isActive: boolean("is_active").default(true),
+    
+    // Rule config
+    triggerEvent: mysqlEnum("trigger_event", ["delivery_verified", "quality_verified", "payment_settled"]).default("delivery_verified"),
+    feedstockType: varchar("feedstock_type", { length: 50 }),
+    projectId: int("project_id"),
+    
+    // Retirement calculation
+    accuPerTonne: decimal("accu_per_tonne", { precision: 6, scale: 3 }).default("1.800"),
+    retirementNarrativeTemplate: text("retirement_narrative_template"),
+    
+    // Limits
+    maxRetirePerDelivery: int("max_retire_per_delivery"),
+    monthlyRetireLimit: int("monthly_retire_limit"),
+    monthlyRetiredCount: int("monthly_retired_count").default(0),
+    monthlyResetAt: timestamp("monthly_reset_at"),
+    
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index("carbon_auto_retire_user_idx").on(table.userId),
+    activeIdx: index("carbon_auto_retire_active_idx").on(table.isActive),
+  })
+);
+
+export type CarbonAutoRetireRule = typeof carbonAutoRetireRules.$inferSelect;
+export type InsertCarbonAutoRetireRule = typeof carbonAutoRetireRules.$inferInsert;
+
+/**
+ * Carbon Webhooks
+ * Incoming webhook events from CorTenX for processing
+ */
+export const carbonWebhooks = mysqlTable(
+  "carbon_webhooks",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    eventId: varchar("event_id", { length: 50 }).notNull(),
+    eventType: varchar("event_type", { length: 50 }).notNull(),
+    payload: json("payload").notNull(),
+    signature: varchar("signature", { length: 128 }).notNull(),
+    signatureVerified: boolean("signature_verified").default(false),
+    processed: boolean("processed").default(false),
+    processedAt: timestamp("processed_at"),
+    errorMessage: text("error_message"),
+    receivedAt: timestamp("received_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    eventIdIdx: uniqueIndex("carbon_webhooks_event_id_idx").on(table.eventId),
+    processedIdx: index("carbon_webhooks_processed_idx").on(table.processed),
+    receivedIdx: index("carbon_webhooks_received_idx").on(table.receivedAt),
+  })
+);
+
+export type CarbonWebhook = typeof carbonWebhooks.$inferSelect;
+export type InsertCarbonWebhook = typeof carbonWebhooks.$inferInsert;
