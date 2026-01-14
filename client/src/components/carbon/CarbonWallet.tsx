@@ -447,12 +447,12 @@ export function CarbonWallet() {
   const { data: walletData, isLoading: walletLoading } = trpc.carbon.hasWallet.useQuery();
   const { data: balanceData, isLoading: balanceLoading, refetch: refetchBalance } = trpc.carbon.balance.useQuery(
     undefined,
-    { enabled: walletData?.connected }
+    { enabled: walletData?.connected || walletData?.hasWallet }
   );
   const { data: pricesData } = trpc.carbon.prices.useQuery();
   const { data: impactData } = trpc.carbon.impactStats.useQuery(
     undefined,
-    { enabled: walletData?.connected }
+    { enabled: walletData?.connected || walletData?.hasWallet }
   );
   
   // Mutations
@@ -497,9 +497,52 @@ export function CarbonWallet() {
   
   const isLoading = walletLoading || balanceLoading;
   
+  // Normalize balance data to handle both old and new API structures
+  const normalizedBalances = (() => {
+    if (!balanceData) return null;
+    
+    // New structure: { balances: [...] }
+    if (balanceData.balances && Array.isArray(balanceData.balances)) {
+      return balanceData.balances;
+    }
+    
+    // Old structure: { accu: {...}, smc: {...}, go: {...}, lgc: {...} }
+    const oldData = balanceData as any;
+    const instruments = ['accu', 'smc', 'go', 'lgc'];
+    const balances: CarbonBalance[] = [];
+    
+    for (const inst of instruments) {
+      if (oldData[inst]) {
+        balances.push({
+          instrument: inst.toUpperCase() as 'ACCU' | 'SMC' | 'GO' | 'LGC',
+          available: oldData[inst].balance || 0,
+          locked: 0,
+          total: oldData[inst].balance || 0,
+        });
+      }
+    }
+    
+    return balances.length > 0 ? balances : null;
+  })();
+  
+  // Check if wallet is connected (handle both old and new API)
+  const isWalletConnected = walletData?.connected ?? walletData?.hasWallet ?? false;
+  
   // Price lookup helper
   const getPrice = (instrument: string) => {
-    return pricesData?.prices?.find(p => p.instrument === instrument);
+    if (!pricesData) return undefined;
+    
+    // New structure: { prices: [...] }
+    if (pricesData.prices && Array.isArray(pricesData.prices)) {
+      return pricesData.prices.find(p => p.instrument === instrument);
+    }
+    
+    // Old structure: array directly
+    if (Array.isArray(pricesData)) {
+      return (pricesData as any[]).find(p => p.instrument === instrument);
+    }
+    
+    return undefined;
   };
   
   return (
@@ -518,7 +561,7 @@ export function CarbonWallet() {
           </div>
         </div>
         
-        {walletData?.connected && (
+        {isWalletConnected && (
           <Badge variant="outline" className="gap-1 text-green-600 border-green-300">
             <CheckCircle2 className="h-3 w-3" />
             Connected
@@ -545,12 +588,12 @@ export function CarbonWallet() {
                 <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
               ))}
             </div>
-          ) : balanceData && balanceData.balances ? (
+          ) : normalizedBalances && normalizedBalances.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {balanceData.balances.map((balance) => (
+              {normalizedBalances.map((balance) => (
                 <BalanceCard
                   key={balance.instrument}
-                  balance={balance as CarbonBalance}
+                  balance={balance}
                   price={getPrice(balance.instrument)}
                   onRetire={handleOpenRetire}
                 />
