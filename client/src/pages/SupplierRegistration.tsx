@@ -168,12 +168,33 @@ export default function SupplierRegistration() {
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between">
+        <nav
+          className="mb-10"
+          role="navigation"
+          aria-label="Registration progress"
+        >
+          {/* Screen reader announcement for step changes */}
+          <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            Step {currentStep} of 3: {stepLabels[currentStep - 1]}
+          </div>
+
+          <ol
+            className="flex items-center justify-between"
+            role="list"
+            aria-label="Registration steps"
+          >
             {[1, 2, 3].map(step => {
               const StepIcon = stepIcons[step - 1];
+              const isCompleted = currentStep > step;
+              const isCurrent = currentStep === step;
+              const stepStatus = isCompleted ? "completed" : isCurrent ? "current" : "upcoming";
+
               return (
-                <div key={step} className="flex items-center flex-1">
+                <li
+                  key={step}
+                  className="flex items-center flex-1"
+                  aria-current={isCurrent ? "step" : undefined}
+                >
                   <div
                     className={cn(
 "flex items-center justify-center w-12 h-12 rounded-xl border-2 transition-all",
@@ -181,11 +202,13 @@ export default function SupplierRegistration() {
                         ?"bg-primary border-primary text-[#D4AF37]-foreground shadow-md"
                         :"bg-card border-border text-gray-600"
                     )}
+                    role="img"
+                    aria-label={`Step ${step}: ${stepLabels[step - 1]}, ${stepStatus}`}
                   >
-                    {currentStep > step ? (
-                      <CheckCircle2 className="h-6 w-6" />
+                    {isCompleted ? (
+                      <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
                     ) : (
-                      <StepIcon className="h-5 w-5" />
+                      <StepIcon className="h-5 w-5" aria-hidden="true" />
                     )}
                   </div>
                   {step < 3 && (
@@ -194,13 +217,14 @@ export default function SupplierRegistration() {
 "flex-1 h-1 mx-3 rounded-full transition-colors",
                         currentStep > step ?"bg-primary" :"bg-border"
                       )}
+                      aria-hidden="true"
                     />
                   )}
-                </div>
+                </li>
               );
             })}
-          </div>
-          <div className="flex justify-between mt-3">
+          </ol>
+          <div className="flex justify-between mt-3" aria-hidden="true">
             {stepLabels.map((label, i) => (
               <span
                 key={label}
@@ -215,19 +239,23 @@ export default function SupplierRegistration() {
               </span>
             ))}
           </div>
-        </div>
+        </nav>
 
         {/* Step 1: Company Information */}
         {currentStep === 1 && (
-          <Card variant="elevated">
+          <Card
+            variant="elevated"
+            role="region"
+            aria-label="Step 1: Company Information"
+          >
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+                <div className="p-2 rounded-lg bg-[#D4AF37]/10" aria-hidden="true">
                   <Building2 className="h-5 w-5 text-[#D4AF37]" />
                 </div>
                 <div>
-                  <CardTitle>Company Information</CardTitle>
-                  <CardDescription>
+                  <CardTitle id="step1-title">Company Information</CardTitle>
+                  <CardDescription id="step1-desc">
                     Provide your company details and primary contact information
                   </CardDescription>
                 </div>
@@ -294,14 +322,15 @@ export default function SupplierRegistration() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t">
+              <div className="flex justify-end gap-2 pt-4 border-t" role="group" aria-label="Step navigation">
                 <button
                   onClick={() => setCurrentStep(2)}
                   disabled={!canProceedStep1}
                   className="btn-gold disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Continue to step 2: Address"
                 >
                   Continue
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
                 </button>
               </div>
             </CardContent>
@@ -310,15 +339,19 @@ export default function SupplierRegistration() {
 
         {/* Step 2: Address */}
         {currentStep === 2 && (
-          <Card variant="elevated">
+          <Card
+            variant="elevated"
+            role="region"
+            aria-label="Step 2: Business Address"
+          >
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+                <div className="p-2 rounded-lg bg-[#D4AF37]/10" aria-hidden="true">
                   <MapPin className="h-5 w-5 text-[#D4AF37]" />
                 </div>
                 <div>
-                  <CardTitle>Business Address</CardTitle>
-                  <CardDescription>
+                  <CardTitle id="step2-title">Business Address</CardTitle>
+                  <CardDescription id="step2-desc">
                     Where is your primary business location?
                   </CardDescription>
                 </div>
@@ -385,11 +418,12 @@ export default function SupplierRegistration() {
                 />
               </div>
 
-              <div className="flex justify-between gap-2 pt-4 border-t">
+              <div className="flex justify-between gap-2 pt-4 border-t" role="group" aria-label="Step navigation">
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep(1)}
-                  leftIcon={<ArrowLeft className="h-4 w-4" />}
+                  leftIcon={<ArrowLeft className="h-4 w-4" aria-hidden="true" />}
+                  aria-label="Go back to step 1: Company Info"
                 >
                   Back
                 </Button>
@@ -397,9 +431,10 @@ export default function SupplierRegistration() {
                   onClick={() => setCurrentStep(3)}
                   disabled={!canProceedStep2}
                   className="btn-gold disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Continue to step 3: Operations"
                 >
                   Continue
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
                 </button>
               </div>
             </CardContent>
@@ -408,15 +443,19 @@ export default function SupplierRegistration() {
 
         {/* Step 3: Operations */}
         {currentStep === 3 && (
-          <Card variant="elevated">
+          <Card
+            variant="elevated"
+            role="region"
+            aria-label="Step 3: Operations Details"
+          >
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+                <div className="p-2 rounded-lg bg-[#D4AF37]/10" aria-hidden="true">
                   <Settings className="h-5 w-5 text-[#D4AF37]" />
                 </div>
                 <div>
-                  <CardTitle>Operations Details</CardTitle>
-                  <CardDescription>
+                  <CardTitle id="step3-title">Operations Details</CardTitle>
+                  <CardDescription id="step3-desc">
                     Tell us about your feedstock supply capabilities
                   </CardDescription>
                 </div>
@@ -475,37 +514,37 @@ export default function SupplierRegistration() {
                 </p>
               </div>
 
-              <div className="bg-info/10 border border-info/30 rounded-xl p-4">
+              <div className="bg-info/10 border border-info/30 rounded-xl p-4" role="note" aria-label="Information about next steps">
                 <div className="flex items-start gap-3">
-                  <div className="p-1.5 rounded-lg bg-info/20 shrink-0">
+                  <div className="p-1.5 rounded-lg bg-info/20 shrink-0" aria-hidden="true">
                     <Info className="h-4 w-4 text-info" />
                   </div>
                   <div>
-                    <H4 className="text-foreground mb-2">
+                    <H4 className="text-foreground mb-2" id="next-steps-heading">
                       Next Steps After Registration
                     </H4>
-                    <ul className="text-sm text-gray-600 space-y-1.5">
+                    <ul className="text-sm text-gray-600 space-y-1.5" aria-labelledby="next-steps-heading">
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-4 w-4 text-info shrink-0 mt-0.5" aria-hidden="true" />
                         <span>
                           Your registration will be reviewed by ABFI
                           administrators
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-4 w-4 text-info shrink-0 mt-0.5" aria-hidden="true" />
                         <span>
                           You'll be notified once your account is verified
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-4 w-4 text-info shrink-0 mt-0.5" aria-hidden="true" />
                         <span>
                           After verification, you can start listing feedstocks
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-info shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-4 w-4 text-info shrink-0 mt-0.5" aria-hidden="true" />
                         <span>
                           Upload certificates and quality test reports for ABFI
                           rating
@@ -516,11 +555,12 @@ export default function SupplierRegistration() {
                 </div>
               </div>
 
-              <div className="flex justify-between gap-2 pt-4 border-t">
+              <div className="flex justify-between gap-2 pt-4 border-t" role="group" aria-label="Step navigation">
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep(2)}
-                  leftIcon={<ArrowLeft className="h-4 w-4" />}
+                  leftIcon={<ArrowLeft className="h-4 w-4" aria-hidden="true" />}
+                  aria-label="Go back to step 2: Address"
                 >
                   Back
                 </Button>
@@ -528,9 +568,11 @@ export default function SupplierRegistration() {
                   onClick={handleSubmit}
                   disabled={registerMutation.isPending}
                   className="btn-gold disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label={registerMutation.isPending ? "Submitting registration" : "Submit registration"}
+                  aria-busy={registerMutation.isPending}
                 >
                   {registerMutation.isPending ?"Submitting..." :"Submit Registration"}
-                  <CheckCircle2 className="h-4 w-4 ml-2" />
+                  <CheckCircle2 className="h-4 w-4 ml-2" aria-hidden="true" />
                 </button>
               </div>
             </CardContent>

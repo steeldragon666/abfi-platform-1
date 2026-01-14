@@ -19,14 +19,16 @@ function PortalLayoutInner({ children, className }: PortalLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Skip Link for Accessibility */}
+      {/* Skip Link for Accessibility - WCAG 2.1 AA */}
       <a
         href="#main-content"
         className={cn(
           "sr-only focus:not-sr-only",
-          "focus:fixed focus:top-4 focus:left-4 focus:z-50",
-          "focus:bg-primary focus:text-primary-foreground",
-          "focus:px-4 focus:py-2 focus:rounded-md focus:outline-none"
+          "focus:fixed focus:top-4 focus:left-4 focus:z-[100]",
+          "focus:bg-[#D4AF37] focus:text-black focus:font-medium",
+          "focus:px-4 focus:py-2 focus:rounded-md",
+          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          "focus:shadow-lg"
         )}
       >
         Skip to main content

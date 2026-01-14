@@ -9,7 +9,8 @@
  * - Typography components for consistent styling
  */
 
-import { useState, useEffect } from"react";
+import { useState, useEffect } from "react";
+import { PanelLeftClose, PanelLeft } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -137,6 +138,7 @@ export default function GrowerDashboard() {
   const [selectedListing, setSelectedListing] = useState<string | null>(null);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Check if user should see onboarding
   useEffect(() => {
@@ -183,7 +185,7 @@ export default function GrowerDashboard() {
         <div className="flex items-center justify-center gap-6 text-xs">
           {QUICK_STATS.map((stat, index) => (
             <div key={index} className="flex items-center gap-1.5">
-              <stat.icon className={cn("h-3.5 w-3.5", stat.color)} />
+              <stat.icon className={cn("h-3.5 w-3.5", stat.color)} aria-hidden="true" />
               <span className="font-medium">{stat.value}</span>
               <span className="text-muted-foreground">{stat.label}</span>
             </div>
@@ -191,10 +193,15 @@ export default function GrowerDashboard() {
         </div>
       </div>
 
-      {/* Main Content - Map Centered */}
-      <div className="flex flex-col h-[calc(100vh-100px)]">
-        {/* Collapsible Sidebar - Hidden by default */}
-        <div className="hidden">
+      {/* Main Content - Sidebar + Map Layout */}
+      <div className="flex h-[calc(100vh-100px)]">
+        {/* Collapsible Sidebar */}
+        <div
+          className={cn(
+            "border-r bg-card transition-all duration-300 flex flex-col",
+            sidebarOpen ? "w-80" : "w-0 overflow-hidden"
+          )}
+        >
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-4">
               {/* Onboarding Progress (if incomplete) */}
@@ -202,8 +209,8 @@ export default function GrowerDashboard() {
                 <Card className="border-emerald-200 bg-emerald-50/50">
                   <CardHeader className="pb-2 pt-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-[#D4AF37]" />
+                      <CardTitle className="text-sm flex items-center gap-2 text-gray-900">
+                        <CheckCircle2 className="h-4 w-4 text-[#D4AF37]" aria-hidden="true" />
                         Complete Setup
                       </CardTitle>
                       <Badge variant="outline" className="text-xs bg-emerald-100 text-emerald-700">
@@ -212,7 +219,11 @@ export default function GrowerDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent className="pb-4">
-                    <Progress value={progressPercent} className="h-1.5 mb-3" />
+                    <Progress
+                      value={progressPercent}
+                      className="h-1.5 mb-3"
+                      aria-label={`Setup progress: ${Math.round(progressPercent)}% complete`}
+                    />
                     <div className="space-y-1">
                       {ONBOARDING_CHECKLIST.map((item) => (
                         <div
@@ -227,7 +238,7 @@ export default function GrowerDashboard() {
                           ) : (
                             <Circle className="h-3 w-3" />
                           )}
-                          <span className={item.completed ?"line-through" :""}>
+                          <span className={item.completed ? "line-through text-gray-900" : ""}>
                             {item.label}
                           </span>
                         </div>
@@ -240,7 +251,7 @@ export default function GrowerDashboard() {
               {/* Priority Actions */}
               <div>
                 <H3 className="text-sm  mb-3 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-[#D4AF37]" />
+                  <AlertTriangle className="h-4 w-4 text-[#D4AF37]" aria-hidden="true" />
                   Priority Actions
                 </H3>
                 <div className="space-y-2">
@@ -290,7 +301,7 @@ export default function GrowerDashboard() {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <H3 className="text-sm  flex items-center gap-2">
-                    <Leaf className="h-4 w-4 text-[#D4AF37]" />
+                    <Leaf className="h-4 w-4 text-[#D4AF37]" aria-hidden="true" />
                     My Listings
                   </H3>
                   <Link href="/feedstock/create">
@@ -377,12 +388,15 @@ export default function GrowerDashboard() {
                                     size="icon"
                                     className="h-6 w-6"
                                     onClick={(e) => e.stopPropagation()}
+                                    aria-label={expandedCards.has(listing.id) ? `Collapse ${listing.name} details` : `Expand ${listing.name} details`}
+                                    aria-expanded={expandedCards.has(listing.id)}
                                   >
                                     <ChevronDown
                                       className={cn(
 "h-4 w-4 transition-transform",
                                         expandedCards.has(listing.id) &&"rotate-180"
                                       )}
+                                      aria-hidden="true"
                                     />
                                   </Button>
                                 </CollapsibleTrigger>
@@ -396,7 +410,7 @@ export default function GrowerDashboard() {
                               <div className="grid grid-cols-2 gap-3 pt-3">
                                 {/* Volume */}
                                 <div className="flex items-center gap-2">
-                                  <TrendingUp className="h-4 w-4 text-gray-600" />
+                                  <TrendingUp className="h-4 w-4 text-gray-600" aria-hidden="true" />
                                   <div>
                                     <p className="text-xs text-gray-600">Volume</p>
                                     <p className="text-sm font-medium">{listing.volume}</p>
@@ -405,7 +419,7 @@ export default function GrowerDashboard() {
 
                                 {/* Next Harvest */}
                                 <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-gray-600" />
+                                  <Calendar className="h-4 w-4 text-gray-600" aria-hidden="true" />
                                   <div>
                                     <p className="text-xs text-gray-600">Harvest</p>
                                     <p className="text-sm font-medium">{listing.nextHarvest}</p>
@@ -414,7 +428,7 @@ export default function GrowerDashboard() {
 
                                 {/* Quality Score */}
                                 <div className="flex items-center gap-2">
-                                  <Shield className="h-4 w-4 text-gray-600" />
+                                  <Shield className="h-4 w-4 text-gray-600" aria-hidden="true" />
                                   <div>
                                     <p className="text-xs text-gray-600">Quality</p>
                                     <p className="text-sm font-medium">{listing.quality}%</p>
@@ -423,7 +437,7 @@ export default function GrowerDashboard() {
 
                                 {/* Inquiries */}
                                 <div className="flex items-center gap-2">
-                                  <Bell className="h-4 w-4 text-gray-600" />
+                                  <Bell className="h-4 w-4 text-gray-600" aria-hidden="true" />
                                   <div>
                                     <p className="text-xs text-gray-600">Inquiries</p>
                                     <p className="text-sm font-medium">{listing.inquiries}</p>
@@ -436,12 +450,16 @@ export default function GrowerDashboard() {
                                 <div className="mt-3 pt-3 border-t">
                                   <div className="flex items-center justify-between text-xs">
                                     <span className="flex items-center gap-1 text-gray-600">
-                                      <Droplets className="h-3 w-3" />
+                                      <Droplets className="h-3 w-3" aria-hidden="true" />
                                       Moisture Content
                                     </span>
                                     <span className="font-medium">{listing.moisture}%</span>
                                   </div>
-                                  <Progress value={listing.moisture * 5} className="h-1.5 mt-1" />
+                                  <Progress
+                                    value={listing.moisture * 5}
+                                    className="h-1.5 mt-1"
+                                    aria-label={`Moisture content: ${listing.moisture}%`}
+                                  />
                                 </div>
                               )}
 
@@ -471,9 +489,24 @@ export default function GrowerDashboard() {
           </ScrollArea>
         </div>
 
-        {/* Map Area - Full Width Centered */}
+        {/* Map Area */}
         <MapControlsProvider userRole="supplier">
           <div className="flex-1 relative">
+            {/* Sidebar Toggle Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute top-4 left-4 z-10 bg-card/90 backdrop-blur-sm shadow-md"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+              aria-expanded={sidebarOpen}
+            >
+              {sidebarOpen ? (
+                <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <PanelLeft className="h-4 w-4" aria-hidden="true" />
+              )}
+            </Button>
             {/* Full Screen Map */}
             <UnifiedMap
               className="w-full h-full"
@@ -501,7 +534,7 @@ export default function GrowerDashboard() {
                 className="absolute bottom-4 right-4 shadow-lg"
                 size="sm"
               >
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
                 Add Feedstock
               </Button>
             </Link>

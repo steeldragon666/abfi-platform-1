@@ -327,8 +327,10 @@ export function UnifiedMap({
           size="icon"
           className="shadow-md h-8 w-8 bg-white"
           onClick={() => setIsFullscreen(!isFullscreen)}
+          aria-label={isFullscreen ? "Exit fullscreen map" : "Enter fullscreen map"}
+          aria-pressed={isFullscreen}
         >
-          <Maximize2 className="h-4 w-4" />
+          <Maximize2 className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
 

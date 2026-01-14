@@ -27,14 +27,14 @@ export function TopBar({ className }: TopBarProps) {
 
   return (
     <header
-      className={cn(
-        "sticky top-0 z-30 flex h-16 items-center gap-4 border-b px-4 lg:px-6",
-        "bg-white dark:bg-gray-950", // Solid background for legibility
-        className
-      )}
-      role="banner"
-    >
-      {/* Menu Button - Always visible */}
+        className={cn(
+          "sticky top-0 z-30 flex h-16 items-center gap-4 border-b px-4 lg:px-6",
+          "bg-white dark:bg-gray-950", // Solid background for legibility
+          className
+        )}
+        role="banner"
+      >
+        {/* Menu Button - Always visible */}
       <Button
         variant="ghost"
         size="icon"
@@ -69,12 +69,12 @@ export function TopBar({ className }: TopBarProps) {
           variant="ghost"
           size="icon"
           className="relative min-h-[44px] min-w-[44px]"
-          aria-label="View notifications"
+          aria-label="Notifications, 3 unread"
         >
           <Bell className="h-5 w-5" aria-hidden="true" />
           <Badge
             className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-[#D4AF37] text-black"
-            aria-label="3 unread notifications"
+            aria-hidden="true"
           >
             3
           </Badge>

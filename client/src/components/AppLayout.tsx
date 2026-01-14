@@ -84,8 +84,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <MapControlsProvider userRole={userRole}>
       <div className={`flex flex-col h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden ${getPortalTheme()}`}>
-        {/* Skip to main content link for keyboard accessibility */}
-        <a href="#main-content" className="skip-to-main">
+        {/* Skip to main content link for keyboard accessibility - WCAG 2.1 AA */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-[#D4AF37] focus:text-black focus:font-medium focus:px-4 focus:py-2 focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:shadow-lg"
+        >
           Skip to main content
         </a>
 
