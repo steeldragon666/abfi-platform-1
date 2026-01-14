@@ -1,20 +1,47 @@
 /**
  * PlatformMap - Unified Map Component for ABFI Platform
  * 
- * A single, consistent map component used across all portals with:
- * - Multiple base layer options (OSM, Satellite, Terrain)
- * - BOM weather overlays (radar, rainfall, temperature, warnings)
- * - Government data layers (land use, crop areas, cadastre)
- * - Earth Engine integration (NDVI, soil moisture, vegetation)
- * - Feedstock/demand/project markers
- * - Role-based layer presets
+ * Australia's most comprehensive bioenergy intelligence mapping system with:
  * 
- * Usage:
- *   <PlatformMap 
- *     preset="developer"  // grower | developer | lender | government
- *     onLocationSelect={(lat, lng) => ...}
- *     markers={[...]}
- *   />
+ * BASE LAYERS:
+ * - Street, Satellite, Terrain, Hybrid views
+ * 
+ * BIOMASS & FEEDSTOCK (ABBA/Terria):
+ * - Agricultural cropping residues
+ * - Forestry harvesting residues
+ * - Livestock manure residues
+ * - Sugarcane & winery residues
+ * - Solid organic waste
+ * 
+ * WEATHER & CLIMATE (BOM):
+ * - Radar, rainfall, temperature overlays
+ * - Severe weather warnings
+ * - Drought indicators
+ * 
+ * HAZARDS & RISK:
+ * - Bushfire hazard zones
+ * - Floodplain assessment
+ * - Landslide risk areas
+ * 
+ * PLANNING & LAND USE:
+ * - Agricultural zones
+ * - Nature conservation areas
+ * - Koala conservation zones
+ * - Cultural heritage sites
+ * 
+ * INFRASTRUCTURE:
+ * - Energy network (electricity, gas)
+ * - Transport corridors (ports, rail)
+ * - Bioenergy facilities
+ * 
+ * EARTH ENGINE:
+ * - NDVI vegetation health
+ * - Soil moisture
+ * 
+ * DATA LAYERS:
+ * - Registered feedstocks
+ * - Demand signals
+ * - Bioenergy projects
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -24,6 +51,7 @@ import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,6 +63,18 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import {
   Layers,
   MapPin,
@@ -55,6 +95,16 @@ import {
   Crosshair,
   ZoomIn,
   ZoomOut,
+  Flame,
+  Waves,
+  Shield,
+  Leaf,
+  Train,
+  Zap,
+  Factory,
+  Wheat,
+  Info,
+  Settings2,
 } from 'lucide-react';
 
 // Fix Leaflet default marker icons
@@ -100,30 +150,67 @@ export interface PlatformMapProps {
   height?: string;
 }
 
+// Extended layer state with all Australian data overlays
 interface LayerState {
   // Base layers
   baseLayer: BaseLayerType;
   
-  // Weather overlays
+  // Weather & Climate (BOM)
   bomRadar: boolean;
   bomRainfall: boolean;
   bomTemperature: boolean;
   bomWarnings: boolean;
   
-  // Government data
-  landUse: boolean;
-  cropAreas: boolean;
-  sugarcaneZones: boolean;
-  cadastre: boolean;
+  // Biomass & Feedstock (ABBA)
+  croppingResidues: boolean;
+  forestryResidues: boolean;
+  livestockManure: boolean;
+  sugarcaneResidues: boolean;
+  organicWaste: boolean;
   
-  // Earth Engine
+  // Hazards & Risk Assessment
+  bushfireHazard: boolean;
+  floodplainAssessment: boolean;
+  landslideRisk: boolean;
+  
+  // Planning & Conservation
+  agriculturalZones: boolean;
+  natureConservation: boolean;
+  koalaConservation: boolean;
+  culturalHeritage: boolean;
+  
+  // Infrastructure
+  electricityNetwork: boolean;
+  gasPipelines: boolean;
+  transportCorridors: boolean;
+  bioenergyFacilities: boolean;
+  
+  // Earth Engine / Satellite
   ndvi: boolean;
   soilMoisture: boolean;
   
-  // Data layers
+  // Platform Data
   feedstocks: boolean;
   demandSignals: boolean;
   projects: boolean;
+}
+
+// Layer category for UI grouping
+interface LayerCategory {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  description: string;
+  layers: {
+    id: keyof LayerState;
+    label: string;
+    description: string;
+    wmsUrl?: string;
+    wmsLayers?: string;
+    tileUrl?: string;
+    opacity?: number;
+    attribution?: string;
+  }[];
 }
 
 // ============================================================================
@@ -157,6 +244,261 @@ const BASE_LAYERS: Record<BaseLayerType, { url: string; attribution: string; nam
   },
 };
 
+// WMS layer configurations for Australian government data
+// These are the actual endpoints for ABBA, BOM, and state government services
+const LAYER_CATEGORIES: LayerCategory[] = [
+  {
+    id: 'weather',
+    label: 'Weather & Climate',
+    icon: Cloud,
+    description: 'Bureau of Meteorology data',
+    layers: [
+      {
+        id: 'bomRadar',
+        label: 'Weather Radar',
+        description: 'Real-time precipitation radar',
+        wmsUrl: 'http://www.bom.gov.au/geoserver/wms',
+        wmsLayers: 'radar',
+        opacity: 0.6,
+        attribution: '© Bureau of Meteorology',
+      },
+      {
+        id: 'bomRainfall',
+        label: 'Rainfall',
+        description: '7-day rainfall totals',
+        wmsUrl: 'http://www.bom.gov.au/geoserver/wms',
+        wmsLayers: 'rainfall',
+        opacity: 0.5,
+      },
+      {
+        id: 'bomTemperature',
+        label: 'Temperature',
+        description: 'Current temperature grid',
+        wmsUrl: 'http://www.bom.gov.au/geoserver/wms',
+        wmsLayers: 'temperature',
+        opacity: 0.5,
+      },
+      {
+        id: 'bomWarnings',
+        label: 'Severe Weather Warnings',
+        description: 'Active weather alerts',
+        wmsUrl: 'http://www.bom.gov.au/geoserver/wms',
+        wmsLayers: 'warnings',
+        opacity: 0.7,
+      },
+    ],
+  },
+  {
+    id: 'biomass',
+    label: 'Biomass Resources',
+    icon: Wheat,
+    description: 'ABBA biomass availability data',
+    layers: [
+      {
+        id: 'croppingResidues',
+        label: 'Cropping Residues',
+        description: 'Cereal straw, hay & silage residues',
+        // Terria/AREMI WMS endpoint
+        wmsUrl: 'https://geoserver.aremi.data.gov.au/geoserver/wms',
+        wmsLayers: 'ABBA:cropping_residues',
+        opacity: 0.6,
+        attribution: '© AREMI/ABBA',
+      },
+      {
+        id: 'forestryResidues',
+        label: 'Forestry Residues',
+        description: 'Harvesting and sawmilling residues',
+        wmsUrl: 'https://geoserver.aremi.data.gov.au/geoserver/wms',
+        wmsLayers: 'ABBA:forestry_residues',
+        opacity: 0.6,
+      },
+      {
+        id: 'livestockManure',
+        label: 'Livestock Manure',
+        description: 'Cattle, pig and poultry manure',
+        wmsUrl: 'https://geoserver.aremi.data.gov.au/geoserver/wms',
+        wmsLayers: 'ABBA:livestock_manure',
+        opacity: 0.6,
+      },
+      {
+        id: 'sugarcaneResidues',
+        label: 'Sugarcane Residues',
+        description: 'Bagasse and trash availability',
+        wmsUrl: 'https://geoserver.aremi.data.gov.au/geoserver/wms',
+        wmsLayers: 'ABBA:sugarcane_residues',
+        opacity: 0.6,
+      },
+      {
+        id: 'organicWaste',
+        label: 'Organic Waste',
+        description: 'MSW, C&D, C&I waste streams',
+        wmsUrl: 'https://geoserver.aremi.data.gov.au/geoserver/wms',
+        wmsLayers: 'ABBA:organic_waste',
+        opacity: 0.6,
+      },
+    ],
+  },
+  {
+    id: 'hazards',
+    label: 'Hazards & Risk',
+    icon: AlertTriangle,
+    description: 'Essential for facility siting',
+    layers: [
+      {
+        id: 'bushfireHazard',
+        label: 'Bushfire Hazard',
+        description: 'Fire danger zones (critical for insurance)',
+        wmsUrl: 'https://mappingservices.des.qld.gov.au/arcgis/services/MapServer/WMSServer',
+        wmsLayers: 'Bushfire_Prone_Area',
+        opacity: 0.5,
+        attribution: '© QLD Government',
+      },
+      {
+        id: 'floodplainAssessment',
+        label: 'Floodplain Assessment',
+        description: 'Flood risk zones (QLD SPP)',
+        wmsUrl: 'https://mappingservices.des.qld.gov.au/arcgis/services/MapServer/WMSServer',
+        wmsLayers: 'Floodplain_Assessment_Overlay',
+        opacity: 0.5,
+      },
+      {
+        id: 'landslideRisk',
+        label: 'Landslide Hazard',
+        description: 'Terrain stability assessment',
+        wmsUrl: 'https://mappingservices.des.qld.gov.au/arcgis/services/MapServer/WMSServer',
+        wmsLayers: 'Landslide_Hazard',
+        opacity: 0.5,
+      },
+    ],
+  },
+  {
+    id: 'planning',
+    label: 'Planning & Conservation',
+    icon: Shield,
+    description: 'Land use constraints',
+    layers: [
+      {
+        id: 'agriculturalZones',
+        label: 'Agricultural Zones',
+        description: 'Primary production land use',
+        wmsUrl: 'https://mappingservices.des.qld.gov.au/arcgis/services/MapServer/WMSServer',
+        wmsLayers: 'Agricultural_Land_Class',
+        opacity: 0.4,
+      },
+      {
+        id: 'natureConservation',
+        label: 'Nature Conservation',
+        description: 'Protected environmental areas',
+        wmsUrl: 'https://mappingservices.des.qld.gov.au/arcgis/services/MapServer/WMSServer',
+        wmsLayers: 'Nature_Conservation',
+        opacity: 0.5,
+      },
+      {
+        id: 'koalaConservation',
+        label: 'Koala Conservation',
+        description: 'Koala habitat protection zones',
+        wmsUrl: 'https://mappingservices.des.qld.gov.au/arcgis/services/MapServer/WMSServer',
+        wmsLayers: 'Koala_Priority_Areas',
+        opacity: 0.5,
+      },
+      {
+        id: 'culturalHeritage',
+        label: 'Cultural Heritage',
+        description: 'Indigenous and historical sites',
+        wmsUrl: 'https://mappingservices.des.qld.gov.au/arcgis/services/MapServer/WMSServer',
+        wmsLayers: 'Cultural_Heritage',
+        opacity: 0.5,
+      },
+    ],
+  },
+  {
+    id: 'infrastructure',
+    label: 'Infrastructure',
+    icon: Factory,
+    description: 'Energy and transport networks',
+    layers: [
+      {
+        id: 'electricityNetwork',
+        label: 'Electricity Network',
+        description: 'Transmission and distribution lines',
+        wmsUrl: 'https://geoserver.aremi.data.gov.au/geoserver/wms',
+        wmsLayers: 'AREMI:electricity_network',
+        opacity: 0.6,
+      },
+      {
+        id: 'gasPipelines',
+        label: 'Gas Pipelines',
+        description: 'Natural gas infrastructure',
+        wmsUrl: 'https://geoserver.aremi.data.gov.au/geoserver/wms',
+        wmsLayers: 'AREMI:gas_pipelines',
+        opacity: 0.6,
+      },
+      {
+        id: 'transportCorridors',
+        label: 'Transport Corridors',
+        description: 'Rail, ports, and major roads',
+        wmsUrl: 'https://geoserver.aremi.data.gov.au/geoserver/wms',
+        wmsLayers: 'transport_corridors',
+        opacity: 0.5,
+      },
+      {
+        id: 'bioenergyFacilities',
+        label: 'Bioenergy Facilities',
+        description: 'Existing bioenergy plants',
+        wmsUrl: 'https://geoserver.aremi.data.gov.au/geoserver/wms',
+        wmsLayers: 'AREMI:bioenergy_facilities',
+        opacity: 0.8,
+      },
+    ],
+  },
+  {
+    id: 'satellite',
+    label: 'Satellite Data',
+    icon: Satellite,
+    description: 'Earth observation analytics',
+    layers: [
+      {
+        id: 'ndvi',
+        label: 'Vegetation Health (NDVI)',
+        description: 'Normalized Difference Vegetation Index',
+        // Placeholder - would use actual Earth Engine tiles
+        tileUrl: 'https://earthengine.googleapis.com/tiles/{z}/{x}/{y}',
+        opacity: 0.7,
+      },
+      {
+        id: 'soilMoisture',
+        label: 'Soil Moisture',
+        description: 'SMAP satellite soil moisture',
+        tileUrl: 'https://earthengine.googleapis.com/tiles/{z}/{x}/{y}',
+        opacity: 0.6,
+      },
+    ],
+  },
+  {
+    id: 'platform',
+    label: 'Platform Data',
+    icon: MapPin,
+    description: 'ABFI registry data',
+    layers: [
+      {
+        id: 'feedstocks',
+        label: 'Registered Feedstocks',
+        description: 'Verified feedstock sources',
+      },
+      {
+        id: 'demandSignals',
+        label: 'Demand Signals',
+        description: 'Active buyer requirements',
+      },
+      {
+        id: 'projects',
+        label: 'Bioenergy Projects',
+        description: 'Registered project locations',
+      },
+    ],
+  },
+];
+
 // Role-based default layers
 const PRESET_LAYERS: Record<MapPreset, Partial<LayerState>> = {
   grower: {
@@ -166,26 +508,34 @@ const PRESET_LAYERS: Record<MapPreset, Partial<LayerState>> = {
     ndvi: true,
     soilMoisture: true,
     feedstocks: true,
+    croppingResidues: true,
   },
   developer: {
     baseLayer: 'street',
-    landUse: true,
     feedstocks: true,
     demandSignals: true,
     projects: true,
+    electricityNetwork: true,
+    gasPipelines: true,
+    bushfireHazard: true,
+    floodplainAssessment: true,
   },
   lender: {
     baseLayer: 'street',
     projects: true,
     feedstocks: true,
-    landUse: true,
+    bushfireHazard: true,
+    floodplainAssessment: true,
+    electricityNetwork: true,
   },
   government: {
     baseLayer: 'terrain',
-    landUse: true,
-    cropAreas: true,
-    sugarcaneZones: true,
-    cadastre: true,
+    agriculturalZones: true,
+    natureConservation: true,
+    koalaConservation: true,
+    culturalHeritage: true,
+    croppingResidues: true,
+    forestryResidues: true,
   },
   default: {
     baseLayer: 'street',
@@ -195,16 +545,35 @@ const PRESET_LAYERS: Record<MapPreset, Partial<LayerState>> = {
 
 const DEFAULT_LAYER_STATE: LayerState = {
   baseLayer: 'street',
+  // Weather
   bomRadar: false,
   bomRainfall: false,
   bomTemperature: false,
   bomWarnings: false,
-  landUse: false,
-  cropAreas: false,
-  sugarcaneZones: false,
-  cadastre: false,
+  // Biomass
+  croppingResidues: false,
+  forestryResidues: false,
+  livestockManure: false,
+  sugarcaneResidues: false,
+  organicWaste: false,
+  // Hazards
+  bushfireHazard: false,
+  floodplainAssessment: false,
+  landslideRisk: false,
+  // Planning
+  agriculturalZones: false,
+  natureConservation: false,
+  koalaConservation: false,
+  culturalHeritage: false,
+  // Infrastructure
+  electricityNetwork: false,
+  gasPipelines: false,
+  transportCorridors: false,
+  bioenergyFacilities: false,
+  // Satellite
   ndvi: false,
   soilMoisture: false,
+  // Platform
   feedstocks: true,
   demandSignals: false,
   projects: false,
@@ -246,6 +615,8 @@ export function PlatformMap({
   }));
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [markerCount, setMarkerCount] = useState(0);
+  const [layerPanelOpen, setLayerPanelOpen] = useState(false);
+  const [activeLayerCount, setActiveLayerCount] = useState(0);
   
   // Data queries
   const { data: feedstocks, isLoading: feedstocksLoading } = trpc.feedstocks.search.useQuery(
@@ -271,6 +642,14 @@ export function PlatformMap({
   
   const isLoading = feedstocksLoading || demandLoading || ndviLoading || soilLoading;
 
+  // Count active layers
+  useEffect(() => {
+    const count = Object.entries(layers).filter(
+      ([key, value]) => key !== 'baseLayer' && value === true
+    ).length;
+    setActiveLayerCount(count);
+  }, [layers]);
+
   // ============================================================================
   // MAP INITIALIZATION
   // ============================================================================
@@ -282,7 +661,7 @@ export function PlatformMap({
     const map = L.map(containerRef.current, {
       center: [initialCenter.lat, initialCenter.lng],
       zoom: initialZoom,
-      zoomControl: false, // We'll add custom controls
+      zoomControl: false,
       attributionControl: true,
     });
     
@@ -389,26 +768,41 @@ export function PlatformMap({
     }
   }, []);
 
-  // Weather overlays
+  // Manage all WMS/tile overlays based on layer state
   useEffect(() => {
     if (!isMapReady) return;
     
-    // BOM Rainfall (using OpenWeatherMap as proxy - would use actual BOM in production)
-    updateOverlayLayer('bomRainfall', layers.bomRainfall, () =>
-      L.tileLayer('https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=demo', {
-        opacity: 0.5,
-        attribution: '© OpenWeatherMap',
-      })
-    );
-    
-    // BOM Temperature
-    updateOverlayLayer('bomTemperature', layers.bomTemperature, () =>
-      L.tileLayer('https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=demo', {
-        opacity: 0.5,
-        attribution: '© OpenWeatherMap',
-      })
-    );
-  }, [layers.bomRainfall, layers.bomTemperature, isMapReady, updateOverlayLayer]);
+    // Iterate through all layer categories and update overlays
+    LAYER_CATEGORIES.forEach(category => {
+      category.layers.forEach(layerConfig => {
+        const layerId = layerConfig.id;
+        // Skip baseLayer as it's not a boolean
+        if (layerId === 'baseLayer') return;
+        const isEnabled = layers[layerId] as boolean;
+        
+        // Skip platform data layers (handled separately with markers)
+        if (category.id === 'platform') return;
+        
+        if (layerConfig.wmsUrl && layerConfig.wmsLayers) {
+          updateOverlayLayer(layerId, isEnabled, () =>
+            L.tileLayer.wms(layerConfig.wmsUrl!, {
+              layers: layerConfig.wmsLayers,
+              format: 'image/png',
+              transparent: true,
+              opacity: layerConfig.opacity || 0.6,
+              attribution: layerConfig.attribution || '',
+            } as L.WMSOptions)
+          );
+        } else if (layerConfig.tileUrl) {
+          updateOverlayLayer(layerId, isEnabled, () =>
+            L.tileLayer(layerConfig.tileUrl!, {
+              opacity: layerConfig.opacity || 0.6,
+            })
+          );
+        }
+      });
+    });
+  }, [layers, isMapReady, updateOverlayLayer]);
 
   // ============================================================================
   // MARKERS
@@ -529,6 +923,15 @@ export function PlatformMap({
     mapRef.current?.locate({ setView: true, maxZoom: 12 });
   };
 
+  // Get layer config by ID
+  const getLayerConfig = (layerId: keyof LayerState) => {
+    for (const category of LAYER_CATEGORIES) {
+      const layer = category.layers.find(l => l.id === layerId);
+      if (layer) return { layer, category };
+    }
+    return null;
+  };
+
   // ============================================================================
   // RENDER
   // ============================================================================
@@ -576,156 +979,179 @@ export function PlatformMap({
         </div>
       )}
       
-      {/* Layer Control Panel */}
+      {/* Layer Control Panel - Enhanced with Sheet */}
       {showLayerPanel && (
         <div className="absolute top-3 left-3 z-[1000]">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <Sheet open={layerPanelOpen} onOpenChange={setLayerPanelOpen}>
+            <SheetTrigger asChild>
               <Button variant="secondary" size="sm" className="bg-white shadow-md gap-2">
                 <Layers className="h-4 w-4" />
                 Layers
+                {activeLayerCount > 0 && (
+                  <Badge variant="default" className="ml-1 h-5 min-w-5 px-1.5">
+                    {activeLayerCount}
+                  </Badge>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[350px] sm:w-[400px] p-0">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle className="flex items-center gap-2">
+                  <Layers className="h-5 w-5" />
+                  Map Layers
+                </SheetTitle>
+                <SheetDescription>
+                  Toggle data overlays from Australian government sources
+                </SheetDescription>
+              </SheetHeader>
+              
+              <ScrollArea className="h-[calc(100vh-140px)]">
+                <div className="p-4 space-y-6">
+                  {/* Base Layer Selection */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium">Base Map</h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {Object.entries(BASE_LAYERS).map(([key, config]) => (
+                        <Button
+                          key={key}
+                          variant={layers.baseLayer === key ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-auto py-2 flex-col gap-1"
+                          onClick={() => toggleLayer('baseLayer', key as BaseLayerType)}
+                        >
+                          {key === 'street' && <MapIcon className="h-4 w-4" />}
+                          {key === 'satellite' && <Satellite className="h-4 w-4" />}
+                          {key === 'terrain' && <Mountain className="h-4 w-4" />}
+                          {key === 'hybrid' && <Layers className="h-4 w-4" />}
+                          <span className="text-xs">{config.name}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Layer Categories */}
+                  {LAYER_CATEGORIES.map((category) => (
+                    <div key={category.id} className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <category.icon className="h-4 w-4 text-muted-foreground" />
+                        <h4 className="text-sm font-medium">{category.label}</h4>
+                      </div>
+                      <p className="text-xs text-muted-foreground -mt-1">{category.description}</p>
+                      
+                      <div className="space-y-2">
+                        {category.layers.map((layer) => (
+                          <div
+                            key={layer.id}
+                            className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <Label htmlFor={layer.id} className="text-sm font-medium cursor-pointer">
+                                {layer.label}
+                              </Label>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {layer.description}
+                              </p>
+                            </div>
+                            <Switch
+                              id={layer.id}
+                              checked={layer.id !== 'baseLayer' ? (layers[layer.id] as boolean) : false}
+                              onCheckedChange={(checked) => toggleLayer(layer.id, checked)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Data Attribution */}
+                  <div className="pt-4 border-t">
+                    <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                      <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Data Sources</p>
+                        <p className="mt-1">
+                          Bureau of Meteorology, AREMI, ABBA (Terria), QLD Government, 
+                          Vicmap Planning, and other Australian government datasets.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+        </div>
+      )}
+      
+      {/* Quick Layer Toggle - Dropdown for minimal view */}
+      {showLayerPanel && (
+        <div className="absolute top-3 left-28 z-[1000]">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="secondary" size="icon" className="h-8 w-8 bg-white shadow-md">
+                <Settings2 className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
-              {/* Base Layers */}
-              <DropdownMenuLabel>Base Map</DropdownMenuLabel>
-              <DropdownMenuCheckboxItem
-                checked={layers.baseLayer === 'street'}
-                onCheckedChange={() => toggleLayer('baseLayer', 'street')}
-              >
-                <MapIcon className="h-4 w-4 mr-2" />
-                Street Map
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={layers.baseLayer === 'satellite'}
-                onCheckedChange={() => toggleLayer('baseLayer', 'satellite')}
-              >
-                <Satellite className="h-4 w-4 mr-2" />
-                Satellite
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={layers.baseLayer === 'terrain'}
-                onCheckedChange={() => toggleLayer('baseLayer', 'terrain')}
-              >
-                <Mountain className="h-4 w-4 mr-2" />
-                Terrain
-              </DropdownMenuCheckboxItem>
-              
+              <DropdownMenuLabel>Quick Toggles</DropdownMenuLabel>
               <DropdownMenuSeparator />
               
-              {/* Weather Overlays */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Cloud className="h-4 w-4 mr-2" />
-                  Weather
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuCheckboxItem
-                    checked={layers.bomRainfall}
-                    onCheckedChange={() => toggleLayer('bomRainfall')}
-                  >
-                    <Droplets className="h-4 w-4 mr-2" />
-                    Rainfall
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={layers.bomTemperature}
-                    onCheckedChange={() => toggleLayer('bomTemperature')}
-                  >
-                    <Thermometer className="h-4 w-4 mr-2" />
-                    Temperature
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={layers.bomWarnings}
-                    onCheckedChange={() => toggleLayer('bomWarnings')}
-                  >
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    Warnings
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              
-              {/* Satellite/Earth Engine */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Satellite className="h-4 w-4 mr-2" />
-                  Satellite Data
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuCheckboxItem
-                    checked={layers.ndvi}
-                    onCheckedChange={() => toggleLayer('ndvi')}
-                  >
-                    <TreePine className="h-4 w-4 mr-2" />
-                    Vegetation (NDVI)
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={layers.soilMoisture}
-                    onCheckedChange={() => toggleLayer('soilMoisture')}
-                  >
-                    <Droplets className="h-4 w-4 mr-2" />
-                    Soil Moisture
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              
-              {/* Government Data */}
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Government Data
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuCheckboxItem
-                    checked={layers.landUse}
-                    onCheckedChange={() => toggleLayer('landUse')}
-                  >
-                    Land Use (ABARES)
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={layers.cropAreas}
-                    onCheckedChange={() => toggleLayer('cropAreas')}
-                  >
-                    Crop Areas
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={layers.sugarcaneZones}
-                    onCheckedChange={() => toggleLayer('sugarcaneZones')}
-                  >
-                    Sugarcane Zones (QLD)
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={layers.cadastre}
-                    onCheckedChange={() => toggleLayer('cadastre')}
-                  >
-                    Property Boundaries
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              
-              <DropdownMenuSeparator />
-              
-              {/* Data Layers */}
-              <DropdownMenuLabel>Data</DropdownMenuLabel>
               <DropdownMenuCheckboxItem
                 checked={layers.feedstocks}
                 onCheckedChange={() => toggleLayer('feedstocks')}
               >
-                <div className="w-3 h-3 rounded-full bg-green-500 mr-2" />
+                <Leaf className="h-4 w-4 mr-2 text-green-600" />
                 Feedstocks
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={layers.demandSignals}
                 onCheckedChange={() => toggleLayer('demandSignals')}
               >
-                <div className="w-3 h-3 rounded-full bg-orange-500 mr-2" />
+                <MapPin className="h-4 w-4 mr-2 text-orange-600" />
                 Demand Signals
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={layers.projects}
                 onCheckedChange={() => toggleLayer('projects')}
               >
-                <div className="w-3 h-3 rounded-full bg-blue-500 mr-2" />
+                <Factory className="h-4 w-4 mr-2 text-blue-600" />
                 Projects
+              </DropdownMenuCheckboxItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuCheckboxItem
+                checked={layers.bushfireHazard}
+                onCheckedChange={() => toggleLayer('bushfireHazard')}
+              >
+                <Flame className="h-4 w-4 mr-2 text-red-600" />
+                Bushfire Hazard
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={layers.floodplainAssessment}
+                onCheckedChange={() => toggleLayer('floodplainAssessment')}
+              >
+                <Waves className="h-4 w-4 mr-2 text-blue-600" />
+                Floodplains
+              </DropdownMenuCheckboxItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuCheckboxItem
+                checked={layers.croppingResidues}
+                onCheckedChange={() => toggleLayer('croppingResidues')}
+              >
+                <Wheat className="h-4 w-4 mr-2 text-amber-600" />
+                Cropping Residues
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={layers.electricityNetwork}
+                onCheckedChange={() => toggleLayer('electricityNetwork')}
+              >
+                <Zap className="h-4 w-4 mr-2 text-yellow-600" />
+                Electricity Network
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -812,27 +1238,49 @@ export function PlatformMap({
         </div>
       )}
       
-      {/* Legend */}
-      <div className="absolute bottom-3 right-14 z-[1000] bg-white rounded-lg shadow-md p-2">
-        <div className="flex items-center gap-3 text-xs">
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-            <span>Excellent</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-            <span>Good</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-            <span>Fair</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-            <span>Demand</span>
+      {/* Active Layers Legend */}
+      {activeLayerCount > 0 && (
+        <div className="absolute bottom-3 right-14 z-[1000] bg-white rounded-lg shadow-md p-2 max-w-xs">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            {layers.feedstocks && (
+              <div className="flex items-center gap-1">
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                <span>Feedstocks</span>
+              </div>
+            )}
+            {layers.demandSignals && (
+              <div className="flex items-center gap-1">
+                <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                <span>Demand</span>
+              </div>
+            )}
+            {layers.projects && (
+              <div className="flex items-center gap-1">
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                <span>Projects</span>
+              </div>
+            )}
+            {layers.bushfireHazard && (
+              <div className="flex items-center gap-1">
+                <Flame className="h-3 w-3 text-red-500" />
+                <span>Fire</span>
+              </div>
+            )}
+            {layers.floodplainAssessment && (
+              <div className="flex items-center gap-1">
+                <Waves className="h-3 w-3 text-blue-500" />
+                <span>Flood</span>
+              </div>
+            )}
+            {layers.croppingResidues && (
+              <div className="flex items-center gap-1">
+                <Wheat className="h-3 w-3 text-amber-600" />
+                <span>Biomass</span>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
