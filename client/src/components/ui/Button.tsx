@@ -7,37 +7,36 @@ import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   // WCAG 2.2 AA: All interactive elements must have 44px minimum touch target
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-[#D4AF37]-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-[transform,box-shadow,background-color] duration-150",
+          "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] focus-visible:ring-destructive/40 transition-[transform,box-shadow,background-color] duration-150",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80 focus-visible:ring-destructive/40",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent/50 hover:text-accent-foreground hover:border-primary/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-[transform,border-color,background-color] duration-150",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-gray-300 dark:hover:border-gray-600",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-[transform,background-color] duration-150",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/70",
         ghost:
-          "hover:bg-accent/80 hover:text-accent-foreground transition-[background-color,color] duration-150",
-        link: "text-[#D4AF37] underline-offset-4 hover:underline transition-colors duration-150",
+          "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
         premium:
-          "bg-gradient-to-r from-[#D4AF37] to-amber-600 text-black shadow-md hover:shadow-lg hover:from-amber-400 hover:to-amber-500 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] btn-glow transition-[transform,box-shadow] duration-150",
+          "bg-gradient-to-r from-[#D4AF37] to-amber-600 text-black hover:from-amber-500 hover:to-amber-600",
         success:
-          "bg-success text-success-foreground shadow-sm hover:bg-success/90 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-[transform,box-shadow,background-color] duration-150",
-        cta: "btn-cta text-black hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
+          "bg-success text-success-foreground hover:bg-success/90 active:bg-success/80",
+        cta: "btn-cta text-black",
       },
       size: {
-        // All sizes use consistent rounded-lg (8px) for design system compliance
         // All sizes meet WCAG 2.2 AA 44px minimum touch target
-        default: "h-11 px-4 py-2.5",
-        sm: "h-11 gap-1.5 px-3 text-xs",
-        lg: "h-12 px-6 text-base",
-        xl: "h-14 px-8 text-lg",
-        icon: "size-11",
-        "icon-sm": "size-11",
-        "icon-lg": "size-12",
+        default: "h-10 px-4 py-2",
+        sm: "h-9 gap-1.5 px-3 text-xs",
+        lg: "h-11 px-5",
+        xl: "h-12 px-6 text-base",
+        icon: "size-10",
+        "icon-sm": "size-9",
+        "icon-lg": "size-11",
       },
     },
     defaultVariants: {

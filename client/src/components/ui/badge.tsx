@@ -5,47 +5,47 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-lg border px-2.5 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1.5 [&>svg]:pointer-events-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 transition-all duration-200 overflow-hidden",
+  "inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 transition-colors overflow-hidden",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-[#D4AF37]-foreground [a&]:hover:bg-primary/90",
+          "border-transparent bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+          "border-transparent bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground [a&]:hover:bg-destructive/90",
+          "border-transparent bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400",
         outline:
-          "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-        success: "border-transparent bg-success text-success-foreground",
-        warning: "border-transparent bg-warning text-warning-foreground",
-        info: "border-transparent bg-info text-info-foreground",
-        // Rating tiers (A+ through F)
+          "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 bg-transparent",
+        success: "border-transparent bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400",
+        warning: "border-transparent bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
+        info: "border-transparent bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400",
+        // Rating tiers (A+ through F) - subtle backgrounds
         "rating-a-plus":
-          "border-rating-a-plus/30 bg-rating-a-plus/10 text-rating-a-plus font-semibold",
+          "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-400 font-semibold",
         "rating-a":
-          "border-rating-a/30 bg-rating-a/10 text-rating-a font-semibold",
+          "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400 font-semibold",
         "rating-b-plus":
-          "border-rating-b-plus/30 bg-rating-b-plus/10 text-rating-b-plus font-semibold",
+          "border-lime-200 bg-lime-50 text-lime-700 dark:border-lime-800 dark:bg-lime-950 dark:text-lime-400 font-semibold",
         "rating-b":
-          "border-rating-b/30 bg-rating-b/10 text-rating-b font-semibold",
+          "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-400 font-semibold",
         "rating-c-plus":
-          "border-rating-c-plus/30 bg-rating-c-plus/10 text-rating-c-plus font-semibold",
+          "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400 font-semibold",
         "rating-c":
-          "border-rating-c/30 bg-rating-c/10 text-rating-c font-semibold",
+          "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-400 font-semibold",
         "rating-d":
-          "border-rating-d/30 bg-rating-d/10 text-rating-d font-semibold",
+          "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400 font-semibold",
         "rating-f":
-          "border-rating-f/30 bg-rating-f/10 text-rating-f font-semibold",
+          "border-red-300 bg-red-100 text-red-800 dark:border-red-700 dark:bg-red-900 dark:text-red-300 font-semibold",
         // Status variants
-        draft: "border-muted bg-muted/50 text-gray-600",
-        pending: "border-warning/30 bg-warning/10 text-warning",
-        verified: "border-success/30 bg-success/10 text-success",
-        rejected: "border-destructive/30 bg-destructive/10 text-destructive",
+        draft: "border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400",
+        pending: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400",
+        verified: "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400",
+        rejected: "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400",
       },
       size: {
         default: "px-2.5 py-0.5 text-xs",
-        sm: "px-2 py-0 text-[10px]",
+        sm: "px-2 py-0.5 text-[11px]",
         lg: "px-3 py-1 text-sm",
       },
     },

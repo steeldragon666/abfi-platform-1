@@ -4,29 +4,29 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-  "bg-card text-card-foreground flex flex-col rounded-xl border",
+  "bg-card text-card-foreground flex flex-col rounded-lg border border-border",
   {
     variants: {
       variant: {
-        default: "shadow-sm transition-shadow duration-200",
-        elevated: "shadow-lg border-transparent transition-shadow duration-200",
-        outlined: "shadow-none border-2 transition-colors duration-200",
+        default: "transition-colors duration-200",
+        elevated: "shadow-md border-transparent transition-shadow duration-200",
+        outlined: "border-2 transition-colors duration-200",
         glass:
           "bg-card/80 backdrop-blur-md shadow-lg border-white/10 transition-all duration-200",
         premium:
-          "shadow-md border-primary/10 bg-gradient-to-br from-card to-card/95 transition-all duration-200",
+          "border-primary/10 bg-gradient-to-br from-card to-card/95 transition-all duration-200",
         stats: "stats-card",
       },
       padding: {
-        default: "gap-6 py-6",
+        default: "gap-5 py-5",
         compact: "gap-4 py-4",
-        relaxed: "gap-8 py-8",
+        relaxed: "gap-6 py-6",
         none: "",
       },
       hover: {
-        true: "hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5 cursor-pointer transition-[transform,box-shadow,border-color] duration-150",
+        true: "hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50/50 dark:hover:bg-gray-900/50 cursor-pointer transition-colors duration-150",
         subtle:
-          "hover:shadow-md hover:border-border/80 cursor-pointer transition-[box-shadow,border-color] duration-150",
+          "hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer transition-colors duration-150",
         false: "",
       },
     },
