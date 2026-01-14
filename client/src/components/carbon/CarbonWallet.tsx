@@ -160,15 +160,15 @@ function BalanceCard({
         
         <div className="mt-4 grid grid-cols-3 gap-2 text-center">
           <div>
-            <p className="text-2xl font-bold">{balance.available.toLocaleString()}</p>
+            <p className="text-2xl font-bold">{(balance.available ?? 0).toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">Available</p>
           </div>
           <div>
-            <p className="text-lg text-muted-foreground">{balance.locked.toLocaleString()}</p>
+            <p className="text-lg text-muted-foreground">{(balance.locked ?? 0).toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">Locked</p>
           </div>
           <div>
-            <p className="text-lg text-muted-foreground">{balance.total.toLocaleString()}</p>
+            <p className="text-lg text-muted-foreground">{(balance.total ?? 0).toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">Total</p>
           </div>
         </div>
@@ -181,7 +181,7 @@ function BalanceCard({
           </div>
         )}
         
-        {balance.available > 0 && (
+        {(balance.available ?? 0) > 0 && (
           <Button 
             variant="outline" 
             size="sm" 
@@ -217,24 +217,24 @@ function ImpactTicker({ stats }: {
         
         <p className="text-lg text-green-700 mb-4">
           You have permanently retired{' '}
-          <span className="font-bold text-2xl">{stats.totalRetired.toLocaleString()}</span>{' '}
+          <span className="font-bold text-2xl">{(stats.totalRetired ?? 0).toLocaleString()}</span>{' '}
           t CO₂e
         </p>
         
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="p-2 rounded-lg bg-white/60">
             <Car className="h-6 w-6 mx-auto text-green-600 mb-1" />
-            <p className="text-lg font-bold text-green-800">{stats.equivalents.carsOffRoad}</p>
+            <p className="text-lg font-bold text-green-800">{stats.equivalents?.carsOffRoad ?? 0}</p>
             <p className="text-xs text-green-600">cars off road/yr</p>
           </div>
           <div className="p-2 rounded-lg bg-white/60">
             <Home className="h-6 w-6 mx-auto text-green-600 mb-1" />
-            <p className="text-lg font-bold text-green-800">{stats.equivalents.householdsOffset}</p>
+            <p className="text-lg font-bold text-green-800">{stats.equivalents?.householdsOffset ?? 0}</p>
             <p className="text-xs text-green-600">households offset</p>
           </div>
           <div className="p-2 rounded-lg bg-white/60">
             <TreeDeciduous className="h-6 w-6 mx-auto text-green-600 mb-1" />
-            <p className="text-lg font-bold text-green-800">{stats.equivalents.treesEquivalent.toLocaleString()}</p>
+            <p className="text-lg font-bold text-green-800">{(stats.equivalents?.treesEquivalent ?? 0).toLocaleString()}</p>
             <p className="text-xs text-green-600">trees equivalent</p>
           </div>
         </div>
@@ -615,25 +615,27 @@ export function CarbonWallet() {
           )}
           
           {/* Portfolio Summary */}
-          {balanceData && (
+          {balanceData && (balanceData.portfolioValueAud || balanceData.totalValueAud) && (
             <Card className="mt-4">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Total Portfolio Value</p>
                     <p className="text-2xl font-bold">
-                      ${balanceData.portfolioValueAud.toLocaleString(undefined, { 
+                      ${(balanceData.portfolioValueAud ?? balanceData.totalValueAud ?? 0).toLocaleString(undefined, { 
                         minimumFractionDigits: 2, 
                         maximumFractionDigits: 2 
                       })}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Last updated</p>
-                    <p className="text-sm">
-                      {new Date(balanceData.lastUpdated).toLocaleTimeString()}
-                    </p>
-                  </div>
+                  {balanceData.lastUpdated && (
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">Last updated</p>
+                      <p className="text-sm">
+                        {new Date(balanceData.lastUpdated).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
