@@ -40,6 +40,7 @@ import {
 import { Link } from"wouter";
 import { trpc } from"@/lib/trpc";
 import { LazyChart } from"@/components/ui/lazy-charts";
+import { RefreshButton } from"@/components/ui/RefreshButton";
 
 const JURISDICTION_COLORS: Record<string, string> = {
   Federal:"#3b82f6",
@@ -219,10 +220,12 @@ export default function PolicyCarbonDashboard() {
               Track Australian bioenergy policy and calculate carbon revenue projections
             </p>
           </div>
-          <Button variant="outline" onClick={loadData}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ?"animate-spin" :""}`} />
-            Refresh
-          </Button>
+          <RefreshButton
+            onRefresh={loadData}
+            isLoading={loading}
+            showTimestamp
+            lastUpdated={new Date()}
+          />
         </div>
 
         {/* KPI Cards */}

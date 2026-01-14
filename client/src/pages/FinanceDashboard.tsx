@@ -49,6 +49,8 @@ import {
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { H1, H2, H3, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { RefreshButton } from "@/components/ui/RefreshButton";
+import { trpc } from "@/lib/trpc";
 
 // Quick stats
 const QUICK_STATS = [
@@ -249,6 +251,14 @@ export default function FinanceDashboard() {
               <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
+              <RefreshButton
+                onRefresh={() => {
+                  // Refresh data queries - would invalidate tRPC queries
+                  window.location.reload();
+                }}
+                showTimestamp
+                lastUpdated={new Date()}
+              />
               <Link href="/stress-testing">
                 <Button variant="outline" size="sm">
                   <AlertTriangle className="h-4 w-4 mr-2" />

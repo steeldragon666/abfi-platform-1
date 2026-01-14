@@ -11,23 +11,25 @@
 
 import { z } from 'zod';
 import { router, publicProcedure, protectedProcedure } from './_core/trpc';
+import { TRPCError } from '@trpc/server';
+import { getDb } from './db';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
 const BEEMA_ECONOMICS = {
-  yieldTonnesDMPerHa: 55,      // Full yield from Year 3+
-  establishmentYield: 25,      // Year 2 yield
-  basePrice: 85,               // AUD per tonne
-  priceEscalation: 0.03,       // 3% annual increase
-  carbonSequestration: 48,     // t CO2 per ha per year
-  accuPrice: 30,               // AUD per ACCU
+  yieldTonnesDMPerHa: 100,     // Full yield from Year 3+ (100 t DM ha⁻¹ yr⁻¹ per protocol)
+  establishmentYield: 40,      // Year 2 yield (40% of full)
+  basePrice: 160,              // AUD per tonne (intro floor for first 1,000 growers)
+  priceEscalation: 0.03,       // CPI + 3% after year 5
+  carbonSequestration: 80,     // t CO2 per ha per year (when grown & fertilised per protocol)
+  accuPrice: 30,               // AUD per ACCU forward price
   discountRate: 0.10,          // 10% for NPV
-  plantingCostPerHa: 4500,     // Establishment cost
-  harvestCostPerTonne: 35,     // Variable harvest cost
-  contractYears: 15,
-  lifespanYears: 30,
+  plantingCostPerHa: 5500,     // Establishment cost (tissue culture)
+  harvestCostPerTonne: 40,     // Variable harvest cost
+  contractYears: 15,           // Powerplant Energy guaranteed offtake
+  lifespanYears: 30,           // Ratoon harvesting lifespan
 };
 
 // Yield class multipliers

@@ -16,7 +16,7 @@ import {
   policyConsultations,
 } from "../drizzle/schema";
 import { eq, desc, gte, lte, and, sql } from "drizzle-orm";
-import { carbonStandardsConnector, CarbonStandardArticle } from "./connectors";
+import { carbonStandardsConnector, CarbonStandardArticle, cerConnector, policyDataConnector } from "./connectors";
 
 // Helper to get db instance with null check
 async function requireDb() {
@@ -145,62 +145,72 @@ function getMockConsultations() {
 
 export const policyRouter = router({
   /**
-   * Get policy KPIs
+   * Get policy KPIs - fetches real-time data from CER and policy connectors
    */
   getKPIs: publicProcedure.query(async () => {
     try {
-      const db = await requireDb();
+      // Fetch data in parallel from connectors and database
+      const [accuPrice, kanban, consultations, dbData] = await Promise.all([
+        cerConnector.fetchACCUPrice(),
+        policyDataConnector.fetchPolicyKanban(),
+        policyDataConnector.fetchConsultations(),
+        (async () => {
+          try {
+            const db = await requireDb();
+            const [enacted] = await db
+              .select({ count: sql<number>`count(*)` })
+              .from(policyKanbanItems)
+              .where(eq(policyKanbanItems.status, "enacted"));
+            const [review] = await db
+              .select({ count: sql<number>`count(*)` })
+              .from(policyKanbanItems)
+              .where(eq(policyKanbanItems.status, "review"));
+            return { enacted: enacted?.count || 0, review: review?.count || 0 };
+          } catch {
+            return null;
+          }
+        })(),
+      ]);
 
-      // Count policies by status
-      const [enacted] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(policyKanbanItems)
-        .where(eq(policyKanbanItems.status, "enacted"));
-
-      const [review] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(policyKanbanItems)
-        .where(eq(policyKanbanItems.status, "review"));
-
-      // Get latest ACCU price
-      const [latestAccu] = await db
-        .select()
-        .from(accuPriceHistory)
-        .orderBy(desc(accuPriceHistory.date))
-        .limit(1);
-
-      // Count open consultations
-      const now = new Date();
-      const [consultations] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(policyConsultations)
-        .where(gte(policyConsultations.closes, now));
-
-      if (!latestAccu && enacted.count === 0) {
-        return getMockKPIs();
-      }
+      // Merge database data with connector data
+      const enactedCount = dbData?.enacted || kanban.enacted.length;
+      const reviewCount = dbData?.review || kanban.review.length;
+      const totalPolicies = enactedCount + reviewCount + kanban.proposed.length;
 
       return [
-        { label: "Active Policies", value: enacted.count || 0, subtitle: "Across all jurisdictions" },
-        { label: "Under Review", value: review.count || 0, subtitle: "Expected decisions in 2025" },
-        { label: "ACCU Price", value: latestAccu ? parseFloat(latestAccu.price as string) : 34.5, subtitle: "Current spot price" },
-        { label: "Consultations Open", value: consultations.count || 0, subtitle: "Submissions closing soon" },
+        { label: "Active Policies", value: totalPolicies, subtitle: "Across all jurisdictions" },
+        { label: "Under Review", value: reviewCount + kanban.proposed.length, subtitle: "Expected decisions in 2025" },
+        { label: "ACCU Price", value: accuPrice.price, subtitle: `${accuPrice.change_pct >= 0 ? "+" : ""}${accuPrice.change_pct.toFixed(1)}% today` },
+        { label: "Consultations Open", value: consultations.length, subtitle: "Submissions closing soon" },
       ];
     } catch (error) {
       console.error("Failed to get policy KPIs:", error);
-      return getMockKPIs();
+      // Fallback to connector data only
+      try {
+        const accuPrice = await cerConnector.fetchACCUPrice();
+        const kanban = await policyDataConnector.fetchPolicyKanban();
+        const consultations = await policyDataConnector.fetchConsultations();
+        return [
+          { label: "Active Policies", value: kanban.enacted.length + kanban.review.length + kanban.proposed.length, subtitle: "Across all jurisdictions" },
+          { label: "Under Review", value: kanban.review.length + kanban.proposed.length, subtitle: "Expected decisions in 2025" },
+          { label: "ACCU Price", value: accuPrice.price, subtitle: `${accuPrice.change_pct >= 0 ? "+" : ""}${accuPrice.change_pct.toFixed(1)}% today` },
+          { label: "Consultations Open", value: consultations.length, subtitle: "Submissions closing soon" },
+        ];
+      } catch {
+        return getMockKPIs();
+      }
     }
   }),
 
   /**
-   * Get policy timeline events
+   * Get policy timeline events - fetches from policy connector
    */
   getTimeline: publicProcedure
     .input(z.object({ year: z.number().default(2025) }))
     .query(async ({ input }) => {
       try {
+        // First try database
         const db = await requireDb();
-
         const startDate = new Date(input.year, 0, 1);
         const endDate = new Date(input.year, 11, 31);
 
@@ -210,149 +220,203 @@ export const policyRouter = router({
           .where(and(gte(policyTimelineEvents.date, startDate), lte(policyTimelineEvents.date, endDate)))
           .orderBy(policyTimelineEvents.date);
 
-        if (events.length === 0) {
-          return getMockTimeline(input.year);
+        if (events.length > 0) {
+          return events.map((e) => ({
+            jurisdiction: e.jurisdiction,
+            date: e.date instanceof Date ? e.date.toISOString().split("T")[0] : String(e.date),
+            event_type: e.eventType,
+            title: e.title,
+            policy_id: e.policyId,
+          }));
         }
 
-        return events.map((e) => ({
+        // Fall back to connector
+        const connectorEvents = await policyDataConnector.fetchPolicyTimeline(input.year);
+        return connectorEvents.map((e) => ({
           jurisdiction: e.jurisdiction,
-          date: e.date instanceof Date ? e.date.toISOString().split("T")[0] : String(e.date),
-          event_type: e.eventType,
+          date: e.date,
+          event_type: e.event_type,
           title: e.title,
-          policy_id: e.policyId,
+          policy_id: e.id,
         }));
       } catch (error) {
         console.error("Failed to get timeline:", error);
-        return getMockTimeline(input.year);
+        // Fall back to connector on error
+        try {
+          const connectorEvents = await policyDataConnector.fetchPolicyTimeline(input.year);
+          return connectorEvents.map((e) => ({
+            jurisdiction: e.jurisdiction,
+            date: e.date,
+            event_type: e.event_type,
+            title: e.title,
+            policy_id: e.id,
+          }));
+        } catch {
+          return getMockTimeline(input.year);
+        }
       }
     }),
 
   /**
-   * Get policy kanban board
+   * Get policy kanban board - fetches from policy connector
    */
   getKanban: publicProcedure.query(async () => {
     try {
       const db = await requireDb();
-
       const items = await db.select().from(policyKanbanItems);
 
-      if (items.length === 0) {
-        return getMockKanban();
+      if (items.length > 0) {
+        const proposed = items.filter((i) => i.status === "proposed").map((i) => ({
+          id: String(i.id),
+          title: i.title,
+          jurisdiction: i.jurisdiction,
+          policy_type: i.policyType,
+          status: i.status,
+          summary: i.summary,
+        }));
+
+        const review = items.filter((i) => i.status === "review").map((i) => ({
+          id: String(i.id),
+          title: i.title,
+          jurisdiction: i.jurisdiction,
+          policy_type: i.policyType,
+          status: i.status,
+          summary: i.summary,
+        }));
+
+        const enacted = items.filter((i) => i.status === "enacted").map((i) => ({
+          id: String(i.id),
+          title: i.title,
+          jurisdiction: i.jurisdiction,
+          policy_type: i.policyType,
+          status: i.status,
+          summary: i.summary,
+        }));
+
+        return { proposed, review, enacted };
       }
 
-      const proposed = items.filter((i) => i.status === "proposed").map((i) => ({
-        id: String(i.id),
-        title: i.title,
-        jurisdiction: i.jurisdiction,
-        policy_type: i.policyType,
-        status: i.status,
-        summary: i.summary,
-      }));
-
-      const review = items.filter((i) => i.status === "review").map((i) => ({
-        id: String(i.id),
-        title: i.title,
-        jurisdiction: i.jurisdiction,
-        policy_type: i.policyType,
-        status: i.status,
-        summary: i.summary,
-      }));
-
-      const enacted = items.filter((i) => i.status === "enacted").map((i) => ({
-        id: String(i.id),
-        title: i.title,
-        jurisdiction: i.jurisdiction,
-        policy_type: i.policyType,
-        status: i.status,
-        summary: i.summary,
-      }));
-
-      return { proposed, review, enacted };
+      // Fall back to connector
+      return await policyDataConnector.fetchPolicyKanban();
     } catch (error) {
       console.error("Failed to get kanban:", error);
-      return getMockKanban();
+      try {
+        return await policyDataConnector.fetchPolicyKanban();
+      } catch {
+        return getMockKanban();
+      }
     }
   }),
 
   /**
-   * Get mandate scenarios
+   * Get mandate scenarios - fetches from policy connector
    */
   getMandateScenarios: publicProcedure.query(async () => {
     try {
       const db = await requireDb();
-
       const scenarios = await db.select().from(mandateScenarios);
 
-      if (scenarios.length === 0) {
-        return getMockMandateScenarios();
+      if (scenarios.length > 0) {
+        return scenarios.map((s) => ({
+          name: s.name,
+          mandate_level: s.mandateLevel,
+          revenue_impact: parseFloat(s.revenueImpact as string),
+        }));
       }
 
-      return scenarios.map((s) => ({
+      // Fall back to connector
+      const connectorScenarios = await policyDataConnector.fetchMandateScenarios();
+      return connectorScenarios.map(s => ({
         name: s.name,
-        mandate_level: s.mandateLevel,
-        revenue_impact: parseFloat(s.revenueImpact as string),
+        mandate_level: s.mandate_level,
+        revenue_impact: s.revenue_impact,
       }));
     } catch (error) {
       console.error("Failed to get mandate scenarios:", error);
-      return getMockMandateScenarios();
+      try {
+        const connectorScenarios = await policyDataConnector.fetchMandateScenarios();
+        return connectorScenarios.map(s => ({
+          name: s.name,
+          mandate_level: s.mandate_level,
+          revenue_impact: s.revenue_impact,
+        }));
+      } catch {
+        return getMockMandateScenarios();
+      }
     }
   }),
 
   /**
-   * Get offtake market data
+   * Get offtake market data - fetches from policy connector
    */
   getOfftakeMarket: publicProcedure.query(async () => {
     try {
       const db = await requireDb();
-
       const agreements = await db
         .select()
         .from(offtakeAgreements)
         .where(eq(offtakeAgreements.isActive, true));
 
-      if (agreements.length === 0) {
-        return getMockOfftakeMarket();
+      if (agreements.length > 0) {
+        return agreements.map((a) => ({
+          offtaker: a.offtaker,
+          mandate: a.mandate,
+          volume: a.volume,
+          term: a.term,
+          premium: a.premium,
+        }));
       }
 
-      return agreements.map((a) => ({
-        offtaker: a.offtaker,
-        mandate: a.mandate,
-        volume: a.volume,
-        term: a.term,
-        premium: a.premium,
-      }));
+      // Fall back to connector
+      return await policyDataConnector.fetchOfftakeMarket();
     } catch (error) {
       console.error("Failed to get offtake market:", error);
-      return getMockOfftakeMarket();
+      try {
+        return await policyDataConnector.fetchOfftakeMarket();
+      } catch {
+        return getMockOfftakeMarket();
+      }
     }
   }),
 
   /**
-   * Get current ACCU price
+   * Get current ACCU price - fetches real-time from CER connector
    */
   getACCUPrice: publicProcedure.query(async () => {
     try {
-      const db = await requireDb();
+      // First try to get real-time data from CER
+      const livePrice = await cerConnector.fetchACCUPrice();
+      
+      // Also check DB for comparison/history
+      try {
+        const db = await requireDb();
+        const [latest] = await db
+          .select()
+          .from(accuPriceHistory)
+          .orderBy(desc(accuPriceHistory.date))
+          .limit(1);
 
-      const [latest] = await db
-        .select()
-        .from(accuPriceHistory)
-        .orderBy(desc(accuPriceHistory.date))
-        .limit(1);
-
-      if (!latest) {
-        return getMockACCUPrice();
+        // If DB has more recent data, merge it
+        if (latest) {
+          const dbDate = latest.date instanceof Date ? latest.date : new Date(String(latest.date));
+          const liveDate = new Date(livePrice.as_of_date);
+          if (dbDate > liveDate) {
+            return {
+              price: parseFloat(latest.price as string),
+              currency: "AUD",
+              unit: "tCO2e",
+              change: parseFloat(latest.change as string) || livePrice.change,
+              change_pct: parseFloat(latest.changePct as string) || livePrice.change_pct,
+              source: latest.source || "Clean Energy Regulator",
+              as_of_date: dbDate.toISOString().split("T")[0],
+            };
+          }
+        }
+      } catch {
+        // DB not available, use live data
       }
 
-      return {
-        price: parseFloat(latest.price as string),
-        currency: "AUD",
-        unit: "tCO2e",
-        change: parseFloat(latest.change as string),
-        change_pct: parseFloat(latest.changePct as string),
-        source: latest.source || "Clean Energy Regulator",
-        as_of_date: latest.date instanceof Date ? latest.date.toISOString().split("T")[0] : String(latest.date),
-      };
+      return livePrice;
     } catch (error) {
       console.error("Failed to get ACCU price:", error);
       return getMockACCUPrice();
@@ -405,36 +469,40 @@ export const policyRouter = router({
   getConsultations: publicProcedure.query(async () => {
     try {
       const db = await requireDb();
-
       const now = new Date();
-      const consultations = await db
+      const dbConsultations = await db
         .select()
         .from(policyConsultations)
         .where(gte(policyConsultations.closes, now))
         .orderBy(policyConsultations.closes);
 
-      if (consultations.length === 0) {
-        return getMockConsultations();
+      if (dbConsultations.length > 0) {
+        return dbConsultations.map((c) => {
+          const closes = c.closes instanceof Date ? c.closes : new Date(c.closes);
+          const daysRemaining = Math.ceil((closes.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+          return {
+            id: String(c.id),
+            title: c.title,
+            jurisdiction: c.jurisdiction,
+            opens: c.opens instanceof Date ? c.opens.toISOString().split("T")[0] : String(c.opens),
+            closes: closes.toISOString().split("T")[0],
+            days_remaining: daysRemaining,
+            relevance: c.relevance,
+            submission_url: c.submissionUrl,
+          };
+        });
       }
 
-      return consultations.map((c) => {
-        const closes = c.closes instanceof Date ? c.closes : new Date(c.closes);
-        const daysRemaining = Math.ceil((closes.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-        return {
-          id: String(c.id),
-          title: c.title,
-          jurisdiction: c.jurisdiction,
-          opens: c.opens instanceof Date ? c.opens.toISOString().split("T")[0] : String(c.opens),
-          closes: closes.toISOString().split("T")[0],
-          days_remaining: daysRemaining,
-          relevance: c.relevance,
-          submission_url: c.submissionUrl,
-        };
-      });
+      // Fall back to connector
+      return await policyDataConnector.fetchConsultations();
     } catch (error) {
       console.error("Failed to get consultations:", error);
-      return getMockConsultations();
+      try {
+        return await policyDataConnector.fetchConsultations();
+      } catch {
+        return getMockConsultations();
+      }
     }
   }),
 

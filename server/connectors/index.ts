@@ -39,6 +39,9 @@ export type {
   SugarcaneProductionZone,
   RoadRestriction,
 } from "./qldGlobeConnector";
+export { CleanEnergyRegulatorConnector, cerConnector, type ACCUPriceData, type CarbonMarketStats, type SafeguardData } from "./cleanEnergyRegulatorConnector";
+export { PolicyDataConnector, policyDataConnector, type PolicyEvent, type PolicyKanbanItem, type Consultation, type MandateScenario } from "./policyDataConnector";
+export { PriceDataConnector, priceDataConnector, type FeedstockPrice, type PriceHistoryPoint, type MarketSummary } from "./priceDataConnector";
 
 import { ConnectorConfig, ConnectorResult, RawSignal } from "./baseConnector";
 import { NSWPlanningConnector } from "./nswPlanningConnector";

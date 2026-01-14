@@ -7,6 +7,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, protectedProcedure, adminProcedure } from "./_core/trpc";
 import * as db from "./db";
+import { priceDataConnector } from "./connectors/priceDataConnector";
 
 // Australian state codes
 const AUSTRALIAN_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"] as const;
@@ -74,33 +75,15 @@ export const priceIntelligenceRouter = router({
     .query(async ({ input }) => {
       const { feedstockCategories, regionIds, includeForwards } = input;
 
-      // Note: Would query price_signals table for latest valid signals
-      // const signals = await db.getLatestPriceSignals({ feedstockCategories, regionIds });
-
-      // Mock response structure
-      const priceData: Record<
-        string,
-        {
-          regionId: string;
-          regionName: string;
-          feedstockCategory: string;
-          spotPrice: number | null;
-          spotPriceChange: number | null;
-          forward1M?: number;
-          forward3M?: number;
-          forward6M?: number;
-          forward12M?: number;
-          supplyIndex: number;
-          demandIndex: number;
-          confidence: string;
-          dataPoints: number;
-          validFrom: Date;
-          validTo: Date;
-        }
-      > = {};
+      // Fetch real prices from connector
+      const prices = await priceDataConnector.getCurrentPrices({
+        feedstockCategories,
+        regionIds,
+        includeForwards,
+      });
 
       // Group by region for heatmap
-      const regionSummary = Object.values(priceData).reduce(
+      const regionSummary = prices.reduce(
         (acc, signal) => {
           if (!acc[signal.regionId]) {
             acc[signal.regionId] = {
@@ -110,7 +93,7 @@ export const priceIntelligenceRouter = router({
               priceCount: 0,
               avgSupplyIndex: 0,
               avgDemandIndex: 0,
-              categories: [],
+              categories: [] as string[],
             };
           }
           if (signal.spotPrice) {
@@ -119,23 +102,25 @@ export const priceIntelligenceRouter = router({
           }
           acc[signal.regionId].avgSupplyIndex += signal.supplyIndex;
           acc[signal.regionId].avgDemandIndex += signal.demandIndex;
-          acc[signal.regionId].categories.push(signal.feedstockCategory);
+          if (!acc[signal.regionId].categories.includes(signal.feedstockCategory)) {
+            acc[signal.regionId].categories.push(signal.feedstockCategory);
+          }
           return acc;
         },
-        {} as Record<string, any>
+        {} as Record<string, { regionId: string; regionName: string; avgSpotPrice: number; priceCount: number; avgSupplyIndex: number; avgDemandIndex: number; categories: string[] }>
       );
 
       // Calculate averages
       for (const region of Object.values(regionSummary)) {
         if (region.priceCount > 0) {
-          region.avgSpotPrice /= region.priceCount;
+          region.avgSpotPrice = Math.round((region.avgSpotPrice / region.priceCount) * 100) / 100;
         }
-        region.avgSupplyIndex /= region.categories.length || 1;
-        region.avgDemandIndex /= region.categories.length || 1;
+        region.avgSupplyIndex = Math.round(region.avgSupplyIndex / (region.categories.length || 1));
+        region.avgDemandIndex = Math.round(region.avgDemandIndex / (region.categories.length || 1));
       }
 
       return {
-        signals: Object.values(priceData),
+        signals: prices,
         regionSummary: Object.values(regionSummary),
         updatedAt: new Date(),
       };
@@ -156,35 +141,21 @@ export const priceIntelligenceRouter = router({
     .query(async ({ input }) => {
       const { feedstockCategory, feedstockType, regionId, period } = input;
 
-      // Calculate date range based on period
-      const now = new Date();
-      const periodDays: Record<string, number> = {
-        "1M": 30,
-        "3M": 90,
-        "6M": 180,
-        "1Y": 365,
-        "2Y": 730,
-      };
-      const startDate = new Date(now.getTime() - periodDays[period] * 24 * 60 * 60 * 1000);
+      // Fetch historical data from connector
+      const history = await priceDataConnector.getPriceHistory({
+        feedstockCategory,
+        feedstockType,
+        regionId,
+        period,
+      });
 
-      // Note: Would query historical price signals
-      // const history = await db.getPriceHistory({ feedstockCategory, regionId, startDate });
-
-      // Return time series data
       return {
         feedstockCategory,
         feedstockType,
         regionId,
         period,
-        dataPoints: [],
-        statistics: {
-          min: 0,
-          max: 0,
-          avg: 0,
-          stdDev: 0,
-          trend: "stable" as "up" | "down" | "stable",
-          trendPercent: 0,
-        },
+        dataPoints: history.dataPoints,
+        statistics: history.statistics,
       };
     }),
 
@@ -201,19 +172,40 @@ export const priceIntelligenceRouter = router({
     .query(async ({ input }) => {
       const { feedstockCategory, regionId } = input;
 
-      // Note: Would get latest price signal with forward prices
-      // const signal = await db.getLatestPriceSignal({ feedstockCategory, regionId });
+      // Fetch prices with forwards from connector
+      const prices = await priceDataConnector.getCurrentPrices({
+        feedstockCategories: [feedstockCategory],
+        regionIds: [regionId],
+        includeForwards: true,
+      });
+
+      const signal = prices[0];
+      if (!signal) {
+        return {
+          feedstockCategory,
+          regionId,
+          spotPrice: null as number | null,
+          forwardCurve: [
+            { period: "spot", price: null, confidence: "INDICATIVE" },
+            { period: "1M", price: null, confidence: "INDICATIVE" },
+            { period: "3M", price: null, confidence: "INDICATIVE" },
+            { period: "6M", price: null, confidence: "INDICATIVE" },
+            { period: "12M", price: null, confidence: "INDICATIVE" },
+          ],
+          lastUpdated: new Date(),
+        };
+      }
 
       return {
         feedstockCategory,
         regionId,
-        spotPrice: null as number | null,
+        spotPrice: signal.spotPrice,
         forwardCurve: [
-          { period: "spot", price: null, confidence: "INDICATIVE" },
-          { period: "1M", price: null, confidence: "INDICATIVE" },
-          { period: "3M", price: null, confidence: "INDICATIVE" },
-          { period: "6M", price: null, confidence: "INDICATIVE" },
-          { period: "12M", price: null, confidence: "INDICATIVE" },
+          { period: "spot", price: signal.spotPrice, confidence: signal.confidence },
+          { period: "1M", price: signal.forward1M || null, confidence: signal.confidence },
+          { period: "3M", price: signal.forward3M || null, confidence: signal.confidence },
+          { period: "6M", price: signal.forward6M || null, confidence: signal.confidence },
+          { period: "12M", price: signal.forward12M || null, confidence: signal.confidence },
         ],
         lastUpdated: new Date(),
       };
@@ -404,18 +396,8 @@ export const priceIntelligenceRouter = router({
       })
     )
     .query(async ({ input }) => {
-      // Aggregated market view
-      return {
-        totalActiveListings: 0,
-        totalActiveDemandSignals: 0,
-        averageSpotPrice: 0,
-        priceChangePercent: 0,
-        topRegionsByVolume: [] as Array<{ regionId: string; volumeTonnes: number }>,
-        topFeedstocksByValue: [] as Array<{ category: string; totalValue: number }>,
-        recentTransactionCount: 0,
-        marketHealthIndex: 0, // 0-100 composite
-        updatedAt: new Date(),
-      };
+      // Fetch real market summary from connector
+      return await priceDataConnector.getMarketSummary(input.feedstockCategory);
     }),
 
   /**
@@ -429,24 +411,33 @@ export const priceIntelligenceRouter = router({
       })
     )
     .query(async ({ input }) => {
+      // Fetch real benchmarks from connector
+      const benchmarks = await priceDataConnector.getPriceBenchmarks(
+        input.feedstockCategory,
+        input.feedstockType
+      );
+
       return {
         feedstockCategory: input.feedstockCategory,
         feedstockType: input.feedstockType,
-        benchmarks: {
-          national: {
-            low: 0,
-            average: 0,
-            high: 0,
-            dataPoints: 0,
-          },
-          byState: {} as Record<
-            string,
-            { low: number; average: number; high: number; dataPoints: number }
-          >,
-        },
+        benchmarks,
         lastCalculated: new Date(),
       };
     }),
+
+  /**
+   * Refresh price data - clears cache and fetches fresh data
+   */
+  refreshPrices: publicProcedure.mutation(async () => {
+    priceDataConnector.clearCache();
+    const summary = await priceDataConnector.getMarketSummary();
+    return {
+      success: true,
+      message: "Price data refreshed",
+      updatedAt: summary.updatedAt,
+      marketHealthIndex: summary.marketHealthIndex,
+    };
+  }),
 });
 
 export type PriceIntelligenceRouter = typeof priceIntelligenceRouter;
