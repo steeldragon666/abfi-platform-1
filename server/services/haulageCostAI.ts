@@ -444,11 +444,13 @@ function identifyRouteType(origin: GeoLocation, destination: GeoLocation): strin
   }
   
   // Check for Adelaide Hills (bidirectional)
+  // isWestOfAdelaideHills identifies low-elevation coastal area (longitude < 138.5)
+  // Going TO the coast (west) = downhill, going FROM the coast (east) = uphill
   if (isInAdelaideArea(origin) && isWestOfAdelaideHills(destination)) {
-    return "adelaide_hills_uphill";
+    return "adelaide_hills_downhill"; // Going west toward coast = descending
   }
   if (isWestOfAdelaideHills(origin) && isInAdelaideArea(destination)) {
-    return "adelaide_hills_downhill";
+    return "adelaide_hills_uphill"; // Coming from coast going east = ascending
   }
   
   // Check for Great Dividing Range crossing (general - bidirectional)
