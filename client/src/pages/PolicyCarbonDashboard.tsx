@@ -332,11 +332,11 @@ export default function PolicyCarbonDashboard() {
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                       <Clock className="h-4 w-4 text-yellow-600" />
-                      Proposed ({kanban?.proposed.length || 0})
+                      Proposed ({kanban?.proposed?.length || 0})
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {kanban?.proposed.map((item) => (
+                    {kanban?.proposed?.map((item) => (
                       <div
                         key={item.id}
                         className="p-2 rounded border bg-yellow-50 border-yellow-200"
@@ -354,11 +354,11 @@ export default function PolicyCarbonDashboard() {
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                       <FileText className="h-4 w-4 text-blue-600" />
-                      In Review ({kanban?.review.length || 0})
+                      In Review ({kanban?.review?.length || 0})
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {kanban?.review.map((item) => (
+                    {kanban?.review?.map((item) => (
                       <div
                         key={item.id}
                         className="p-2 rounded border bg-blue-50 border-blue-200"
@@ -376,11 +376,11 @@ export default function PolicyCarbonDashboard() {
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                       <Scale className="h-4 w-4 text-green-600" />
-                      Enacted ({kanban?.enacted.length || 0})
+                      Enacted ({kanban?.enacted?.length || 0})
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {kanban?.enacted.map((item) => (
+                    {kanban?.enacted?.map((item) => (
                       <div
                         key={item.id}
                         className="p-2 rounded border bg-green-50 border-green-200"
