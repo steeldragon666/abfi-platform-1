@@ -7,7 +7,6 @@
 
 import { useState } from 'react';
 import { Link } from 'wouter';
-import { PortalLayout } from '@/components/layout/PortalLayout';
 import { PlatformMap, MapPreset, MapMarker } from '@/components/maps/PlatformMap';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';
@@ -59,8 +58,7 @@ export default function MapPage() {
   };
   
   return (
-    <PortalLayout>
-      <div className="relative -mx-6 -my-6 lg:-mx-8 lg:-my-6">
+    <div className="relative -mx-6 -my-6 lg:-mx-8 lg:-my-6">
         {/* Header Bar */}
         <div className="absolute top-0 left-0 right-0 z-[1001] bg-white/95 dark:bg-gray-950/95 backdrop-blur border-b px-4 py-3">
           <div className="flex items-center justify-between max-w-[1600px] mx-auto">
@@ -248,7 +246,6 @@ export default function MapPage() {
             </div>
           </div>
         )}
-      </div>
-    </PortalLayout>
+    </div>
   );
 }
