@@ -8,6 +8,7 @@
 
 const http = require("http");
 const https = require("https");
+const puppeteer = require("puppeteer");
 
 const BASE_URL = process.argv[2] || "http://localhost:3001";
 
@@ -113,6 +114,18 @@ function fetchPage(url) {
   });
 }
 
+async function verifySpa404(url) {
+  const browser = await puppeteer.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 15000 });
+    const bodyText = await page.evaluate(() => document.body.innerText || "");
+    return bodyText.includes("Page Not Found") || bodyText.includes("404");
+  } finally {
+    await browser.close();
+  }
+}
+
 // Check for common issues in HTML
 function analyzeResponse(response, page) {
   const issues = [];
@@ -182,11 +195,19 @@ async function testPage(page) {
 
     // Check status code
     if (page.expect404) {
-      // For 404 test, we expect the page to load but show 404 content
-      if (response.statusCode === 200 && response.body.includes("404")) {
+      // For SPA apps, 404 is rendered client-side after index.html loads.
+      if (response.statusCode === 404) {
         testResult.status = "passed";
-      } else if (response.statusCode === 404) {
+      } else if (response.statusCode === 200 && response.body.includes("404")) {
         testResult.status = "passed";
+      } else if (response.statusCode === 200 && response.body.includes('<div id="root"')) {
+        const spa404 = await verifySpa404(url);
+        if (spa404) {
+          testResult.status = "passed";
+        } else {
+          testResult.status = "failed";
+          testResult.issues.push("SPA 404 content not detected after client render");
+        }
       } else {
         testResult.status = "failed";
         testResult.issues.push(`Expected 404, got ${response.statusCode}`);
