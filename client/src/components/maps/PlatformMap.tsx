@@ -48,7 +48,6 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { cn } from '@/lib/utils';
-import { ProjectsLayer } from './ProjectsLayer';
 import { ProjectClaimingModal } from '../projects/ProjectClaimingModal';
 import { ABFIMethodologyExplainer } from '../projects/ABFIMethodologyExplainer';
 import { trpc } from '@/lib/trpc';
@@ -1366,15 +1365,6 @@ export function PlatformMap({
         </div>
       )}
 
-      {/* ABFI Projects Layer */}
-      <ProjectsLayer
-        visible={layers.projects}
-        selectedTiers={[1, 2, 3, 4]}
-        onProjectSelect={(project) => {
-          setSelectedProject(project);
-        }}
-      />
-
       {/* Biomass Risk Analysis Panel - Positioned below the second row of controls */}
       {showRiskPanel && (
         <div className="absolute top-28 right-3 z-[1000]">
@@ -1408,3 +1398,4 @@ export function PlatformMap({
 }
 
 export default PlatformMap;
+

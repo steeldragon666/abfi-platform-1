@@ -127,6 +127,13 @@ const QUICK_STATS = [
   { label:"Avg. Rating", value:"A", icon: Star, color:"text-purple-600" },
 ];
 
+const PRIMARY_ACTIONS = [
+  { id:"feedstock", label:"Add Feedstock", href:"/feedstock/create", icon: Plus },
+  { id:"certs", label:"Upload Certifications", href:"/certificate/upload", icon: Upload },
+  { id:"contracts", label:"View Contracts", href:"/producer-registration/contracts", icon: FileText },
+  { id:"map", label:"Open Map", href:"/map", icon: MapPin },
+];
+
 export default function GrowerDashboard() {
   const [selectedListing, setSelectedListing] = useState<string | null>(null);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -222,6 +229,25 @@ export default function GrowerDashboard() {
                   <div className="text-xs text-muted-foreground">{stat.label}</div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions - Always Visible */}
+      <div className="border-b bg-background/80 py-4">
+        <div className="premium-container">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Quick Actions
+            </span>
+            {PRIMARY_ACTIONS.map((action) => (
+              <Link key={action.id} href={action.href}>
+                <Button variant="outline" size="sm" className="gap-2 premium-button">
+                  <action.icon className="h-4 w-4" />
+                  {action.label}
+                </Button>
+              </Link>
             ))}
           </div>
         </div>

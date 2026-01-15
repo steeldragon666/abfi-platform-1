@@ -521,10 +521,13 @@ export const policyRouter = router({
     .query(async ({ input }) => {
       try {
         const limit = input?.limit ?? 20;
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const lookbackDate = new Date();
+        lookbackDate.setDate(lookbackDate.getDate() - 180);
 
-        const articles = await carbonStandardsConnector.fetchAllArticles(thirtyDaysAgo, limit);
+        let articles = await carbonStandardsConnector.fetchAllArticles(lookbackDate, limit);
+        if (articles.length === 0) {
+          articles = await carbonStandardsConnector.fetchAllArticles(undefined, limit);
+        }
 
         // Filter by source if specified
         let filtered = articles;
@@ -571,6 +574,7 @@ export const policyRouter = router({
             { id: "irena", name: "IRENA", color: "#8BC34A" },
             { id: "iea", name: "IEA Energy", color: "#FFC107" },
             { id: "fao", name: "FAO Climate", color: "#795548" },
+            { id: "google_news", name: "Google News", color: "#1A73E8" },
           ],
           categories: [
             "methodology",
