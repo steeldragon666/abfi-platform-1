@@ -424,8 +424,8 @@ function identifyRouteType(origin: GeoLocation, destination: GeoLocation): strin
   const isWestOfBlueMountains = (loc: GeoLocation) => loc.longitude < 150;
   
   const isInAdelaideArea = (loc: GeoLocation) =>
-    loc.latitude > -35.2 && loc.latitude < -34.5 && loc.longitude > 138.5 && loc.longitude < 139;
-  const isWestOfAdelaideHills = (loc: GeoLocation) => loc.longitude < 138.5;
+    loc.latitude > -35.2 && loc.latitude < -34.5 && loc.longitude > 138.7 && loc.longitude < 139;
+  const isWestOfAdelaideHills = (loc: GeoLocation) => loc.longitude < 138.7;
 
   // Check for Toowoomba Range (bidirectional)
   if (isInIpswichArea(origin) && isInToowoombaArea(destination)) {
@@ -444,7 +444,7 @@ function identifyRouteType(origin: GeoLocation, destination: GeoLocation): strin
   }
   
   // Check for Adelaide Hills (bidirectional)
-  // isWestOfAdelaideHills identifies low-elevation coastal area (longitude < 138.5)
+  // isWestOfAdelaideHills identifies low-elevation coastal area (longitude < 138.7)
   // Going TO the coast (west) = downhill, going FROM the coast (east) = uphill
   if (isInAdelaideArea(origin) && isWestOfAdelaideHills(destination)) {
     return "adelaide_hills_downhill"; // Going west toward coast = descending
