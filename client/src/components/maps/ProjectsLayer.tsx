@@ -4,7 +4,6 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
@@ -54,13 +53,18 @@ const TIER_LABELS = {
 };
 
 interface ProjectsLayerProps {
+  map: L.Map | null;
   visible: boolean;
   selectedTiers?: number[];
   onProjectSelect?: (project: any) => void;
 }
 
-export function ProjectsLayer({ visible, selectedTiers = [1, 2, 3, 4], onProjectSelect }: ProjectsLayerProps) {
-  const map = useMap();
+export function ProjectsLayer({
+  map,
+  visible,
+  selectedTiers = [1, 2, 3, 4],
+  onProjectSelect
+}: ProjectsLayerProps) {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [markers, setMarkers] = useState<L.Marker[]>([]);
 
@@ -72,6 +76,7 @@ export function ProjectsLayer({ visible, selectedTiers = [1, 2, 3, 4], onProject
 
   // Clear existing markers when component unmounts or visibility changes
   useEffect(() => {
+    if (!map) return;
     return () => {
       markers.forEach(marker => map.removeLayer(marker));
     };
@@ -79,7 +84,7 @@ export function ProjectsLayer({ visible, selectedTiers = [1, 2, 3, 4], onProject
 
   // Update markers when data changes
   useEffect(() => {
-    if (!visible || !projectsData?.assessments) return;
+    if (!map || !visible || !projectsData?.assessments) return;
 
     // Clear existing markers
     markers.forEach(marker => map.removeLayer(marker));

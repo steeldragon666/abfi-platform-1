@@ -33,6 +33,7 @@ import { beemaRouter } from "./beemaRouter";
 import { abfiProjectsRouter } from "./abfiProjectsRouter";
 // ABFI v6.1 Carbon Registry (Trovio CorTenX Integration)
 import { carbonRouter } from "./carbonRouter";
+import { gateRouter } from "./gateRouter";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
@@ -136,6 +137,11 @@ export const appRouter = router({
   // CARBON REGISTRY - TROVIO CORTENX INTEGRATION (Phase 6.1)
   // ============================================================================
   carbon: carbonRouter,
+
+  // ============================================================================
+  // GATE PAYMENT RAIL (Stage-Gated Releases)
+  // ============================================================================
+  gate: gateRouter,
 
   // ============================================================================
   // AUDIT & COMPLIANCE (Phase 8)

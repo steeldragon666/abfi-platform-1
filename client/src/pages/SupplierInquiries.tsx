@@ -7,22 +7,22 @@
  * - Typography components for consistent styling
  */
 
-import { useAuth } from"@/_core/hooks/useAuth";
-import { H1, H3, Body } from"@/components/Typography";
-import { Button } from"@/components/ui/Button";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { H1, H3, Body } from "@/components/Typography";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from"@/components/ui/Card";
-import { Badge } from"@/components/ui/badge";
-import { Skeleton } from"@/components/ui/skeleton";
-import { trpc } from"@/lib/trpc";
-import { Inbox, MessageSquare, Calendar, Package, ArrowLeft } from"lucide-react";
-import { Link } from"wouter";
-import { formatDate } from"@/const";
+} from "@/components/ui/Card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { trpc } from "@/lib/trpc";
+import { Inbox, MessageSquare, Calendar, Package, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
+import { formatDate } from "@/const";
 
 export default function SupplierInquiries() {
   const { user, loading: authLoading } = useAuth();

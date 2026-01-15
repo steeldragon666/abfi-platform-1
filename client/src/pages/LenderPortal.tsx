@@ -56,22 +56,71 @@ export default function LenderPortal() {
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
 
   // Get projects the lender has been granted access to
-  const { data: projects, isLoading: projectsLoading } =
-    trpc.bankability.getMyLenderProjects.useQuery();
+  const {
+    data: projects,
+    isLoading: projectsLoading,
+    error: projectsError,
+  } = trpc.bankability.getMyLenderProjects.useQuery(undefined, {
+    enabled: !!user,
+  });
 
   // Get stress test results for selected project
   const { data: stressResults } = trpc.stressTesting.getProjectResults.useQuery(
     { projectId: selectedProject! },
-    { enabled: !!selectedProject }
+    { enabled: !!selectedProject && !!user }
   );
 
   // Get latest stress test result
   const latestStressTest = stressResults?.[0];
 
-  if (authLoading || !user) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Skeleton className="h-64 w-full max-w-2xl" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container py-12">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="py-12 text-center space-y-4">
+              <Shield className="h-12 w-12 text-gray-600 mx-auto" />
+              <H3 className="text-lg font-semibold">Lender access required</H3>
+              <Body className="text-sm text-gray-600">
+                Please sign in to access portfolio monitoring and covenant data.
+              </Body>
+              <Link href="/login">
+                <Button size="sm" className="mt-2">
+                  Sign in
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (projectsError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container py-12">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="py-12 text-center space-y-4">
+              <AlertTriangle className="h-12 w-12 text-red-600 mx-auto" />
+              <H3 className="text-lg font-semibold">Unable to load projects</H3>
+              <Body className="text-sm text-gray-600">
+                There was a problem fetching lender projects. Please try again.
+              </Body>
+              <Button size="sm" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

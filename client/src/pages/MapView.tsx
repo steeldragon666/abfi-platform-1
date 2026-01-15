@@ -8,36 +8,36 @@
  * - Typography components for consistent styling
  */
 
-import { Button } from"@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from"@/components/ui/Card";
-import { Input } from"@/components/ui/input";
-import { Label } from"@/components/ui/label";
+} from "@/components/ui/Card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from"@/components/ui/select";
+} from "@/components/ui/select";
 import {
   AUSTRALIAN_STATES,
   FEEDSTOCK_CATEGORIES,
   formatPrice,
   getScoreGrade,
-} from"@/const";
-import { trpc } from"@/lib/trpc";
-import { Award, Filter, Leaf, List, MapIcon, MapPin } from"lucide-react";
-import { useEffect, useRef, useState, useCallback } from"react";
-import { Link } from"wouter";
+} from "@/const";
+import { trpc } from "@/lib/trpc";
+import { Award, Filter, Leaf, List, MapIcon, MapPin } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Link } from "wouter";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { H1, Body, MetricValue, DataLabel } from"@/components/Typography";
+import { H1, Body, MetricValue, DataLabel } from "@/components/Typography";
 
 // Fix Leaflet default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;

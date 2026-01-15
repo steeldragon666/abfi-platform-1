@@ -17,16 +17,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from"@/components/ui/Card";
-import { Button } from"@/components/ui/Button";
-import { Badge } from"@/components/ui/badge";
-import { Progress } from"@/components/ui/progress";
-import { ScrollArea } from"@/components/ui/scroll-area";
+} from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from"@/components/ui/collapsible";
+} from "@/components/ui/collapsible";
 import { PlatformMap } from "@/components/maps/PlatformMap";
 import { CarbonWallet } from "@/components/carbon/CarbonWallet";
 import { RefreshButton } from "@/components/ui/RefreshButton";

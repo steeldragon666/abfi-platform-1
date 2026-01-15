@@ -263,7 +263,7 @@ const LAYER_CATEGORIES: LayerCategory[] = [
         id: 'bomRadar',
         label: 'Weather Radar',
         description: 'Real-time precipitation radar',
-        wmsUrl: 'http://www.bom.gov.au/geoserver/wms',
+        wmsUrl: 'https://www.bom.gov.au/geoserver/wms',
         wmsLayers: 'radar',
         opacity: 0.6,
         attribution: '© Bureau of Meteorology',
@@ -272,7 +272,7 @@ const LAYER_CATEGORIES: LayerCategory[] = [
         id: 'bomRainfall',
         label: 'Rainfall',
         description: '7-day rainfall totals',
-        wmsUrl: 'http://www.bom.gov.au/geoserver/wms',
+        wmsUrl: 'https://www.bom.gov.au/geoserver/wms',
         wmsLayers: 'rainfall',
         opacity: 0.5,
       },
@@ -280,7 +280,7 @@ const LAYER_CATEGORIES: LayerCategory[] = [
         id: 'bomTemperature',
         label: 'Temperature',
         description: 'Current temperature grid',
-        wmsUrl: 'http://www.bom.gov.au/geoserver/wms',
+        wmsUrl: 'https://www.bom.gov.au/geoserver/wms',
         wmsLayers: 'temperature',
         opacity: 0.5,
       },
@@ -288,7 +288,7 @@ const LAYER_CATEGORIES: LayerCategory[] = [
         id: 'bomWarnings',
         label: 'Severe Weather Warnings',
         description: 'Active weather alerts',
-        wmsUrl: 'http://www.bom.gov.au/geoserver/wms',
+        wmsUrl: 'https://www.bom.gov.au/geoserver/wms',
         wmsLayers: 'warnings',
         opacity: 0.7,
       },
@@ -614,6 +614,7 @@ export function PlatformMap({
   
   // State
   const [isMapReady, setIsMapReady] = useState(false);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [layers, setLayers] = useState<LayerState>(() => ({
     ...DEFAULT_LAYER_STATE,
@@ -707,10 +708,12 @@ export function PlatformMap({
     
     mapRef.current = map;
     setIsMapReady(true);
+    setMapInstance(map);
     
     return () => {
       map.remove();
       mapRef.current = null;
+      setMapInstance(null);
       baseLayerRef.current = null;
       markersLayerRef.current = null;
       labelsLayerRef.current = null;
@@ -1368,6 +1371,7 @@ export function PlatformMap({
 
       {/* ABFI Projects Layer */}
       <ProjectsLayer
+        map={mapInstance}
         visible={layers.projects}
         selectedTiers={[1, 2, 3, 4]}
         onProjectSelect={(project) => {

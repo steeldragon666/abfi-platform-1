@@ -7,32 +7,32 @@
  * - Typography components for consistent styling
  */
 
-import { useAuth } from"@/_core/hooks/useAuth";
-import { H1, H3, Body } from"@/components/Typography";
-import { Button } from"@/components/ui/Button";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { H1, H3, Body } from "@/components/Typography";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from"@/components/ui/Card";
-import { Input } from"@/components/ui/input";
-import { Label } from"@/components/ui/label";
+} from "@/components/ui/Card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from"@/components/ui/select";
-import { Textarea } from"@/components/ui/textarea";
-import { Skeleton } from"@/components/ui/skeleton";
-import { AUSTRALIAN_STATES } from"@/const";
-import { trpc } from"@/lib/trpc";
-import { Loader2, ShoppingCart, ArrowLeft } from"lucide-react";
-import { Link } from"wouter";
-import { useEffect, useState } from"react";
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AUSTRALIAN_STATES } from "@/const";
+import { trpc } from "@/lib/trpc";
+import { Loader2, ShoppingCart, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
+import { useEffect, useState } from "react";
 import { toast } from"sonner";
 
 export default function BuyerProfile() {

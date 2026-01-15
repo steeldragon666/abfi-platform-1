@@ -8,28 +8,28 @@
  * - Typography components for consistent styling
  */
 
-import { useAuth } from"@/_core/hooks/useAuth";
-import { Button } from"@/components/ui/Button";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from"@/components/ui/Card";
-import { Badge } from"@/components/ui/badge";
-import { Input } from"@/components/ui/input";
-import { Label } from"@/components/ui/label";
+} from "@/components/ui/Card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from"@/components/ui/select";
-import { Textarea } from"@/components/ui/textarea";
-import { AUSTRALIAN_STATES } from"@/const";
-import { trpc } from"@/lib/trpc";
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { AUSTRALIAN_STATES } from "@/const";
+import { trpc } from "@/lib/trpc";
 import {
   ArrowLeft,
   ArrowRight,
@@ -39,12 +39,12 @@ import {
   MapPin,
   Settings,
   Info,
-} from"lucide-react";
-import { useState } from"react";
-import { Link, useLocation } from"wouter";
-import { toast } from"sonner";
-import { cn } from"@/lib/utils";
-import { H1, H3, Body, H4 } from"@/components/Typography";
+} from "lucide-react";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { H1, H3, Body, H4 } from "@/components/Typography";
 
 type Step = 1 | 2 | 3;
 

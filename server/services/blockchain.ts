@@ -22,6 +22,13 @@ const ANCHOR_CONTRACT_ABI = [
   "event MerkleRootAnchored(uint256 indexed anchorId, bytes32 indexed merkleRoot, uint256 leafCount, address submitter)",
 ];
 
+// Gate Payment Rail Contract ABI (minimal interface)
+const GATE_PAYMENT_RAIL_ABI = [
+  "function releaseGate0(uint256 deliveryId, uint256 amount, address recipient) external returns (bool)",
+  "function getGateState(uint256 deliveryId) external view returns (uint16 releasedBps, uint256 releasedAmount, uint256 lastReleaseTime)",
+  "event Gate0Released(uint256 indexed deliveryId, uint256 amount, address recipient, uint16 releasedBps)",
+];
+
 export interface BlockchainConfig {
   rpcUrl: string;
   chainId: number;
@@ -45,6 +52,21 @@ export interface AnchorData {
   leafCount: number;
   timestamp: number;
   submitter: string;
+}
+
+export interface GateReleaseResult {
+  success: boolean;
+  txHash?: string;
+  blockNumber?: number;
+  chainId?: number;
+  error?: string;
+  gasUsed?: string;
+}
+
+export interface GateState {
+  releasedBps: number;
+  releasedAmount: string;
+  lastReleaseTime: number;
 }
 
 // Default configurations for supported chains
@@ -313,8 +335,107 @@ export class BlockchainService {
   }
 }
 
+/**
+ * GatePaymentRailService handles escrow release interactions on Polygon.
+ */
+export class GatePaymentRailService {
+  private provider: JsonRpcProvider | null = null;
+  private wallet: Wallet | null = null;
+  private contract: Contract | null = null;
+  private config: BlockchainConfig;
+  private initialized = false;
+
+  constructor(config: BlockchainConfig) {
+    this.config = config;
+  }
+
+  private async ensureInitialized(): Promise<void> {
+    if (this.initialized) return;
+
+    const { JsonRpcProvider, Wallet, Contract } = await getEthers();
+
+    this.provider = new JsonRpcProvider(this.config.rpcUrl, {
+      chainId: this.config.chainId,
+      name: this.config.chainName,
+    });
+
+    if (this.config.privateKey) {
+      this.wallet = new Wallet(this.config.privateKey, this.provider);
+    }
+
+    const signer = this.wallet || this.provider;
+    this.contract = new Contract(this.config.contractAddress, GATE_PAYMENT_RAIL_ABI, signer);
+    this.initialized = true;
+  }
+
+  async releaseGate0(
+    deliveryId: number,
+    amount: number,
+    recipient: string
+  ): Promise<GateReleaseResult> {
+    await this.ensureInitialized();
+
+    if (!this.wallet) {
+      return {
+        success: false,
+        error: "No private key configured for gate release transactions",
+      };
+    }
+
+    try {
+      const gasEstimate = await this.contract!.releaseGate0.estimateGas(
+        deliveryId,
+        amount,
+        recipient
+      );
+      const gasLimit = (gasEstimate * BigInt(120)) / BigInt(100);
+
+      const tx: ContractTransactionResponse = await this.contract!.releaseGate0(
+        deliveryId,
+        amount,
+        recipient,
+        { gasLimit }
+      );
+
+      const receipt = await tx.wait(1);
+      if (!receipt) {
+        return { success: false, error: "Transaction receipt not available" };
+      }
+
+      return {
+        success: true,
+        txHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        chainId: this.config.chainId,
+        gasUsed: receipt.gasUsed.toString(),
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[GatePaymentRail] Release failed: ${errorMessage}`);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async getGateState(deliveryId: number): Promise<GateState | null> {
+    await this.ensureInitialized();
+
+    try {
+      const result = await this.contract!.getGateState(deliveryId);
+      return {
+        releasedBps: Number(result.releasedBps),
+        releasedAmount: result.releasedAmount.toString(),
+        lastReleaseTime: Number(result.lastReleaseTime),
+      };
+    } catch (error) {
+      console.error(`[GatePaymentRail] Failed to get gate state ${deliveryId}:`, error);
+      return null;
+    }
+  }
+}
+
 // Singleton instance
 let blockchainServiceInstance: BlockchainService | null = null;
+let gatePaymentRailServiceInstance: GatePaymentRailService | null = null;
 
 /**
  * Get or create the blockchain service instance
@@ -369,4 +490,37 @@ export function createBlockchainService(
     contractAddress,
     privateKey,
   });
+}
+
+/**
+ * Get or create the gate payment rail service instance
+ */
+export function getGatePaymentRailService(): GatePaymentRailService | null {
+  if (gatePaymentRailServiceInstance) {
+    return gatePaymentRailServiceInstance;
+  }
+
+  const rpcUrl = process.env.GATE_PAYMENT_RAIL_RPC_URL || process.env.ETHEREUM_RPC_URL;
+  const contractAddress = process.env.GATE_PAYMENT_RAIL_CONTRACT;
+  const privateKey = process.env.GATE_PAYMENT_RAIL_PRIVATE_KEY || process.env.BLOCKCHAIN_PRIVATE_KEY;
+  const chainName = process.env.GATE_PAYMENT_RAIL_CHAIN || "polygon";
+
+  if (!rpcUrl || !contractAddress) {
+    console.warn(
+      "[GatePaymentRail] Service not configured. Set GATE_PAYMENT_RAIL_RPC_URL and GATE_PAYMENT_RAIL_CONTRACT."
+    );
+    return null;
+  }
+
+  const chainConfig = CHAIN_CONFIGS[chainName] || CHAIN_CONFIGS.polygon;
+
+  gatePaymentRailServiceInstance = new GatePaymentRailService({
+    rpcUrl,
+    chainId: chainConfig.chainId!,
+    chainName: chainConfig.chainName!,
+    contractAddress,
+    privateKey,
+  });
+
+  return gatePaymentRailServiceInstance;
 }

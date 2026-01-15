@@ -5834,6 +5834,158 @@ export const deliveries = mysqlTable(
 export type Delivery = typeof deliveries.$inferSelect;
 export type InsertDelivery = typeof deliveries.$inferInsert;
 
+// ============================================================================
+// GATE PAYMENT RAIL - STAGE-GATED TELEMETRY & RELEASES
+// ============================================================================
+
+/**
+ * Gate Devices
+ * Registered IoT gateways/probes that emit gate telemetry
+ */
+export const gateDevices = mysqlTable(
+  "gate_devices",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    deviceId: varchar("deviceId", { length: 64 }).notNull().unique(),
+    deviceType: mysqlEnum("deviceType", ["gateway", "probe", "simulator"]).notNull(),
+    status: mysqlEnum("status", ["active", "inactive", "revoked"]).default("active").notNull(),
+    keyAlgorithm: varchar("keyAlgorithm", { length: 32 }).default("hmac-sha256"),
+    publicKey: text("publicKey"),
+    sharedSecret: text("sharedSecret"),
+    lastSeen: timestamp("lastSeen"),
+    metadata: json("metadata").$type<Record<string, any>>(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    deviceIdIdx: unique("gate_devices_deviceId_unique").on(table.deviceId),
+    statusIdx: index("gate_devices_status_idx").on(table.status),
+    lastSeenIdx: index("gate_devices_lastSeen_idx").on(table.lastSeen),
+  })
+);
+
+export type GateDevice = typeof gateDevices.$inferSelect;
+export type InsertGateDevice = typeof gateDevices.$inferInsert;
+
+/**
+ * Gate Events
+ * One row per telemetry trigger (Gate 0-4)
+ */
+export const gateEvents = mysqlTable(
+  "gate_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    deviceId: int("deviceId")
+      .notNull()
+      .references(() => gateDevices.id),
+    gateIndex: int("gateIndex").notNull(),
+    consignmentId: varchar("consignmentId", { length: 32 }),
+    deliveryId: int("deliveryId").references(() => deliveries.id),
+    payload: json("payload").$type<Record<string, any>>().notNull(),
+    eventTime: timestamp("eventTime"),
+    receivedAt: timestamp("receivedAt").defaultNow().notNull(),
+    latitude: decimal("latitude", { precision: 10, scale: 7 }),
+    longitude: decimal("longitude", { precision: 10, scale: 7 }),
+    cumulativeTonnes: decimal("cumulativeTonnes", { precision: 12, scale: 3 }),
+    cumulativeDryMatterTonnes: decimal("cumulativeDryMatterTonnes", {
+      precision: 12,
+      scale: 3,
+    }),
+    signatureStatus: mysqlEnum("signatureStatus", ["verified", "invalid", "missing"])
+      .default("missing")
+      .notNull(),
+    releasedPercent: decimal("releasedPercent", { precision: 5, scale: 2 }),
+    status: mysqlEnum("status", ["accepted", "rejected"]).default("accepted").notNull(),
+  },
+  (table) => ({
+    consignmentIdx: index("gate_events_consignment_idx").on(table.consignmentId),
+    deliveryIdx: index("gate_events_delivery_idx").on(table.deliveryId),
+    gateIndexIdx: index("gate_events_gateIndex_idx").on(table.gateIndex),
+    statusIdx: index("gate_events_status_idx").on(table.status),
+  })
+);
+
+export type GateEvent = typeof gateEvents.$inferSelect;
+export type InsertGateEvent = typeof gateEvents.$inferInsert;
+
+/**
+ * Payment Guarantees
+ * SBLC / trust / escrow records tied to contracts or deliveries
+ */
+export const paymentGuarantees = mysqlTable(
+  "payment_guarantees",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    contractId: int("contractId").references(() => contracts.id),
+    deliveryId: int("deliveryId").references(() => deliveries.id),
+    sourceType: mysqlEnum("sourceType", ["sblc", "trust", "escrow", "other"]).notNull(),
+    instrumentRef: varchar("instrumentRef", { length: 128 }),
+    amountLocked: decimal("amountLocked", { precision: 14, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 3 }).default("AUD"),
+    status: mysqlEnum("status", [
+      "pending",
+      "secured",
+      "released",
+      "expired",
+      "cancelled",
+    ])
+      .default("pending")
+      .notNull(),
+    fundsSecuredAt: timestamp("fundsSecuredAt"),
+    metadata: json("metadata").$type<Record<string, any>>(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    contractIdx: index("payment_guarantees_contract_idx").on(table.contractId),
+    deliveryIdx: index("payment_guarantees_delivery_idx").on(table.deliveryId),
+    statusIdx: index("payment_guarantees_status_idx").on(table.status),
+  })
+);
+
+export type PaymentGuarantee = typeof paymentGuarantees.$inferSelect;
+export type InsertPaymentGuarantee = typeof paymentGuarantees.$inferInsert;
+
+/**
+ * Gate Releases
+ * Audit trail of escrow payouts triggered by gate events
+ */
+export const gateReleases = mysqlTable(
+  "gate_releases",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    gateEventId: int("gateEventId")
+      .notNull()
+      .references(() => gateEvents.id),
+    consignmentId: varchar("consignmentId", { length: 32 }),
+    deliveryId: int("deliveryId").references(() => deliveries.id),
+    paymentGuaranteeId: int("paymentGuaranteeId").references(() => paymentGuarantees.id),
+    gateIndex: int("gateIndex").notNull(),
+    releasePercent: decimal("releasePercent", { precision: 5, scale: 2 }).notNull(),
+    releaseAmount: decimal("releaseAmount", { precision: 14, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 3 }).default("AUD"),
+    chainId: int("chainId"),
+    txHash: varchar("txHash", { length: 100 }),
+    paymentSource: mysqlEnum("paymentSource", ["escrow", "trust", "sblc", "manual"])
+      .default("escrow")
+      .notNull(),
+    status: mysqlEnum("status", ["pending", "submitted", "confirmed", "failed"])
+      .default("pending")
+      .notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    consignmentIdx: index("gate_releases_consignment_idx").on(table.consignmentId),
+    deliveryIdx: index("gate_releases_delivery_idx").on(table.deliveryId),
+    gateIndexIdx: index("gate_releases_gateIndex_idx").on(table.gateIndex),
+    statusIdx: index("gate_releases_status_idx").on(table.status),
+  })
+);
+
+export type GateRelease = typeof gateReleases.$inferSelect;
+export type InsertGateRelease = typeof gateReleases.$inferInsert;
+
 /**
  * Price Signals
  * Market price indicators by feedstock and region

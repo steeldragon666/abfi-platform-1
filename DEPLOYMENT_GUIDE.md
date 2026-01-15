@@ -69,10 +69,23 @@ ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/your-project-id
 EVIDENCE_ANCHOR_CONTRACT=0x...
 BLOCKCHAIN_CHAIN=ethereum
 
+# Gate Payment Rail (optional)
+GATE_PAYMENT_RAIL_RPC_URL=https://polygon-rpc.com
+GATE_PAYMENT_RAIL_CONTRACT=0x...
+GATE_PAYMENT_RAIL_CHAIN=polygon
+GATE_PAYMENT_RAIL_PRIVATE_KEY=your-private-key
+GATE_PAYMENT_RAIL_ESCROW_ADDRESS=0x...
+GATE_MIN_TONNES=25
+GATE0_RELEASE_PERCENT=30
+
 # IPFS (optional)
 IPFS_API_URL=https://ipfs.infura.io:5001
 IPFS_GATEWAY_URL=https://ipfs.io
 ```
+
+Gate telemetry signatures are validated against per-device keys stored in the
+`gate_devices` table. Seed a device with a `sharedSecret` (HMAC) or `publicKey`
+(Ed25519) and set `keyAlgorithm` to `hmac-sha256` or `ed25519` accordingly.
 
 ## Database Setup
 
@@ -106,6 +119,12 @@ pnpm install
 
 # Run migrations
 pnpm run db:push
+```
+
+### Seed Gate Devices (optional)
+
+```bash
+pnpm exec tsx scripts/seed-gate-devices.ts
 ```
 
 ## Build Configuration
