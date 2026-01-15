@@ -207,6 +207,22 @@ Server-Sent Events for live updates:
 - Covenant breach warnings
 - Market price movements
 
+### Supply-Chain Command Centre (Market Intelligence)
+Stage-gated, trust-backed payment rail where Gate-0 starts at the harvester:
+- Gate 0 - Tonnage harvested (harvester yield meter + IoT gateway): GPS polygon, t/h, cumulative t, timestamp, fuel used; 30% release from funds-in-trust
+- Gate 1 - Load-out moisture (inline NIR probe): %H2O, DM %, ash %, calorific value; 20% release from funds-in-trust
+- Gate 2 - Transport departure (load cells + RFID seal): gross/tare/net DM, seal ID, departure geo-stamp; 30% release from funds-in-trust
+- Gate 3 - Arrival and geo-confirm (site scan + phone GPS + weigh bridge): arrival timestamp, net delivered DM t, route variance < 2%; 15% release from funds-in-trust
+- Gate 4 - Lab validation (NATA lab HL7): final DM %, contamination ppm, CV (GJ/t); 5% + bonus/penalty and job closeout
+- Hardware/connectivity: CAN-bus yield sensor -> 4G/5G edge gateway (MQTT JSON every 5 s), inline NIR probe via Bluetooth, certified load cells + e-seal with tamper flag
+- Smart-contract hook: oracle calls `gate0Release`, transfers 30% AUDC, and mints a delivery NFT keyed by `deliveryId` for all downstream gates
+- Payment guarantees: bank SBLC, trust account API, or escrowed AUDC via Gnosis Safe with "funds guaranteed" badge
+- JIT AI scheduling: live t/h + transport ETA + stockyard capacity -> recommended start time, auto re-book if weather corridor risk
+- Dispute resolution: parametric top-up for sensor variance, AI arbiter with human-in-loop, legal holdback on final 5%
+- UX loop: operator toast for gate release, finance webhook for ETA/risk, grower wallet paid within ~15 s
+- KPIs: harvest-to-cash <= 90 min median, payment accuracy >= 99%, dispute rate <= 0.3%, stock-yard buffer -40%
+- Tag line: "Tonnage counted at the header -> money in your pocket before the truck hits the gate - guaranteed."
+
 ---
 
 ## Security
