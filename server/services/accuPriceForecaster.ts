@@ -388,7 +388,8 @@ export async function simulateProjectNPV(params: {
 
   // Probability calculations
   const probPositiveNPV = npvResults.filter(npv => npv > 0).length / simulations;
-  const probBreakeven = npvResults.filter(npv => npv >= annualACCUs * currentPrice).length / simulations;
+  // Breakeven should compare against 0 NPV (initial investment not modeled here)
+  const probBreakeven = npvResults.filter(npv => npv >= 0).length / simulations;
 
   // Price elasticity (approximate)
   const priceElasticity = 1.0; // NPV is roughly proportional to price
