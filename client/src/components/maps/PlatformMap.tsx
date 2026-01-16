@@ -509,6 +509,7 @@ const LAYER_CATEGORIES: LayerCategory[] = [
 const PRESET_LAYERS: Record<MapPreset, Partial<LayerState>> = {
   grower: {
     baseLayer: 'satellite',
+    bomRadar: true,
     bomRainfall: true,
     bomWarnings: true,
     ndvi: true,

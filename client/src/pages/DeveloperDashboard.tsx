@@ -62,6 +62,7 @@ import { H1, H2, H3, Body, MetricValue, DataLabel } from "@/components/Typograph
 import { CompactCard } from "@/components/ui/CompactCard";
 import { CollapsibleSection } from "@/components/layout/CollapsibleSection";
 import { DenseStatsGrid, DenseGrid } from "@/components/layout/DenseGrid";
+import { RefreshButton } from "@/components/ui/RefreshButton";
 
 // Pipeline stages
 const PIPELINE_STAGES = [
@@ -162,10 +163,42 @@ export default function DeveloperDashboard() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-65px)] bg-background overflow-hidden">
+    <div className="min-h-screen bg-background premium-fade-in">
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="premium-container flex h-20 items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
+                <Factory className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="premium-heading-xl text-foreground">Developer Dashboard</h1>
+                <p className="text-sm text-muted-foreground">
+                  Source feedstocks and manage deal pipelines
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <RefreshButton
+              onRefresh={() => {
+                console.log("Refreshing developer dashboard data...");
+              }}
+              isLoading={false}
+            />
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Deal
+            </Button>
+          </div>
+        </div>
+      </header>
+
       {/* Quick Stats Bar - Dense layout */}
-      <div className="border-b bg-card/50 shrink-0">
-        <div className="container mx-auto px-4 py-2">
+      <div className="border-b bg-card/50">
+        <div className="premium-container">
           <DenseStatsGrid variant="compact">
             {QUICK_STATS.map((stat, index) => (
               <div key={index} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors">
@@ -182,8 +215,9 @@ export default function DeveloperDashboard() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
+      <main className="premium-container premium-section">
+        {/* Main Content */}
+        <div className="flex flex-col lg:flex-row min-h-[70vh] border rounded-2xl overflow-hidden bg-card/40">
         {/* Left Sidebar - Search & Pipeline */}
         <div className="w-full lg:w-[420px] border-r bg-card/50 flex flex-col shrink-0 relative z-10">
           {/* Search Bar */}
@@ -480,7 +514,8 @@ export default function DeveloperDashboard() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
