@@ -119,20 +119,25 @@ export async function resolveEntity(signal: RawSignal): Promise<ResolvedEntity> 
 
   // First, check for exact ABN match if available
   if (signal.identifiers?.abn) {
-    const abnMatch = await db
-      .select()
-      .from(stealthEntities)
-      .where(
-        sql`JSON_CONTAINS(${stealthEntities.identifiers}, '"${signal.identifiers.abn}"', '$.abn')`
-      )
-      .limit(1);
+    // Sanitize ABN: should only contain digits (Australian ABN is 11 digits)
+    const sanitizedAbn = String(signal.identifiers.abn).replace(/[^0-9]/g, '');
+    if (sanitizedAbn.length === 11) {
+      const abnSearchValue = JSON.stringify(sanitizedAbn);
+      const abnMatch = await db
+        .select()
+        .from(stealthEntities)
+        .where(
+          sql`JSON_CONTAINS(${stealthEntities.identifiers}, ${abnSearchValue}, '$.abn')`
+        )
+        .limit(1);
 
-    if (abnMatch.length > 0) {
-      return {
-        id: abnMatch[0].id,
-        canonicalName: abnMatch[0].canonicalName,
-        isNew: false,
-      };
+      if (abnMatch.length > 0) {
+        return {
+          id: abnMatch[0].id,
+          canonicalName: abnMatch[0].canonicalName,
+          isNew: false,
+        };
+      }
     }
   }
 

@@ -9,7 +9,13 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const MANUS_API_KEY = process.env.MANUS_API_KEY || 'sk-Y-7DlRNlRvkObQTQpiorbhhw7ND2Wz3w9un8OoF55HFW_-PTXAOe0AELHc8WHhQnhc-sNrLaWZh8tWPmUrix8IqtkT9p';
+const MANUS_API_KEY = process.env.MANUS_API_KEY;
+
+if (!MANUS_API_KEY) {
+  console.error('Error: MANUS_API_KEY environment variable is required');
+  console.error('Set it with: export MANUS_API_KEY=your-api-key');
+  process.exit(1);
+}
 
 const TASK_MAPPINGS = {
   'VT6jYTx8fYZLa4YxsXjmae': {
