@@ -5834,158 +5834,6 @@ export const deliveries = mysqlTable(
 export type Delivery = typeof deliveries.$inferSelect;
 export type InsertDelivery = typeof deliveries.$inferInsert;
 
-// ============================================================================
-// GATE PAYMENT RAIL - STAGE-GATED TELEMETRY & RELEASES
-// ============================================================================
-
-/**
- * Gate Devices
- * Registered IoT gateways/probes that emit gate telemetry
- */
-export const gateDevices = mysqlTable(
-  "gate_devices",
-  {
-    id: int("id").autoincrement().primaryKey(),
-    deviceId: varchar("deviceId", { length: 64 }).notNull().unique(),
-    deviceType: mysqlEnum("deviceType", ["gateway", "probe", "simulator"]).notNull(),
-    status: mysqlEnum("status", ["active", "inactive", "revoked"]).default("active").notNull(),
-    keyAlgorithm: varchar("keyAlgorithm", { length: 32 }).default("hmac-sha256"),
-    publicKey: text("publicKey"),
-    sharedSecret: text("sharedSecret"),
-    lastSeen: timestamp("lastSeen"),
-    metadata: json("metadata").$type<Record<string, any>>(),
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  },
-  (table) => ({
-    deviceIdIdx: unique("gate_devices_deviceId_unique").on(table.deviceId),
-    statusIdx: index("gate_devices_status_idx").on(table.status),
-    lastSeenIdx: index("gate_devices_lastSeen_idx").on(table.lastSeen),
-  })
-);
-
-export type GateDevice = typeof gateDevices.$inferSelect;
-export type InsertGateDevice = typeof gateDevices.$inferInsert;
-
-/**
- * Gate Events
- * One row per telemetry trigger (Gate 0-4)
- */
-export const gateEvents = mysqlTable(
-  "gate_events",
-  {
-    id: int("id").autoincrement().primaryKey(),
-    deviceId: int("deviceId")
-      .notNull()
-      .references(() => gateDevices.id),
-    gateIndex: int("gateIndex").notNull(),
-    consignmentId: varchar("consignmentId", { length: 32 }),
-    deliveryId: int("deliveryId").references(() => deliveries.id),
-    payload: json("payload").$type<Record<string, any>>().notNull(),
-    eventTime: timestamp("eventTime"),
-    receivedAt: timestamp("receivedAt").defaultNow().notNull(),
-    latitude: decimal("latitude", { precision: 10, scale: 7 }),
-    longitude: decimal("longitude", { precision: 10, scale: 7 }),
-    cumulativeTonnes: decimal("cumulativeTonnes", { precision: 12, scale: 3 }),
-    cumulativeDryMatterTonnes: decimal("cumulativeDryMatterTonnes", {
-      precision: 12,
-      scale: 3,
-    }),
-    signatureStatus: mysqlEnum("signatureStatus", ["verified", "invalid", "missing"])
-      .default("missing")
-      .notNull(),
-    releasedPercent: decimal("releasedPercent", { precision: 5, scale: 2 }),
-    status: mysqlEnum("status", ["accepted", "rejected"]).default("accepted").notNull(),
-  },
-  (table) => ({
-    consignmentIdx: index("gate_events_consignment_idx").on(table.consignmentId),
-    deliveryIdx: index("gate_events_delivery_idx").on(table.deliveryId),
-    gateIndexIdx: index("gate_events_gateIndex_idx").on(table.gateIndex),
-    statusIdx: index("gate_events_status_idx").on(table.status),
-  })
-);
-
-export type GateEvent = typeof gateEvents.$inferSelect;
-export type InsertGateEvent = typeof gateEvents.$inferInsert;
-
-/**
- * Payment Guarantees
- * SBLC / trust / escrow records tied to contracts or deliveries
- */
-export const paymentGuarantees = mysqlTable(
-  "payment_guarantees",
-  {
-    id: int("id").autoincrement().primaryKey(),
-    contractId: int("contractId").references(() => contracts.id),
-    deliveryId: int("deliveryId").references(() => deliveries.id),
-    sourceType: mysqlEnum("sourceType", ["sblc", "trust", "escrow", "other"]).notNull(),
-    instrumentRef: varchar("instrumentRef", { length: 128 }),
-    amountLocked: decimal("amountLocked", { precision: 14, scale: 2 }).notNull(),
-    currency: varchar("currency", { length: 3 }).default("AUD"),
-    status: mysqlEnum("status", [
-      "pending",
-      "secured",
-      "released",
-      "expired",
-      "cancelled",
-    ])
-      .default("pending")
-      .notNull(),
-    fundsSecuredAt: timestamp("fundsSecuredAt"),
-    metadata: json("metadata").$type<Record<string, any>>(),
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  },
-  (table) => ({
-    contractIdx: index("payment_guarantees_contract_idx").on(table.contractId),
-    deliveryIdx: index("payment_guarantees_delivery_idx").on(table.deliveryId),
-    statusIdx: index("payment_guarantees_status_idx").on(table.status),
-  })
-);
-
-export type PaymentGuarantee = typeof paymentGuarantees.$inferSelect;
-export type InsertPaymentGuarantee = typeof paymentGuarantees.$inferInsert;
-
-/**
- * Gate Releases
- * Audit trail of escrow payouts triggered by gate events
- */
-export const gateReleases = mysqlTable(
-  "gate_releases",
-  {
-    id: int("id").autoincrement().primaryKey(),
-    gateEventId: int("gateEventId")
-      .notNull()
-      .references(() => gateEvents.id),
-    consignmentId: varchar("consignmentId", { length: 32 }),
-    deliveryId: int("deliveryId").references(() => deliveries.id),
-    paymentGuaranteeId: int("paymentGuaranteeId").references(() => paymentGuarantees.id),
-    gateIndex: int("gateIndex").notNull(),
-    releasePercent: decimal("releasePercent", { precision: 5, scale: 2 }).notNull(),
-    releaseAmount: decimal("releaseAmount", { precision: 14, scale: 2 }).notNull(),
-    currency: varchar("currency", { length: 3 }).default("AUD"),
-    chainId: int("chainId"),
-    txHash: varchar("txHash", { length: 100 }),
-    paymentSource: mysqlEnum("paymentSource", ["escrow", "trust", "sblc", "manual"])
-      .default("escrow")
-      .notNull(),
-    status: mysqlEnum("status", ["pending", "submitted", "confirmed", "failed"])
-      .default("pending")
-      .notNull(),
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  },
-  (table) => ({
-    consignmentIdx: index("gate_releases_consignment_idx").on(table.consignmentId),
-    deliveryIdx: index("gate_releases_delivery_idx").on(table.deliveryId),
-    gateIndexIdx: index("gate_releases_gateIndex_idx").on(table.gateIndex),
-    statusIdx: index("gate_releases_status_idx").on(table.status),
-  })
-);
-
-export type GateRelease = typeof gateReleases.$inferSelect;
-export type InsertGateRelease = typeof gateReleases.$inferInsert;
-
 /**
  * Price Signals
  * Market price indicators by feedstock and region
@@ -7212,6 +7060,203 @@ export const abfiAssessmentImprovements = mysqlTable(
   })
 );
 
+/**
+ * ABFI Supply Chain Payment Guarantees
+ */
+export const abfiPaymentGuarantees = mysqlTable(
+  "abfi_payment_guarantees",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    guaranteeId: varchar("guarantee_id", { length: 50 }).notNull().unique(),
+    guaranteeType: mysqlEnum("guarantee_type", [
+      "sblc",
+      "trust_account",
+      "gnosis_safe",
+    ]).notNull(),
+    status: mysqlEnum("status", [
+      "pending",
+      "secured",
+      "rejected",
+      "expired",
+      "released",
+    ]).default("pending").notNull(),
+
+    amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 3 }).default("AUD").notNull(),
+    providerName: varchar("provider_name", { length: 255 }),
+
+    // SBLC-specific fields
+    sblcSwiftRef: varchar("sblc_swift_ref", { length: 50 }),
+    sblcDocumentUrl: varchar("sblc_document_url", { length: 500 }),
+    sblcIssuerBank: varchar("sblc_issuer_bank", { length: 255 }),
+    sblcIssuedAt: timestamp("sblc_issued_at"),
+    sblcExpiresAt: timestamp("sblc_expires_at"),
+
+    // Trust account fields
+    trustAccountRef: varchar("trust_account_ref", { length: 100 }),
+    trustAccountBalance: decimal("trust_account_balance", { precision: 12, scale: 2 }),
+
+    // Gnosis Safe fields
+    gnosisSafeAddress: varchar("gnosis_safe_address", { length: 100 }),
+    gnosisChain: varchar("gnosis_chain", { length: 50 }),
+    gnosisDepositTxHash: varchar("gnosis_deposit_tx_hash", { length: 100 }),
+
+    verifiedAt: timestamp("verified_at"),
+    verifiedBy: int("verified_by").references(() => users.id),
+    metadata: json("metadata").$type<Record<string, any>>(),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    guaranteeIdIdx: index("abfi_guarantees_id_idx").on(table.guaranteeId),
+    statusIdx: index("abfi_guarantees_status_idx").on(table.status),
+    typeIdx: index("abfi_guarantees_type_idx").on(table.guaranteeType),
+  })
+);
+
+/**
+ * ABFI Supply Chain Deliveries (Stage-Gated JIT Payment)
+ */
+export const abfiSupplyChainDeliveries = mysqlTable(
+  "abfi_supply_chain_deliveries",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    deliveryId: varchar("delivery_id", { length: 50 }).notNull().unique(),
+
+    assessmentId: int("assessment_id").references(() => abfiBankabilityAssessments.id),
+    projectId: int("project_id").references(() => bioenergyProjects.id),
+    buyerId: int("buyer_id").references(() => buyers.id),
+    growerSupplierId: int("grower_supplier_id").references(() => suppliers.id),
+    guaranteeId: int("guarantee_id").references(() => abfiPaymentGuarantees.id),
+
+    contractValue: decimal("contract_value", { precision: 12, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 3 }).default("AUD").notNull(),
+    expectedTonnes: decimal("expected_tonnes", { precision: 10, scale: 2 }),
+    minGate0Tonnes: decimal("min_gate0_tonnes", { precision: 10, scale: 2 }),
+
+    status: mysqlEnum("status", [
+      "created",
+      "in_progress",
+      "completed",
+      "disputed",
+      "cancelled",
+    ]).default("created").notNull(),
+
+    fundsSecured: boolean("funds_secured").default(false).notNull(),
+    fundsSecuredAt: timestamp("funds_secured_at"),
+    lastGateIndex: int("last_gate_index"),
+
+    harvestStartAt: timestamp("harvest_start_at"),
+    harvestEndAt: timestamp("harvest_end_at"),
+
+    notes: text("notes"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    deliveryIdIdx: index("abfi_deliveries_id_idx").on(table.deliveryId),
+    statusIdx: index("abfi_deliveries_status_idx").on(table.status),
+    assessmentIdx: index("abfi_deliveries_assessment_idx").on(table.assessmentId),
+    projectIdx: index("abfi_deliveries_project_idx").on(table.projectId),
+    buyerIdx: index("abfi_deliveries_buyer_idx").on(table.buyerId),
+    growerIdx: index("abfi_deliveries_grower_idx").on(table.growerSupplierId),
+    guaranteeIdx: index("abfi_deliveries_guarantee_idx").on(table.guaranteeId),
+  })
+);
+
+/**
+ * ABFI Supply Chain Gate Events
+ */
+export const abfiGateEvents = mysqlTable(
+  "abfi_gate_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    deliveryId: int("delivery_id").notNull().references(() => abfiSupplyChainDeliveries.id, { onDelete: "cascade" }),
+
+    gateIndex: int("gate_index").notNull(),
+    deviceType: mysqlEnum("device_type", [
+      "harvester_yield_meter",
+      "nir_probe",
+      "load_cell",
+      "arrival_scan",
+      "lab_result",
+    ]).notNull(),
+
+    payload: json("payload").$type<Record<string, any>>(),
+    sensorTimestamp: timestamp("sensor_timestamp"),
+    recordedAt: timestamp("recorded_at").defaultNow().notNull(),
+
+    latitude: decimal("latitude", { precision: 10, scale: 6 }),
+    longitude: decimal("longitude", { precision: 10, scale: 6 }),
+
+    cumulativeTonnes: decimal("cumulative_tonnes", { precision: 10, scale: 2 }),
+    instantaneousTonnesPerHour: decimal("instantaneous_tph", { precision: 10, scale: 2 }),
+    moisturePct: decimal("moisture_pct", { precision: 5, scale: 2 }),
+    dryMatterPct: decimal("dry_matter_pct", { precision: 5, scale: 2 }),
+    ashPct: decimal("ash_pct", { precision: 5, scale: 2 }),
+    calorificValueGJPerT: decimal("calorific_value_gj_t", { precision: 6, scale: 2 }),
+    fuelLiters: decimal("fuel_liters", { precision: 10, scale: 2 }),
+
+    grossTonnes: decimal("gross_tonnes", { precision: 10, scale: 2 }),
+    tareTonnes: decimal("tare_tonnes", { precision: 10, scale: 2 }),
+    netDryTonnes: decimal("net_dry_tonnes", { precision: 10, scale: 2 }),
+    sealId: varchar("seal_id", { length: 100 }),
+    routeVariancePct: decimal("route_variance_pct", { precision: 5, scale: 2 }),
+
+    contaminationPpm: decimal("contamination_ppm", { precision: 10, scale: 2 }),
+    tamperFlag: boolean("tamper_flag").default(false),
+
+    gatewayId: varchar("gateway_id", { length: 100 }),
+    gatewaySignature: varchar("gateway_signature", { length: 255 }),
+
+    validationStatus: mysqlEnum("validation_status", [
+      "pending",
+      "accepted",
+      "rejected",
+    ]).default("pending").notNull(),
+    validationNotes: text("validation_notes"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    deliveryIdx: index("abfi_gate_delivery_idx").on(table.deliveryId),
+    gateIdx: index("abfi_gate_index_idx").on(table.gateIndex),
+    recordedIdx: index("abfi_gate_recorded_idx").on(table.recordedAt),
+    validationIdx: index("abfi_gate_validation_idx").on(table.validationStatus),
+  })
+);
+
+/**
+ * ABFI Supply Chain Payment Releases
+ */
+export const abfiPaymentReleases = mysqlTable(
+  "abfi_payment_releases",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    deliveryId: int("delivery_id").notNull().references(() => abfiSupplyChainDeliveries.id, { onDelete: "cascade" }),
+    gateIndex: int("gate_index").notNull(),
+
+    percent: int("percent").notNull(),
+    amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 3 }).default("AUD").notNull(),
+    source: mysqlEnum("source", ["funds_in_trust"]).default("funds_in_trust").notNull(),
+    status: mysqlEnum("status", ["pending", "released", "failed", "reversed"]).default("pending").notNull(),
+
+    releasedAt: timestamp("released_at"),
+    releaseRef: varchar("release_ref", { length: 100 }),
+    metadata: json("metadata").$type<Record<string, any>>(),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    deliveryIdx: index("abfi_releases_delivery_idx").on(table.deliveryId),
+    gateIdx: index("abfi_releases_gate_idx").on(table.gateIndex),
+    statusIdx: index("abfi_releases_status_idx").on(table.status),
+  })
+);
+
 // Type exports
 export type ABFIAssessmentFramework = typeof abfiAssessmentFrameworks.$inferSelect;
 export type InsertABFIAssessmentFramework = typeof abfiAssessmentFrameworks.$inferInsert;
@@ -7227,6 +7272,18 @@ export type InsertABFIAssessmentEvidence = typeof abfiAssessmentEvidence.$inferI
 
 export type ABFIAssessmentImprovement = typeof abfiAssessmentImprovements.$inferSelect;
 export type InsertABFIAssessmentImprovement = typeof abfiAssessmentImprovements.$inferInsert;
+
+export type ABFIPaymentGuarantee = typeof abfiPaymentGuarantees.$inferSelect;
+export type InsertABFIPaymentGuarantee = typeof abfiPaymentGuarantees.$inferInsert;
+
+export type ABFISupplyChainDelivery = typeof abfiSupplyChainDeliveries.$inferSelect;
+export type InsertABFISupplyChainDelivery = typeof abfiSupplyChainDeliveries.$inferInsert;
+
+export type ABFIGateEvent = typeof abfiGateEvents.$inferSelect;
+export type InsertABFIGateEvent = typeof abfiGateEvents.$inferInsert;
+
+export type ABFIPaymentRelease = typeof abfiPaymentReleases.$inferSelect;
+export type InsertABFIPaymentRelease = typeof abfiPaymentReleases.$inferInsert;
 
 /**
  * Project Claims

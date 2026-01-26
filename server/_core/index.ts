@@ -14,7 +14,7 @@ import { handleManusWebhook } from "../manus";
 import { certificateVerificationRouter } from "../certificateVerificationApi";
 import { didResolutionRouter } from "../didResolutionApi";
 import { aiChatRouter } from "../aiChatRouter";
-import { gateTelemetryRouter } from "../gateTelemetryApi";
+// import { gateTelemetryRouter } from "../gateTelemetryApi"; // Disabled - schema tables not available
 import { australianDataRouter } from "../apis/australianDataRouter";
 import { intelligenceRouter } from "../intelligenceRouter";
 import { climateRouter } from "../climateRouter";
@@ -130,8 +130,8 @@ async function startServer() {
   // AI Chat API for HeyGen Avatar Assistant
   app.use("/api/ai-chat", aiChatRouter);
 
-  // Gate telemetry ingest (MQTT -> HTTP)
-  app.use("/api/gates/telemetry", gateTelemetryRouter);
+  // Gate telemetry ingest (MQTT -> HTTP) - Disabled: schema tables not available
+  // app.use("/api/gates/telemetry", gateTelemetryRouter);
 
   // Australian Data APIs (climate, soil, carbon credits)
   app.use("/api/australian-data", australianDataRouter);
