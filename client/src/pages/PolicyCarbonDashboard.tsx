@@ -10,16 +10,16 @@
  * - Typography components for consistent styling
  */
 
-import { useState } from"react";
-import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from"@/components/Typography";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from"@/components/ui/Card";
-import { Badge } from"@/components/ui/badge";
-import { Button } from"@/components/ui/Button";
-import { Skeleton } from"@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from"@/components/ui/tabs";
-import { Label } from"@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
-import { Slider } from"@/components/ui/slider";
+import { useState } from "react";
+import { H1, H2, H3, H4, Body, MetricValue, DataLabel } from "@/components/Typography";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import {
   AlertCircle,
   ArrowLeft,
@@ -36,11 +36,11 @@ import {
   Newspaper,
   ExternalLink,
   Filter,
-} from"lucide-react";
-import { Link } from"wouter";
-import { trpc } from"@/lib/trpc";
-import { LazyChart } from"@/components/ui/lazy-charts";
-import { RefreshButton } from"@/components/ui/RefreshButton";
+} from "lucide-react";
+import { Link } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { LazyChart } from "@/components/ui/lazy-charts";
+import { RefreshButton } from "@/components/ui/RefreshButton";
 
 const JURISDICTION_COLORS: Record<string, string> = {
   Federal:"#3b82f6",

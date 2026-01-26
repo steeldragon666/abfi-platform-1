@@ -197,10 +197,48 @@ export default function FinanceDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background premium-fade-in">
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="premium-container flex h-20 items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="premium-heading-xl text-foreground">Finance Dashboard</h1>
+                <p className="text-sm text-muted-foreground">
+                  Monitor risk, portfolio health, and market signals
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <RefreshButton
+              onRefresh={() => {
+                window.location.reload();
+              }}
+              showTimestamp
+              lastUpdated={new Date()}
+            />
+            <Link href="/stress-testing">
+              <Button variant="outline" size="sm">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Stress Test
+              </Button>
+            </Link>
+            <Button size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </div>
+      </header>
+
       {/* Quick Stats Bar */}
       <div className="border-b bg-card/50">
-        <div className="container mx-auto px-4 py-3">
+        <div className="premium-container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {QUICK_STATS.map((stat, index) => (
               <div key={index} className="flex items-center gap-3">
@@ -236,7 +274,7 @@ export default function FinanceDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="premium-container premium-section">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="flex items-center justify-between">
             <TabsList>
@@ -250,26 +288,6 @@ export default function FinanceDashboard() {
               <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
             </TabsList>
-            <div className="flex gap-2">
-              <RefreshButton
-                onRefresh={() => {
-                  // Refresh data queries - would invalidate tRPC queries
-                  window.location.reload();
-                }}
-                showTimestamp
-                lastUpdated={new Date()}
-              />
-              <Link href="/stress-testing">
-                <Button variant="outline" size="sm">
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Stress Test
-                </Button>
-              </Link>
-              <Button size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </div>
           </div>
 
           {/* Overview Tab */}

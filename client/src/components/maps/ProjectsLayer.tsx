@@ -4,7 +4,6 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
@@ -53,14 +52,30 @@ const TIER_LABELS = {
   4: 'Non-Investable',
 };
 
+// HTML escape function to prevent XSS
+function escapeHtml(unsafe: string | number | null | undefined): string {
+  if (unsafe === null || unsafe === undefined) return '';
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 interface ProjectsLayerProps {
+  map: L.Map | null;
   visible: boolean;
   selectedTiers?: number[];
   onProjectSelect?: (project: any) => void;
 }
 
-export function ProjectsLayer({ visible, selectedTiers = [1, 2, 3, 4], onProjectSelect }: ProjectsLayerProps) {
-  const map = useMap();
+export function ProjectsLayer({
+  map,
+  visible,
+  selectedTiers = [1, 2, 3, 4],
+  onProjectSelect
+}: ProjectsLayerProps) {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [markers, setMarkers] = useState<L.Marker[]>([]);
 
@@ -72,6 +87,7 @@ export function ProjectsLayer({ visible, selectedTiers = [1, 2, 3, 4], onProject
 
   // Clear existing markers when component unmounts or visibility changes
   useEffect(() => {
+    if (!map) return;
     return () => {
       markers.forEach(marker => map.removeLayer(marker));
     };
@@ -79,7 +95,7 @@ export function ProjectsLayer({ visible, selectedTiers = [1, 2, 3, 4], onProject
 
   // Update markers when data changes
   useEffect(() => {
-    if (!visible || !projectsData?.assessments) return;
+    if (!map || !visible || !projectsData?.assessments) return;
 
     // Clear existing markers
     markers.forEach(marker => map.removeLayer(marker));
@@ -104,8 +120,8 @@ export function ProjectsLayer({ visible, selectedTiers = [1, 2, 3, 4], onProject
         html: `
           <div class="relative">
             <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-white font-bold text-xs"
-                 style="background-color: ${tierColors.bg}; border-color: ${tierColors.border};">
-              ${project.rank || '?'}
+                 style="background-color: ${escapeHtml(tierColors.bg)}; border-color: ${escapeHtml(tierColors.border)};">
+              ${escapeHtml(project.rank) || '?'}
             </div>
             <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border border-white flex items-center justify-center"
                  style="background-color: ${tierColors.bg};">
@@ -138,28 +154,28 @@ export function ProjectsLayer({ visible, selectedTiers = [1, 2, 3, 4], onProject
         <div class="p-3 max-w-sm">
           <div class="flex items-start gap-3">
             <div class="w-10 h-10 rounded-full border-2 flex items-center justify-center text-white font-bold text-sm"
-                 style="background-color: ${tierColors.bg}; border-color: ${tierColors.border};">
-              ${project.rank || '?'}
+                 style="background-color: ${escapeHtml(tierColors.bg)}; border-color: ${escapeHtml(tierColors.border)};">
+              ${escapeHtml(project.rank) || '?'}
             </div>
             <div class="flex-1">
-              <h3 class="font-semibold text-sm">${project.shortName || project.projectName}</h3>
-              <p class="text-xs text-gray-600 mb-2">${project.technology} • ${project.state}</p>
+              <h3 class="font-semibold text-sm">${escapeHtml(project.shortName || project.projectName)}</h3>
+              <p class="text-xs text-gray-600 mb-2">${escapeHtml(project.technology)} • ${escapeHtml(project.state)}</p>
 
               <div class="flex items-center gap-2 mb-2">
                 <span class="px-2 py-1 rounded text-xs font-medium"
-                      style="background-color: ${tierColors.bg}20; color: ${tierColors.text}; border: 1px solid ${tierColors.border}40;">
-                  Tier ${project.tier}: ${TIER_LABELS[project.tier as keyof typeof TIER_LABELS]}
+                      style="background-color: ${escapeHtml(tierColors.bg)}20; color: ${escapeHtml(tierColors.text)}; border: 1px solid ${escapeHtml(tierColors.border)}40;">
+                  Tier ${escapeHtml(project.tier)}: ${escapeHtml(TIER_LABELS[project.tier as keyof typeof TIER_LABELS])}
                 </span>
               </div>
 
               <div class="flex items-center gap-2 text-xs text-gray-600 mb-2">
-                <span>Score: ${project.overallScore}/10</span>
+                <span>Score: ${escapeHtml(project.overallScore)}/10</span>
                 <span>•</span>
-                <span>Rating: ${project.rating}</span>
+                <span>Rating: ${escapeHtml(project.rating)}</span>
               </div>
 
               <div class="text-xs text-gray-600 mb-3">
-                ${project.capacityValue} ${project.capacityUnit} • ${project.feedstock}
+                ${escapeHtml(project.capacityValue)} ${escapeHtml(project.capacityUnit)} • ${escapeHtml(project.feedstock)}
               </div>
 
               <button class="w-full px-3 py-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors abfi-project-details-btn">

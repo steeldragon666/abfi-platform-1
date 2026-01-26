@@ -388,7 +388,7 @@ export async function simulateProjectNPV(params: {
 
   // Probability calculations
   const probPositiveNPV = npvResults.filter(npv => npv > 0).length / simulations;
-  // Breakeven should compare against 0 NPV (initial investment not modeled here)
+  // Breakeven probability uses NPV >= 0 as we don't model upfront capex here.
   const probBreakeven = npvResults.filter(npv => npv >= 0).length / simulations;
 
   // Price elasticity (approximate)

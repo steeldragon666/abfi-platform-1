@@ -9,15 +9,15 @@
  * - Typography components for consistent styling
  */
 
-import { Button } from"@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from"@/components/ui/Card";
-import { Badge } from"@/components/ui/badge";
+} from "@/components/ui/Card";
+import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight,
   Award,
@@ -46,9 +46,9 @@ import {
   History,
   GitBranch,
   Fingerprint,
-} from"lucide-react";
-import { Link } from"wouter";
-import { cn } from"@/lib/utils";
+} from "lucide-react";
+import { Link } from "wouter";
+import { cn } from "@/lib/utils";
 import {
   FadeInUp,
   StaggerContainer,
@@ -56,8 +56,8 @@ import {
   HoverCard,
   AnimatedCounter,
   motion,
-} from"@/components/ui/motion";
-import { H1, H2, H3, Body, MetricValue } from"@/components/Typography";
+} from "@/components/ui/motion";
+import { H1, H2, H3, Body, MetricValue } from "@/components/Typography";
 
 // Evidence Chain Visual
 function EvidenceChainDemo() {

@@ -8,19 +8,19 @@
  * - Typography components for consistent styling
  */
 
-import { useAuth } from"@/_core/hooks/useAuth";
-import { H1, H3, Body } from"@/components/Typography";
-import { Button } from"@/components/ui/Button";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { H1, H3, Body } from "@/components/Typography";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from"@/components/ui/Card";
-import { Badge } from"@/components/ui/badge";
-import { Skeleton } from"@/components/ui/skeleton";
-import { trpc } from"@/lib/trpc";
+} from "@/components/ui/Card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { trpc } from "@/lib/trpc";
 import {
   Package,
   Plus,
@@ -31,7 +31,7 @@ import {
   FileText,
   Download,
   ArrowLeft,
-} from"lucide-react";
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -39,13 +39,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from"@/components/ui/dialog";
-import { Input } from"@/components/ui/input";
-import { Label } from"@/components/ui/label";
-import { useState } from"react";
-import { toast } from"sonner";
-import { Link } from"wouter";
-import { formatDate } from"@/const";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Link } from "wouter";
+import { formatDate } from "@/const";
 
 export default function SupplierFeedstocks() {
   const { user, loading: authLoading } = useAuth();

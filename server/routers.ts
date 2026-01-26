@@ -31,6 +31,7 @@ import { climateIntelligenceHubRouter } from "./climateIntelligenceHubRouter";
 import { beemaRouter } from "./beemaRouter";
 // ABFI v7.0 Bankability Assessment Platform
 import { abfiProjectsRouter } from "./abfiProjectsRouter";
+import { abfiSupplyChainRouter } from "./abfiSupplyChainRouter";
 // ABFI v6.1 Carbon Registry (Trovio CorTenX Integration)
 import { carbonRouter } from "./carbonRouter";
 import { z } from "zod";
@@ -131,6 +132,7 @@ export const appRouter = router({
   // ABFI BANKABILITY ASSESSMENT PLATFORM (Phase 7)
   // ============================================================================
   abfiProjects: abfiProjectsRouter,
+  abfiSupplyChain: abfiSupplyChainRouter,
 
   // ============================================================================
   // CARBON REGISTRY - TROVIO CORTENX INTEGRATION (Phase 6.1)

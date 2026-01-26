@@ -12,6 +12,10 @@ import axios from "axios";
 
 export const australianDataRouter = Router();
 
+// SILO API credentials from environment
+const SILO_USERNAME = process.env.SILO_USERNAME || process.env.SILO_EMAIL;
+const SILO_PASSWORD = process.env.SILO_PASSWORD || "apirequest"; // SILO uses "apirequest" as default password
+
 // Cache for API responses (5 minute TTL)
 const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000;
@@ -78,6 +82,13 @@ australianDataRouter.get("/climate", async (req, res) => {
     // Documentation: https://www.longpaddock.qld.gov.au/silo/api-documentation/
     const url = `https://www.longpaddock.qld.gov.au/cgi-bin/silo/DataDrillDataset.php`;
 
+    if (!SILO_USERNAME) {
+      return res.status(503).json({
+        error: "SILO API not configured",
+        message: "Set SILO_USERNAME or SILO_EMAIL environment variable",
+      });
+    }
+
     const response = await axios.get(url, {
       params: {
         format: "alldata",
@@ -85,8 +96,8 @@ australianDataRouter.get("/climate", async (req, res) => {
         lon: longitude,
         start: startDate,
         finish: endDate,
-        username: "abfi@example.com",
-        password: "apirequest"
+        username: SILO_USERNAME,
+        password: SILO_PASSWORD
       },
       timeout: 15000
     });

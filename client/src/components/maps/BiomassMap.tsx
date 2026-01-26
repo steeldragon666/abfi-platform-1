@@ -53,7 +53,7 @@ const WMS_LAYERS = {
     status: "active",
   },
   // ABBA biomass data is now served via AREMI CSV endpoints with real-time generation data
-  // Live bioenergy generation from AREMI: http://services.aremi.nicta.com.au/aemo/v3/csv/bio
+// Live bioenergy generation from AREMI: https://services.aremi.nicta.com.au/aemo/v3/csv/bio
   // ABBA spatial datasets available for download from:
   // - Queensland: https://www.data.qld.gov.au/dataset/australian-biomass-for-bioenergy-assessment
   // - NSW BioSMART: https://www.dpi.nsw.gov.au/forestry/science/forest-carbon/biomass-for-bioenergy/nsw-biosmart
@@ -62,7 +62,7 @@ const WMS_LAYERS = {
 
 // AREMI Live Bioenergy Generation Data endpoint
 // Returns real-time power generation from biomass, bagasse, landfill gas, etc.
-export const AREMI_BIOENERGY_URL = "http://services.aremi.nicta.com.au/aemo/v3/csv/bio";
+export const AREMI_BIOENERGY_URL = "https://services.aremi.nicta.com.au/aemo/v3/csv/bio";
 
 // Interface for AREMI bioenergy generator data (from API response)
 export interface AremiBioenergyGenerator {

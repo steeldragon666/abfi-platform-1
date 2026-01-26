@@ -71,6 +71,8 @@ import {
   Calendar,
   ArrowRight,
   AlertCircle,
+  ShieldCheck,
+  Banknote,
 } from "lucide-react";
 import { Redirect } from "wouter";
 import { cn } from "@/lib/utils";
@@ -173,6 +175,171 @@ function TransportIcon({ mode }: { mode: string }) {
 
   const Icon = icons[mode] || Truck;
   return <Icon className="h-4 w-4" />;
+}
+
+function GateStatusBadge({ gateIndex }: { gateIndex: number | null }) {
+  const config = gateIndex === null || gateIndex === undefined
+    ? { label: "Gate 0 Pending", className: "bg-amber-100 text-amber-800" }
+    : gateIndex >= 4
+      ? { label: "Gate 4 Complete", className: "bg-emerald-100 text-emerald-800" }
+      : { label: `Gate ${gateIndex} Complete`, className: "bg-blue-100 text-blue-800" };
+
+  return (
+    <Badge className={cn("font-medium", config.className)}>
+      {config.label}
+    </Badge>
+  );
+}
+
+function GateDeliveryDetailDialog({ deliveryId }: { deliveryId: string }) {
+  const { data, isLoading } = trpc.abfiSupplyChain.getDelivery.useQuery({ deliveryId });
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Eye className="h-4 w-4 mr-2" />
+          View
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-5xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-blue-600" />
+            Gate Payment Details
+          </DialogTitle>
+          <DialogDescription>
+            Stage-gated delivery events, releases, and verification status.
+          </DialogDescription>
+        </DialogHeader>
+
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </div>
+        ) : data ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <StatsCard
+                title="Contract Value"
+                value={`${data.delivery.currency} ${Number(data.delivery.contractValue).toLocaleString()}`}
+                icon={Banknote}
+                variant="info"
+                description="Funds in trust"
+              />
+              <StatsCard
+                title="Funds Secured"
+                value={data.delivery.fundsSecured ? "Yes" : "No"}
+                icon={ShieldCheck}
+                variant={data.delivery.fundsSecured ? "success" : "warning"}
+                description={data.delivery.fundsSecuredAt ? new Date(data.delivery.fundsSecuredAt).toLocaleString() : "Not verified"}
+              />
+              <StatsCard
+                title="Last Gate"
+                value={data.delivery.lastGateIndex ?? "Pending"}
+                icon={CheckCircle2}
+                variant="default"
+                description={data.delivery.status}
+              />
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 mb-2">Gate Events</h3>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Gate</TableHead>
+                      <TableHead>Device</TableHead>
+                      <TableHead>Recorded</TableHead>
+                      <TableHead>Cumulative (t)</TableHead>
+                      <TableHead>Moisture %</TableHead>
+                      <TableHead>Net Dry t</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.gateEvents.length > 0 ? data.gateEvents.map((event: any) => (
+                      <TableRow key={event.id}>
+                        <TableCell>Gate {event.gateIndex}</TableCell>
+                        <TableCell className="capitalize">{event.deviceType.replace(/_/g, " ")}</TableCell>
+                        <TableCell className="text-sm text-gray-600">
+                          {event.recordedAt ? new Date(event.recordedAt).toLocaleString() : "-"}
+                        </TableCell>
+                        <TableCell>{event.cumulativeTonnes ?? "-"}</TableCell>
+                        <TableCell>{event.moisturePct ?? "-"}</TableCell>
+                        <TableCell>{event.netDryTonnes ?? "-"}</TableCell>
+                        <TableCell>
+                          <Badge className={cn("font-medium", event.validationStatus === "accepted" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800")}>
+                            {event.validationStatus}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-gray-600">
+                          No gate events recorded
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 mb-2">Payment Releases</h3>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Gate</TableHead>
+                      <TableHead>Percent</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Released</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.releases.length > 0 ? data.releases.map((release: any) => (
+                      <TableRow key={release.id}>
+                        <TableCell>Gate {release.gateIndex}</TableCell>
+                        <TableCell>{release.percent}%</TableCell>
+                        <TableCell>
+                          {release.currency} {Number(release.amount).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={cn("font-medium", release.status === "released" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800")}>
+                            {release.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600">
+                          {release.releasedAt ? new Date(release.releasedAt).toLocaleString() : "-"}
+                        </TableCell>
+                      </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-gray-600">
+                          No releases recorded
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-600">
+            <AlertCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <p>Delivery not found</p>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 // Create Consignment Dialog
@@ -496,11 +663,16 @@ export default function SupplyChainDashboard() {
     limit: 50,
   });
 
+  const { data: gateDeliveries, isLoading: gateDeliveriesLoading, refetch: refetchGateDeliveries } = trpc.abfiSupplyChain.listDeliveries.useQuery({
+    limit: 50,
+  });
+
   const handleRefresh = useCallback(() => {
     refetchStats();
     refetchConsignments();
+    refetchGateDeliveries();
     toast.success("Data refreshed");
-  }, [refetchStats, refetchConsignments]);
+  }, [refetchStats, refetchConsignments, refetchGateDeliveries]);
 
   if (loading) {
     return (
@@ -622,6 +794,7 @@ export default function SupplyChainDashboard() {
             <TabsTrigger value="consignments">Consignments</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="map">Map View</TabsTrigger>
+            <TabsTrigger value="gates">Gate Payments</TabsTrigger>
           </TabsList>
 
           <TabsContent value="consignments">
@@ -727,6 +900,86 @@ export default function SupplyChainDashboard() {
                 {consignmentsData && consignmentsData.total > 0 && (
                   <div className="mt-4 text-sm text-gray-600 text-center">
                     Showing {consignmentsData.consignments.length} of {consignmentsData.total} consignments
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="gates">
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <ShieldCheck className="h-5 w-5" />
+                      Gate-0 to Gate-4 Payments
+                    </CardTitle>
+                    <CardDescription>
+                      Harvester-to-cash workflow with funds-on-call guarantees
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {gateDeliveriesLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map(i => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : gateDeliveries?.deliveries && gateDeliveries.deliveries.length > 0 ? (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Delivery ID</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Last Gate</TableHead>
+                          <TableHead>Contract Value</TableHead>
+                          <TableHead>Funds Secured</TableHead>
+                          <TableHead>Updated</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {gateDeliveries.deliveries.map((delivery: any) => (
+                          <TableRow key={delivery.id}>
+                            <TableCell className="font-mono text-sm">
+                              {delivery.deliveryId}
+                            </TableCell>
+                            <TableCell className="capitalize">
+                              {delivery.status}
+                            </TableCell>
+                            <TableCell>
+                              <GateStatusBadge gateIndex={delivery.lastGateIndex} />
+                            </TableCell>
+                            <TableCell>
+                              {delivery.currency} {Number(delivery.contractValue).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              {delivery.fundsSecured ? (
+                                <Badge className="bg-emerald-100 text-emerald-800">Secured</Badge>
+                              ) : (
+                                <Badge className="bg-amber-100 text-amber-800">Pending</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              {delivery.updatedAt ? new Date(delivery.updatedAt).toLocaleDateString() : "-"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <GateDeliveryDetailDialog deliveryId={delivery.deliveryId} />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-600">
+                    <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>No gate deliveries found</p>
+                    <p className="text-sm">Create a delivery to start Gate-0 tracking</p>
                   </div>
                 )}
               </CardContent>
