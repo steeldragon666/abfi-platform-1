@@ -46,7 +46,7 @@ import {
 
 export interface CarbonStandardArticle {
   id: string;
-  source: "verra" | "gold_standard" | "cfi" | "iscc" | "rsb" | "reuters" | "bloomberg" | "carbon_pulse" | "biofuels_digest" | "argus" | "icis" | "platts" | "energy_intelligence" | "renewables_now" | "cpi" | "world_bank" | "irena" | "iea" | "fao";
+  source: "verra" | "gold_standard" | "cfi" | "iscc" | "rsb" | "reuters" | "bloomberg" | "carbon_pulse" | "biofuels_digest" | "argus" | "icis" | "platts" | "energy_intelligence" | "renewables_now" | "cpi" | "world_bank" | "irena" | "iea" | "fao" | "google_news";
   sourceName: string;
   title: string;
   excerpt?: string;
@@ -105,7 +105,8 @@ export class CarbonStandardsConnector extends BaseConnector {
     world_bank_climate: "https://www.worldbank.org/en/news/rss.xml",
     irena_news: "https://www.irena.org/news/rss.xml",
     iea_energy: "https://www.iea.org/rss/feeds/energynews.xml",
-    fao_climate: "https://www.fao.org/rss/en.xml"
+    fao_climate: "https://www.fao.org/rss/en.xml",
+    google_carbon: "https://news.google.com/rss/search?q=carbon%20market%20Australia%20biofuel&hl=en-AU&gl=AU&ceid=AU:en"
   };
 
   constructor(config: ConnectorConfig) {
@@ -126,7 +127,7 @@ export class CarbonStandardsConnector extends BaseConnector {
         reutersArticles, bloombergArticles, carbonPulseArticles, biofuelsDigestArticles,
         argusArticles, icisArticles, plattsArticles, energyIntelligenceArticles,
         renewablesNowArticles, cpiArticles, worldBankArticles, irenaArticles,
-        ieaArticles, faoArticles
+        ieaArticles, faoArticles, googleArticles
       ] = await Promise.all([
         // Standards organizations
         this.fetchVerraNews(since).catch(e => {
@@ -228,6 +229,11 @@ export class CarbonStandardsConnector extends BaseConnector {
           errors.push(`FAO: ${e.message}`);
           return this.getFAOMockArticles(since);
         }),
+        this.fetchGoogleCarbonNews(since).catch(e => {
+          this.logError("Google News fetch failed", e);
+          errors.push(`Google News: ${e.message}`);
+          return [];
+        }),
       ]);
 
       const allArticles = [
@@ -235,7 +241,7 @@ export class CarbonStandardsConnector extends BaseConnector {
         ...reutersArticles, ...bloombergArticles, ...carbonPulseArticles, ...biofuelsDigestArticles,
         ...argusArticles, ...icisArticles, ...plattsArticles, ...energyIntelligenceArticles,
         ...renewablesNowArticles, ...cpiArticles, ...worldBankArticles, ...irenaArticles,
-        ...ieaArticles, ...faoArticles
+        ...ieaArticles, ...faoArticles, ...googleArticles
       ];
 
       this.log(`Found ${allArticles.length} carbon and policy news articles`);
@@ -272,7 +278,7 @@ export class CarbonStandardsConnector extends BaseConnector {
         reutersArticles, bloombergArticles, carbonPulseArticles, biofuelsDigestArticles,
         argusArticles, icisArticles, plattsArticles, energyIntelligenceArticles,
         renewablesNowArticles, cpiArticles, worldBankArticles, irenaArticles,
-        ieaArticles, faoArticles
+        ieaArticles, faoArticles, googleArticles
       ] = await Promise.all([
         // Standards organizations
         this.fetchVerraNews(since).catch(() => this.getVerraMockArticles(since)),
@@ -298,6 +304,7 @@ export class CarbonStandardsConnector extends BaseConnector {
         this.fetchIRENANews(since).catch(() => this.getIRENAMockArticles(since)),
         this.fetchIEANews(since).catch(() => this.getIEAMockArticles(since)),
         this.fetchFAONews(since).catch(() => this.getFAOMockArticles(since)),
+        this.fetchGoogleCarbonNews(since).catch(() => []),
       ]);
 
       const allArticles = [
@@ -305,7 +312,7 @@ export class CarbonStandardsConnector extends BaseConnector {
         ...reutersArticles, ...bloombergArticles, ...carbonPulseArticles, ...biofuelsDigestArticles,
         ...argusArticles, ...icisArticles, ...plattsArticles, ...energyIntelligenceArticles,
         ...renewablesNowArticles, ...cpiArticles, ...worldBankArticles, ...irenaArticles,
-        ...ieaArticles, ...faoArticles
+        ...ieaArticles, ...faoArticles, ...googleArticles
       ];
 
       // Sort by date and limit
@@ -703,11 +710,12 @@ export class CarbonStandardsConnector extends BaseConnector {
       }
 
       const xml = await response.text();
-      return this.parseRSSXml(xml, source, sourceName, since);
+      const strict = this.parseRSSXml(xml, source, sourceName, since, true);
+      return strict.length > 0 ? strict : this.parseRSSXml(xml, source, sourceName, since, false);
     });
   }
 
-  private parseRSSXml(xml: string, source: keyof typeof this.rssFeeds extends string ? string : never, sourceName: string, since?: Date): CarbonStandardArticle[] {
+  private parseRSSXml(xml: string, source: keyof typeof this.rssFeeds extends string ? string : never, sourceName: string, since?: Date, strict: boolean = true): CarbonStandardArticle[] {
     const articles: CarbonStandardArticle[] = [];
 
     // Extract items from RSS/XML
@@ -743,16 +751,15 @@ export class CarbonStandardsConnector extends BaseConnector {
         publishedDate = new Date(dcDateMatch[1]);
       }
 
-      if (since && publishedDate < since) continue;
+      if (since && publishedDate < since) continue;      const fullText = `${title} ${description || ""}`.toLowerCase();
+      if (strict) {
+        const isRelevant = CARBON_KEYWORDS.some(kw => fullText.includes(kw)) ||
+                          /biofuel|renewable|carbon|climate|energy|emission/i.test(fullText);
 
-      // Filter for carbon/biofuel relevance
-      const fullText = `${title} ${description || ""}`.toLowerCase();
-      const isRelevant = CARBON_KEYWORDS.some(kw => fullText.includes(kw)) ||
-                        /biofuel|renewable|carbon|climate|energy|emission/i.test(fullText);
+        if (!isRelevant) continue;
+      }
 
-      if (!isRelevant) continue;
-
-      const keywords = this.extractKeywords(fullText);
+const keywords = this.extractKeywords(fullText);
       const category = this.categorizeArticle(title, description || "");
 
       articles.push({
@@ -895,6 +902,15 @@ export class CarbonStandardsConnector extends BaseConnector {
       this.rssFeeds.fao_climate,
       "fao",
       "FAO (Food and Agriculture Organization)",
+      since
+    );
+  }
+
+  private async fetchGoogleCarbonNews(since?: Date): Promise<CarbonStandardArticle[]> {
+    return this.fetchRSSFeed(
+      this.rssFeeds.google_carbon,
+      "google_news",
+      "Google News (Carbon Markets)",
       since
     );
   }

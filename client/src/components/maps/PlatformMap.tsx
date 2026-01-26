@@ -48,7 +48,6 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { cn } from '@/lib/utils';
-import { ProjectsLayer } from './ProjectsLayer';
 import { ProjectClaimingModal } from '../projects/ProjectClaimingModal';
 import { ABFIMethodologyExplainer } from '../projects/ABFIMethodologyExplainer';
 import { trpc } from '@/lib/trpc';
@@ -1413,3 +1412,4 @@ export function PlatformMap({
 }
 
 export default PlatformMap;
+

@@ -83,6 +83,12 @@ const PRIORITY_ACTIONS = [
   },
 ];
 
+const PRIMARY_ACTIONS = [
+  { id:"feedstock", label:"Add Feedstock", href:"/feedstock/create", icon: Plus },
+  { id:"certs", label:"Upload Certifications", href:"/certificate/upload", icon: Upload },
+  { id:"map", label:"Open Map", href:"/map", icon: MapPin },
+];
+
 export default function GrowerDashboard() {
   const { user, loading: authLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -224,6 +230,25 @@ export default function GrowerDashboard() {
                   <div className="text-xs text-muted-foreground">{stat.label}</div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions - Always Visible */}
+      <div className="border-b bg-background/80 py-4">
+        <div className="premium-container">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Quick Actions
+            </span>
+            {PRIMARY_ACTIONS.map((action) => (
+              <Link key={action.id} href={action.href}>
+                <Button variant="outline" size="sm" className="gap-2 premium-button">
+                  <action.icon className="h-4 w-4" />
+                  {action.label}
+                </Button>
+              </Link>
             ))}
           </div>
         </div>
