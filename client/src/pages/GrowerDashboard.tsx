@@ -41,7 +41,7 @@ import { OnboardingModal } from "@/components/OnboardingModal";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { ClimateAlertsBar } from "@/components/climate/ClimateAlertsBar";
-import { UnifiedClimatePanel } from "@/components/climate/UnifiedClimatePanel";
+import { WeatherDashboard } from "@/components/climate/WeatherDashboard";
 
 // Onboarding checklist items
 const ONBOARDING_CHECKLIST = [
@@ -461,28 +461,7 @@ export default function GrowerDashboard() {
           </Card>
 
           <div className="space-y-6">
-            <Card className="premium-card">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="premium-heading">Live Weather</CardTitle>
-                    <CardDescription className="premium-body">
-                      BOM radar, warnings, and SILO climate signals.
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    BOM + SILO
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ClimateAlertsBar
-                  alerts={Array.isArray(climateAlerts?.byType) ? climateAlerts.byType.flatMap((g) => g.alerts) : []}
-                  isLoading={alertsLoading}
-                />
-                <UnifiedClimatePanel coordinates={primaryCoordinates} className="w-full max-w-none" />
-              </CardContent>
-            </Card>
+            <WeatherDashboard coordinates={primaryCoordinates} className="w-full" />
 
             <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
               <CardHeader className="pb-2 pt-4">
