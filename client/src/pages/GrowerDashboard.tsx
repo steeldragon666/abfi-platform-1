@@ -98,13 +98,13 @@ export default function GrowerDashboard() {
     data: feedstocks,
     isLoading: feedstocksLoading,
     refetch: refetchFeedstocks,
-  } = trpc.feedstocks.list.useQuery(undefined, { enabled: !!user });
+  } = trpc.feedstocks.list.useQuery(undefined, { enabled: true });
 
   const {
     data: inquiries,
     isLoading: inquiriesLoading,
     refetch: refetchInquiries,
-  } = trpc.inquiries.listForSupplier.useQuery(undefined, { enabled: !!user });
+  } = trpc.inquiries.listForSupplier.useQuery(undefined, { enabled: true });
 
   const { data: climateAlerts, isLoading: alertsLoading } =
     trpc.climateHub.getClimateAlerts.useQuery({});
@@ -161,7 +161,7 @@ export default function GrowerDashboard() {
     await utils.notifications.list.invalidate();
   };
 
-  if (authLoading || !user) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="premium-container py-12 space-y-4">
@@ -175,6 +175,8 @@ export default function GrowerDashboard() {
       </div>
     );
   }
+
+  const isGuestMode = !user;
 
   return (
     <div className="min-h-screen bg-background premium-fade-in">
@@ -253,6 +255,28 @@ export default function GrowerDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Guest Mode Banner */}
+      {isGuestMode && (
+        <div className="bg-amber-50 border-b border-amber-200 py-3">
+          <div className="premium-container">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-amber-900">Demo Mode</p>
+                  <p className="text-xs text-amber-700">Viewing sample data. Sign in to access your account.</p>
+                </div>
+              </div>
+              <Button size="sm" variant="default" className="bg-amber-600 hover:bg-amber-700">
+                Sign In
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content - Premium Layout */}
       <main className="premium-container premium-section space-y-6">
