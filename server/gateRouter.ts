@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, or } from "drizzle-orm";
 import { router, protectedProcedure } from "./_core/trpc";
 import { getDb } from "./db";
-import { gateEvents, gateReleases, paymentGuarantees } from "../drizzle/schema";
+import { abfiGateEvents as gateEvents, abfiPaymentReleases as gateReleases, abfiPaymentGuarantees as paymentGuarantees } from "../drizzle/schema";
 
 // ============================================================================
 // GATE PAYMENT RAIL ROUTER
@@ -28,9 +28,7 @@ export const gateRouter = router({
       }
 
       const eventConditions = [];
-      if (input.consignmentId) {
-        eventConditions.push(eq(gateEvents.consignmentId, input.consignmentId));
-      }
+      // Note: consignmentId not available in abfiGateEvents schema
       if (input.deliveryId) {
         eventConditions.push(eq(gateEvents.deliveryId, input.deliveryId));
       }
@@ -40,12 +38,10 @@ export const gateRouter = router({
         .select()
         .from(gateEvents)
         .where(eventWhere)
-        .orderBy(desc(gateEvents.receivedAt));
+        .orderBy(desc(gateEvents.recordedAt));
 
       const releaseConditions = [];
-      if (input.consignmentId) {
-        releaseConditions.push(eq(gateReleases.consignmentId, input.consignmentId));
-      }
+      // Note: consignmentId not available in abfiPaymentReleases schema
       if (input.deliveryId) {
         releaseConditions.push(eq(gateReleases.deliveryId, input.deliveryId));
       }
@@ -95,24 +91,8 @@ export const gateRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
       }
 
-      const guaranteeConditions = [];
-      if (input.contractId) {
-        guaranteeConditions.push(eq(paymentGuarantees.contractId, input.contractId));
-      }
-      if (input.deliveryId) {
-        guaranteeConditions.push(eq(paymentGuarantees.deliveryId, input.deliveryId));
-      }
-      const guaranteeWhere =
-        guaranteeConditions.length === 1
-          ? guaranteeConditions[0]
-          : or(...guaranteeConditions);
-
-      const guarantees = await db
-        .select()
-        .from(paymentGuarantees)
-        .where(guaranteeWhere)
-        .orderBy(desc(paymentGuarantees.createdAt));
-
-      return { guarantees };
+      // Note: contractId and deliveryId not available in abfiPaymentGuarantees schema
+      // Schema needs to be updated to include these fields
+      throw new TRPCError({ code: "NOT_IMPLEMENTED", message: "Payment guarantee lookup by contractId/deliveryId not yet implemented - schema incomplete" });
     }),
 });

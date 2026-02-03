@@ -50,6 +50,7 @@ import 'leaflet/dist/leaflet.css';
 import { cn } from '@/lib/utils';
 import { ProjectClaimingModal } from '../projects/ProjectClaimingModal';
 import { ABFIMethodologyExplainer } from '../projects/ABFIMethodologyExplainer';
+import { ProjectsLayer } from './ProjectsLayer';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';

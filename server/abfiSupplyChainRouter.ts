@@ -77,7 +77,7 @@ export const abfiSupplyChainRouter = router({
       gnosisChain: z.string().max(50).optional(),
       gnosisDepositTxHash: z.string().max(100).optional(),
 
-      metadata: z.record(z.any()).optional(),
+      metadata: z.record(z.string(), z.any()).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
@@ -276,7 +276,7 @@ export const abfiSupplyChainRouter = router({
       deliveryId: z.string(),
       gateIndex: z.number().int().min(0).max(4),
       deviceType: z.enum(gateDeviceTypes),
-      payload: z.record(z.any()).optional(),
+      payload: z.record(z.string(), z.any()).optional(),
       sensorTimestamp: z.date().optional(),
       latitude: z.number().optional(),
       longitude: z.number().optional(),
