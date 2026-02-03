@@ -1,0 +1,122 @@
+{
+  "passed": 5,
+  "failed": 6,
+  "total": 11,
+  "success_rate": "45.5%",
+  "failed_tests": [
+    {
+      "endpoint": "/api/trpc/intelligence.getLatestSummary",
+      "description": "Intelligence Summary",
+      "message": "Status: 404",
+      "data": {
+        "error": {
+          "json": {
+            "message": "No procedure found on path \"intelligence.getLatestSummary\"",
+            "code": -32004,
+            "data": {
+              "code": "NOT_FOUND",
+              "httpStatus": 404,
+              "stack": "TRPCError: No procedure found on path \"intelligence.getLatestSummary\"\n    at file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1933:22\n    at Array.map (<anonymous>)\n    at resolveResponse (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1929:31)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async fetchRequestHandler (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/adapters/fetch/index.mjs:27:9)\n    at async Object.handler (/vercel/path0/api/trpc/[trpc].ts:1133:22)\n    at async r (/opt/rust/nodejs.js:2:15572)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:2:11594)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:17:9988)",
+              "path": "intelligence.getLatestSummary"
+            }
+          }
+        }
+      }
+    },
+    {
+      "endpoint": "/api/trpc/sentiment.getMarketSentiment",
+      "description": "Market Sentiment",
+      "message": "Status: 404",
+      "data": {
+        "error": {
+          "json": {
+            "message": "No procedure found on path \"sentiment.getMarketSentiment\"",
+            "code": -32004,
+            "data": {
+              "code": "NOT_FOUND",
+              "httpStatus": 404,
+              "stack": "TRPCError: No procedure found on path \"sentiment.getMarketSentiment\"\n    at file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1933:22\n    at Array.map (<anonymous>)\n    at resolveResponse (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1929:31)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async fetchRequestHandler (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/adapters/fetch/index.mjs:27:9)\n    at async Object.handler (/vercel/path0/api/trpc/[trpc].ts:1133:22)\n    at async r (/opt/rust/nodejs.js:2:15572)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:2:11594)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:17:9988)",
+              "path": "sentiment.getMarketSentiment"
+            }
+          }
+        }
+      }
+    },
+    {
+      "endpoint": "/api/trpc/prices.getCurrentPrices",
+      "description": "Current Prices",
+      "message": "Status: 404",
+      "data": {
+        "error": {
+          "json": {
+            "message": "No procedure found on path \"prices.getCurrentPrices\"",
+            "code": -32004,
+            "data": {
+              "code": "NOT_FOUND",
+              "httpStatus": 404,
+              "stack": "TRPCError: No procedure found on path \"prices.getCurrentPrices\"\n    at file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1933:22\n    at Array.map (<anonymous>)\n    at resolveResponse (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1929:31)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async fetchRequestHandler (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/adapters/fetch/index.mjs:27:9)\n    at async Object.handler (/vercel/path0/api/trpc/[trpc].ts:1133:22)\n    at async r (/opt/rust/nodejs.js:2:15572)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:2:11594)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:17:9988)",
+              "path": "prices.getCurrentPrices"
+            }
+          }
+        }
+      }
+    },
+    {
+      "endpoint": "/api/trpc/policy.getPolicyUpdates",
+      "description": "Policy Updates",
+      "message": "Status: 404",
+      "data": {
+        "error": {
+          "json": {
+            "message": "No procedure found on path \"policy.getPolicyUpdates\"",
+            "code": -32004,
+            "data": {
+              "code": "NOT_FOUND",
+              "httpStatus": 404,
+              "stack": "TRPCError: No procedure found on path \"policy.getPolicyUpdates\"\n    at file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1933:22\n    at Array.map (<anonymous>)\n    at resolveResponse (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1929:31)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async fetchRequestHandler (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/adapters/fetch/index.mjs:27:9)\n    at async Object.handler (/vercel/path0/api/trpc/[trpc].ts:1133:22)\n    at async r (/opt/rust/nodejs.js:2:15572)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:2:11594)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:17:9988)",
+              "path": "policy.getPolicyUpdates"
+            }
+          }
+        }
+      }
+    },
+    {
+      "endpoint": "/api/trpc/bankability.getProjectRatings",
+      "description": "Project Ratings",
+      "message": "Status: 404",
+      "data": {
+        "error": {
+          "json": {
+            "message": "No procedure found on path \"bankability.getProjectRatings\"",
+            "code": -32004,
+            "data": {
+              "code": "NOT_FOUND",
+              "httpStatus": 404,
+              "stack": "TRPCError: No procedure found on path \"bankability.getProjectRatings\"\n    at file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1933:22\n    at Array.map (<anonymous>)\n    at resolveResponse (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1929:31)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async fetchRequestHandler (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/adapters/fetch/index.mjs:27:9)\n    at async Object.handler (/vercel/path0/api/trpc/[trpc].ts:1133:22)\n    at async r (/opt/rust/nodejs.js:2:15572)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:2:11594)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:17:9988)",
+              "path": "bankability.getProjectRatings"
+            }
+          }
+        }
+      }
+    },
+    {
+      "endpoint": "/api/trpc/projects.list",
+      "description": "Projects List",
+      "message": "Status: 404",
+      "data": {
+        "error": {
+          "json": {
+            "message": "No procedure found on path \"projects.list\"",
+            "code": -32004,
+            "data": {
+              "code": "NOT_FOUND",
+              "httpStatus": 404,
+              "stack": "TRPCError: No procedure found on path \"projects.list\"\n    at file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1933:22\n    at Array.map (<anonymous>)\n    at resolveResponse (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/resolveResponse-DngSgha6.mjs:1929:31)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async fetchRequestHandler (file:///var/task/node_modules/.pnpm/@trpc+server@11.6.0_typescript@5.9.3/node_modules/@trpc/server/dist/adapters/fetch/index.mjs:27:9)\n    at async Object.handler (/vercel/path0/api/trpc/[trpc].ts:1133:22)\n    at async r (/opt/rust/nodejs.js:2:15572)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:2:11594)\n    at async Server.<anonymous> (/opt/rust/nodejs.js:17:9988)",
+              "path": "projects.list"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

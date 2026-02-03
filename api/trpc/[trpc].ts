@@ -645,6 +645,10 @@ const feedstocksRouter = router({
   getPublic: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(({ input }) => MOCK_FEEDSTOCKS.find(f => f.id === input.id) || null),
+
+  list: publicProcedure
+    .input(z.object({ limit: z.number().default(200) }).optional())
+    .query(({ input }) => MOCK_FEEDSTOCKS.slice(0, input?.limit || 200)),
 });
 
 // =============================================================================
@@ -1068,6 +1072,105 @@ const carbonRouter = router({
     })),
 });
 
+// =============================================================================
+// Mock Inquiries Router
+// =============================================================================
+const MOCK_INQUIRIES = [
+  {
+    id: 1,
+    subject: "Canola Supply Inquiry",
+    buyerName: "Biodiesel Australia",
+    status: "open",
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    feedstockType: "Canola",
+    volumeRequired: 5000,
+    state: "NSW",
+  },
+  {
+    id: 2,
+    subject: "Wheat Straw Availability",
+    buyerName: "Green Energy Corp",
+    status: "responded",
+    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+    feedstockType: "Wheat Straw",
+    volumeRequired: 8000,
+    state: "VIC",
+  },
+  {
+    id: 3,
+    subject: "UCO Collection Partnership",
+    buyerName: "EcoBio Fuels",
+    status: "open",
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    feedstockType: "UCO",
+    volumeRequired: 2000,
+    state: "QLD",
+  },
+];
+
+const inquiriesRouter = router({
+  listForSupplier: publicProcedure
+    .input(z.object({ limit: z.number().default(50) }).optional())
+    .query(({ input }) => MOCK_INQUIRIES.slice(0, input?.limit || 50)),
+
+  listForBuyer: publicProcedure
+    .input(z.object({ limit: z.number().default(50) }).optional())
+    .query(({ input }) => MOCK_INQUIRIES.slice(0, input?.limit || 50)),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => MOCK_INQUIRIES.find(i => i.id === input.id) || null),
+});
+
+// =============================================================================
+// Mock Notifications Router
+// =============================================================================
+const MOCK_NOTIFICATIONS = [
+  {
+    id: 1,
+    type: "inquiry",
+    title: "New Inquiry Received",
+    message: "Biodiesel Australia is interested in your canola supply",
+    read: false,
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 2,
+    type: "weather",
+    title: "Severe Weather Alert",
+    message: "Heavy rainfall expected in your region",
+    read: false,
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+  },
+  {
+    id: 3,
+    type: "system",
+    title: "Platform Update",
+    message: "New carbon tracking features available",
+    read: true,
+    createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+  },
+];
+
+const notificationsRouter = router({
+  list: publicProcedure
+    .input(z.object({ limit: z.number().default(50), unreadOnly: z.boolean().optional() }).optional())
+    .query(({ input }) => {
+      let results = [...MOCK_NOTIFICATIONS];
+      if (input?.unreadOnly) {
+        results = results.filter(n => !n.read);
+      }
+      return results.slice(0, input?.limit || 50);
+    }),
+
+  markAsRead: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(({ input }) => ({
+      success: true,
+      id: input.id,
+    })),
+});
+
 // API router for Vercel
 const apiRouter = router({
   system: router({
@@ -1094,6 +1197,8 @@ const apiRouter = router({
   stressTesting: stressTestingRouter,
   policy: policyRouter,
   carbon: carbonRouter,
+  inquiries: inquiriesRouter,
+  notifications: notificationsRouter,
 });
 
 export const config = {
