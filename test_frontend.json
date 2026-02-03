@@ -1,0 +1,29 @@
+{
+  "test_scenarios": [
+    {
+      "name": "Homepage Load",
+      "url": "https://abfi-platform.vercel.app/",
+      "checks": ["title", "navigation", "market_signals"]
+    },
+    {
+      "name": "Map Functionality",
+      "url": "https://abfi-platform.vercel.app/map",
+      "checks": ["map_container", "controls"]
+    },
+    {
+      "name": "Market Intelligence",
+      "url": "https://abfi-platform.vercel.app/market-intelligence",
+      "checks": ["dashboard", "charts"]
+    },
+    {
+      "name": "Finance Dashboard",
+      "url": "https://abfi-platform.vercel.app/finance/dashboard",
+      "checks": ["metrics", "navigation"]
+    },
+    {
+      "name": "Beema Bamboo",
+      "url": "https://abfi-platform.vercel.app/beema-bamboo",
+      "checks": ["content", "cta_buttons"]
+    }
+  ]
+}
